@@ -10,6 +10,7 @@
     "prebuild": "node scripts/build-data.mjs",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "pretest": "node scripts/build-data.mjs",
     "test": "vitest run",
     "preview": "vite preview"
   },
