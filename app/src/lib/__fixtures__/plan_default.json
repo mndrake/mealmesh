@@ -1,0 +1,116 @@
+{
+  "plan": [
+    {
+      "breakfast": {
+        "id": "chia-cottage-cheese-pudding-diabetes-friendly-recipe",
+        "leftover": false
+      },
+      "day": "Mon",
+      "dinner": {
+        "id": "algerian-kefta-meatballs",
+        "leftover": false
+      },
+      "lunch": {
+        "id": "bang-bang-chicken-salad-sandwich",
+        "leftover": false
+      },
+      "snack": "Apple + 1 tbsp almond butter"
+    },
+    {
+      "breakfast": {
+        "id": "cottage-cheese-berry-bowl",
+        "leftover": false
+      },
+      "day": "Tue",
+      "dinner": {
+        "id": "lentil-vegetable-curry-over-brown-rice",
+        "leftover": false
+      },
+      "lunch": {
+        "id": "black-bean-fajita-salad",
+        "leftover": false
+      },
+      "snack": "Veggie sticks + hummus"
+    },
+    {
+      "breakfast": {
+        "id": "diabetes-friendly-banana-coffee-protein-breakfast-smoothie-recipe",
+        "leftover": false
+      },
+      "day": "Wed",
+      "dinner": {
+        "id": "brown-stew-chicken",
+        "leftover": false
+      },
+      "lunch": {
+        "id": "high-protein-veggie-salad",
+        "leftover": false
+      },
+      "snack": "Greek yogurt + berries"
+    },
+    {
+      "breakfast": {
+        "id": "delicious-diabetes-friendly-smoothies-strawberry-banana-breakfast-delight",
+        "leftover": false
+      },
+      "day": "Thu",
+      "dinner": {
+        "id": "thai-green-curry",
+        "leftover": false
+      },
+      "lunch": {
+        "id": "chickpea-cucumber-sandwich",
+        "leftover": false
+      },
+      "snack": "Cheese stick + cherry tomatoes"
+    },
+    {
+      "breakfast": {
+        "id": "high-protein-raspberry-peanut-butter-chia-pudding",
+        "leftover": false
+      },
+      "day": "Fri",
+      "dinner": {
+        "id": "turkey-chili",
+        "leftover": false
+      },
+      "lunch": {
+        "id": "tomato-egg-salad-sandwich",
+        "leftover": false
+      },
+      "snack": "Small handful of almonds"
+    },
+    {
+      "breakfast": {
+        "id": "antiguan-breakfast-chop-up-and-saltfish",
+        "leftover": false
+      },
+      "day": "Sat",
+      "dinner": {
+        "id": "chicken-liver-pate-recipe",
+        "leftover": false
+      },
+      "lunch": {
+        "id": "lentil-vegetable-curry-over-brown-rice",
+        "leftover": true
+      },
+      "snack": "Apple + 1 tbsp almond butter"
+    },
+    {
+      "breakfast": {
+        "id": "salmon-eggs-eggs-benedict",
+        "leftover": false
+      },
+      "day": "Sun",
+      "dinner": {
+        "id": "poulet-roti-a-l-algerienne-algerian-roast-chicken",
+        "leftover": false
+      },
+      "lunch": {
+        "id": "turkey-chili",
+        "leftover": true
+      },
+      "snack": "Veggie sticks + hummus"
+    }
+  ]
+}

@@ -1,0 +1,435 @@
+{
+  "sections": {
+    "Bakery": [
+      [
+        "broken tortilla chips",
+        "1 cup"
+      ],
+      [
+        "whole-grain bread",
+        "10 slice"
+      ],
+      [
+        "whole-wheat bread",
+        "4 slice"
+      ]
+    ],
+    "Dairy & Eggs": [
+      [
+        "butter",
+        "2 oz, + to taste"
+      ],
+      [
+        "coconut milk",
+        "2 cup, 400 ml"
+      ],
+      [
+        "crumbled queso fresco",
+        "0.75 cup"
+      ],
+      [
+        "egg",
+        "3 each"
+      ],
+      [
+        "egg plants",
+        "4 each"
+      ],
+      [
+        "eggs",
+        "4 each"
+      ],
+      [
+        "full-fat cottage cheese",
+        "12.6 oz"
+      ],
+      [
+        "greek-style yogurt",
+        "0.62 cup"
+      ],
+      [
+        "hard-boiled eggs",
+        "2 each"
+      ],
+      [
+        "low-fat cottage cheese",
+        "1.5 cup"
+      ],
+      [
+        "milk",
+        "+ splash"
+      ],
+      [
+        "natural peanut butter",
+        "0.46 cup"
+      ],
+      [
+        "nonfat plain greek yogurt",
+        "0.75 cup"
+      ],
+      [
+        "unsalted butter",
+        "125 g"
+      ],
+      [
+        "unsweetened almond milk",
+        "3 cup"
+      ],
+      [
+        "unsweetened plain almond milk",
+        "3 cup"
+      ],
+      [
+        "whole milk",
+        "4 oz"
+      ]
+    ],
+    "Meat & Poultry": [
+      [
+        "bacon",
+        "8 oz"
+      ],
+      [
+        "chicken",
+        "2 each, 450 g"
+      ],
+      [
+        "chicken liver",
+        "1 lb"
+      ],
+      [
+        "ground beef",
+        "1 lb"
+      ],
+      [
+        "lean ground turkey",
+        "1 lb"
+      ],
+      [
+        "minced shallot",
+        "2 tbsp"
+      ],
+      [
+        "shredded cooked chicken breast",
+        "5.5 cup"
+      ],
+      [
+        "smoked salmon",
+        "8 slice"
+      ],
+      [
+        "thai fish sauce",
+        "0.67 tbsp"
+      ]
+    ],
+    "Pantry & Dry Goods": [
+      [
+        "brown rice",
+        "2 cup"
+      ],
+      [
+        "canned diced tomatoes",
+        "1.81 lb"
+      ],
+      [
+        "canned kidney beans",
+        "15 oz"
+      ],
+      [
+        "chia seeds",
+        "0.97 cup"
+      ],
+      [
+        "cornstarch",
+        "0.67 tbsp"
+      ],
+      [
+        "dried lentils",
+        "1 cup"
+      ],
+      [
+        "green beans",
+        "100 g"
+      ],
+      [
+        "ground flaxseed",
+        "1 tbsp"
+      ],
+      [
+        "hemp seeds",
+        "1 tbsp"
+      ],
+      [
+        "honey",
+        "2 tbsp"
+      ],
+      [
+        "light coconut milk",
+        "14 oz"
+      ],
+      [
+        "low-sodium black beans",
+        "1 can"
+      ],
+      [
+        "low-sodium chicken broth",
+        "1 cup"
+      ],
+      [
+        "no-salt-added black beans",
+        "2 can"
+      ],
+      [
+        "no-salt-added chickpeas",
+        "1 can"
+      ],
+      [
+        "pure maple syrup",
+        "2 tbsp"
+      ],
+      [
+        "rice",
+        "+ to taste"
+      ],
+      [
+        "rolled oats",
+        "0.38 cup"
+      ],
+      [
+        "sliced almonds",
+        "2 tbsp"
+      ],
+      [
+        "sugar",
+        "0.33 tbsp"
+      ],
+      [
+        "tomato paste",
+        "2 tbsp"
+      ]
+    ],
+    "Produce": [
+      [
+        "baby spinach",
+        "3 cup"
+      ],
+      [
+        "baby spring mix",
+        "4 cup"
+      ],
+      [
+        "banana",
+        "2 each"
+      ],
+      [
+        "banana, frozen",
+        "1 each"
+      ],
+      [
+        "blueberries",
+        "1 cup, 2.5 oz"
+      ],
+      [
+        "callaloo",
+        "8 oz"
+      ],
+      [
+        "carrots",
+        "1 each"
+      ],
+      [
+        "chili powder",
+        "0.5 tbsp"
+      ],
+      [
+        "chopped arugula",
+        "5.5 cup"
+      ],
+      [
+        "chopped red bell pepper",
+        "0.75 cup"
+      ],
+      [
+        "chopped red onion",
+        "1 cup"
+      ],
+      [
+        "chopped romaine lettuce",
+        "5.5 cup"
+      ],
+      [
+        "chopped yellow bell pepper",
+        "0.5 cup"
+      ],
+      [
+        "english muffins",
+        "2 each"
+      ],
+      [
+        "fresh corn kernels",
+        "1 cup"
+      ],
+      [
+        "fresh ginger",
+        "1 tbsp"
+      ],
+      [
+        "fresh raspberries",
+        "3 cup"
+      ],
+      [
+        "garlic",
+        "20 clove"
+      ],
+      [
+        "garlic clove",
+        "2 each"
+      ],
+      [
+        "garlic powder",
+        "0.33 tbsp"
+      ],
+      [
+        "instant coffee powder",
+        "0.67 tbsp"
+      ],
+      [
+        "jalapeño",
+        "1 each"
+      ],
+      [
+        "leaves green leaf lettuce",
+        "8 each"
+      ],
+      [
+        "leaves green lettuce",
+        "4 each"
+      ],
+      [
+        "lemon juice",
+        "0.67 tbsp"
+      ],
+      [
+        "lime",
+        "3 each"
+      ],
+      [
+        "lime juice",
+        "0.42 cup"
+      ],
+      [
+        "matchstick carrots",
+        "0.25 cup"
+      ],
+      [
+        "onion",
+        "0.5 cup, 3 each"
+      ],
+      [
+        "onion powder",
+        "0.17 tbsp"
+      ],
+      [
+        "onions",
+        "2 each"
+      ],
+      [
+        "plum tomatoes",
+        "3 each"
+      ],
+      [
+        "potatoes",
+        "225 g"
+      ],
+      [
+        "pumpkin",
+        "1 lb"
+      ],
+      [
+        "red bell pepper",
+        "1 each"
+      ],
+      [
+        "scallion",
+        "1 each"
+      ],
+      [
+        "scoop chocolate protein powder",
+        "1 each"
+      ],
+      [
+        "sherry",
+        "1 tbsp"
+      ],
+      [
+        "sliced cucumber",
+        "0.75 cup"
+      ],
+      [
+        "sliced english cucumber",
+        "0.5 cup"
+      ],
+      [
+        "strawberries, frozen",
+        "1 cup"
+      ],
+      [
+        "sweet chili sauce",
+        "1 tbsp"
+      ],
+      [
+        "thai green curry paste",
+        "1.33 tbsp"
+      ],
+      [
+        "tomato",
+        "3 each, 4 slice"
+      ],
+      [
+        "yellow onion",
+        "2 each"
+      ]
+    ]
+  },
+  "staples": [
+    "allspice",
+    "avocado oil",
+    "balsamic vinegar",
+    "basil",
+    "black pepper",
+    "cayenne",
+    "cayenne pepper",
+    "chili powder",
+    "chopped fresh cilantro",
+    "chopped fresh parsley",
+    "cocoa powder",
+    "crushed red pepper",
+    "curry powder",
+    "dijon mustard",
+    "extra-virgin olive oil",
+    "grated fresh ginger",
+    "ground cinnamon",
+    "ground cumin",
+    "ground mustard",
+    "ground pepper",
+    "mayonnaise",
+    "olive oil",
+    "parsley",
+    "pepper",
+    "red pepper",
+    "red-wine vinegar",
+    "salt",
+    "scoops vanilla protein powder",
+    "smoked paprika",
+    "soy sauce",
+    "sriracha",
+    "sunflower oil",
+    "thyme",
+    "turmeric",
+    "vanilla extract",
+    "vegetable oil",
+    "water",
+    "white wine vinegar",
+    "za'atar"
+  ]
+}
