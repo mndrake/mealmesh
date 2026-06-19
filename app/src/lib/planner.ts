@@ -137,11 +137,14 @@ export function buildPlan(recipes: Recipe[], opts: PlanOptions = {}): Plan {
   return plan;
 }
 
-/** Recipes actually cooked/assembled (leftovers excluded) -> for the shopping list. */
+/** Recipes actually cooked/assembled (leftovers excluded) -> for the shopping list.
+ *  Snack slots are included so a recipe placed there is shopped for, consistent with
+ *  the nutrition totals. Canned snack *strings* (from auto-suggest) carry no recipe and
+ *  are skipped — so this stays identical to planner.py:cooked_meals for generated plans. */
 export function cookedMeals(plan: Plan, byId: Map<string, Recipe>): Recipe[] {
   const meals: Recipe[] = [];
   for (const day of plan) {
-    for (const slot of ["breakfast", "lunch", "dinner"] as const) {
+    for (const slot of ["breakfast", "lunch", "dinner", "snack"] as const) {
       const ref = day[slot];
       if (ref && typeof ref !== "string" && !ref.leftover) {
         const r = byId.get(ref.id);
