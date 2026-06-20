@@ -9,6 +9,11 @@
   command = "npm run build"
   publish = "dist"
 
+# Vite 8 requires Node >= 20.19; pin it so Netlify doesn't build on an older default
+# (which fails the build and publishes nothing). Matches the CI Node version.
+[build.environment]
+  NODE_VERSION = "20"
+
 # SPA fallback so client-side routing / deep links resolve to index.html.
 [[redirects]]
   from = "/*"
