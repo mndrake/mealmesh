@@ -64,5 +64,8 @@ export const krogerClient = {
   match: (items: { name: string; displayQty: string }[]) =>
     call<{ rows: ReviewRow[] }>("match", { method: "POST", body: JSON.stringify({ items }) }),
   cart: (items: { upc: string; quantity: number }[], modality: string) =>
-    call<{ ok: boolean; added: number }>("cart", { method: "POST", body: JSON.stringify({ items, modality }) }),
+    call<{ ok: boolean; added: number; failed: { upc: string; status: number }[] }>("cart", {
+      method: "POST",
+      body: JSON.stringify({ items, modality }),
+    }),
 };

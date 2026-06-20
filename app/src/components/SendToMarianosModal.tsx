@@ -16,6 +16,7 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
   const [rows, setRows] = useState<ReviewRow[]>([]);
   const [modality, setModality] = useState("PICKUP");
   const [added, setAdded] = useState(0);
+  const [failedCount, setFailedCount] = useState(0);
 
   // Non-staple shopping items to match (staples are "check pantry", not bought here).
   const items = list.sections.flatMap((s) => s.items).map(([name, displayQty]) => ({ name, displayQty }));
@@ -100,6 +101,7 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
     try {
       const res = await krogerClient.cart(payload, modality);
       setAdded(res.added);
+      setFailedCount(res.failed?.length ?? 0);
       setStep("done");
     } catch (e) {
       fail(e);
@@ -235,6 +237,7 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
               <p>
                 ✅ Added <strong>{added}</strong> item{added === 1 ? "" : "s"} to your Mariano's
                 cart ({modality.toLowerCase()}).
+                {failedCount ? ` ${failedCount} couldn't be added (not available for this store/modality).` : ""}
                 {skipped ? ` ${skipped} item(s) had no match — grab those in store.` : ""}
               </p>
               <a className="btn" href="https://www.marianos.com/cart" target="_blank" rel="noreferrer">

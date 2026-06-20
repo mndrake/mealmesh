@@ -42,23 +42,43 @@ export default async (req: Request): Promise<Response> => {
     );
   };
 
+  const put = async (its: { upc: string; quantity: number }[]): Promise<Response> => {
+    let r = await addToCart(process.env, access, its, modality);
+    if (r.status === 401) {
+      await refresh();
+      r = await addToCart(process.env, access, its, modality);
+    }
+    return r;
+  };
+
   try {
     const expMs = conn.expires_at ? Date.parse(conn.expires_at) : null;
     if (!access || needsRefresh(expMs, Date.now())) await refresh();
 
-    let res = await addToCart(process.env, access, items, modality);
-    if (res.status === 401) {
-      await refresh();
-      res = await addToCart(process.env, access, items, modality);
-    }
-    if (res.status === 204) {
+    // Fast path: one batched call.
+    const batch = await put(items);
+    if (batch.status === 204) {
       await setModality(householdId, modality);
-      return json({ ok: true, added: items.length });
+      return json({ ok: true, added: items.length, failed: [] });
     }
-    const detail = (await res.text().catch(() => "")).slice(0, 200);
-    console.warn("[kroger] cart add status:", res.status, detail, JSON.stringify(items));
-    // Echo back the first few items we sent so the exact UPC/quantity is visible for debugging.
-    return json({ error: "cart_failed", status: res.status, detail, sent: items.slice(0, 5) }, 502);
+
+    // Kroger fails the whole batch if any single item is un-addable (e.g. a produce PLU).
+    // Fall back to adding each item alone so the good ones still land, and report the rest.
+    const batchDetail = (await batch.text().catch(() => "")).slice(0, 200);
+    let added = 0;
+    const failed: { upc: string; status: number }[] = [];
+    for (const it of items) {
+      const r = await put([it]);
+      if (r.status === 204) added++;
+      else failed.push({ upc: it.upc, status: r.status });
+    }
+    console.warn("[kroger] cart batch failed; per-item added:", added, "failed:", JSON.stringify(failed), batchDetail);
+
+    if (added > 0) {
+      await setModality(householdId, modality);
+      return json({ ok: true, added, failed });
+    }
+    return json({ error: "cart_failed", status: batch.status, detail: batchDetail, failed }, 502);
   } catch (e) {
     console.warn("[kroger] cart error:", (e as Error).message);
     return json({ error: "cart_failed", detail: (e as Error).message }, 502);
