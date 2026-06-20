@@ -8,6 +8,7 @@ import { PlannerView } from "./components/PlannerView";
 import { ShoppingView } from "./components/ShoppingView";
 import { AddToPlanModal } from "./components/AddToPlanModal";
 import { exportAllState } from "./lib/exporter";
+import { useAuth } from "./lib/auth";
 
 type Tab = "browse" | "plan" | "shopping";
 type Slot = "breakfast" | "lunch" | "dinner" | "snack";
@@ -17,6 +18,7 @@ export default function App() {
   const [addTarget, setAddTarget] = useState<Recipe | null>(null);
   const plan = useStore((s) => s.activePlan);
   const favoritesCount = useStore((s) => s.favorites.length);
+  const { email, signOut } = useAuth();
 
   // count distinct planned meals for the nav badge
   const plannedCount = cookedMeals(plan, recipesById).length;
@@ -84,6 +86,15 @@ export default function App() {
             <span className="muted" style={{ fontSize: "0.78rem" }}>
               {recipes.length} recipes
             </span>
+            {email && (
+              <button
+                className="btn ghost small"
+                onClick={signOut}
+                title={`Signed in as ${email} — sign out`}
+              >
+                Sign out
+              </button>
+            )}
           </div>
         </div>
       </header>
