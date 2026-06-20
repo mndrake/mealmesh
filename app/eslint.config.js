@@ -6,7 +6,9 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  // Netlify functions run in a Node runtime (not the browser) and are bundled/typechecked
+  // separately; keep them out of the app's browser-globals lint config.
+  globalIgnores(['dist', 'netlify/functions']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

@@ -19,6 +19,28 @@
   # the deploy. (Set them as regular, non-secret env vars in the Netlify UI.)
   SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY"
 
+# Netlify Functions — the Kroger broker. Directory is relative to base = "app".
+# Secrets (KROGER_CLIENT_SECRET, SUPABASE_SERVICE_ROLE_KEY) are function env only,
+# never in the client bundle.
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Route /api/kroger/* to the functions. MUST precede the SPA catch-all below
+# (redirects are evaluated top-to-bottom, first match wins).
+[[redirects]]
+  from = "/api/kroger/status"
+  to = "/.netlify/functions/kroger-status"
+  status = 200
+[[redirects]]
+  from = "/api/kroger/auth-url"
+  to = "/.netlify/functions/kroger-auth-url"
+  status = 200
+[[redirects]]
+  from = "/api/kroger/callback"
+  to = "/.netlify/functions/kroger-callback"
+  status = 200
+
 # SPA fallback so client-side routing / deep links resolve to index.html.
 [[redirects]]
   from = "/*"
