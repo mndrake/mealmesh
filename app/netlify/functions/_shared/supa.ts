@@ -3,9 +3,12 @@
 // the browser. JWT verification uses an anon client to validate the caller's session.
 import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
 
-const URL = process.env.SUPABASE_URL!;
+// The URL + anon key are the same public values the SPA uses; fall back to the VITE_
+// vars so they don't have to be duplicated under un-prefixed names in Netlify. The
+// service_role key is a real secret and has no fallback.
+const URL = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL)!;
+const ANON_KEY = (process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY)!;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const ANON_KEY = process.env.SUPABASE_ANON_KEY!;
 
 /** Service-role client (bypasses RLS). Server-side only — never expose this key. */
 export function service(): SupabaseClient {
