@@ -76,6 +76,20 @@ export async function getConnection(householdId: string): Promise<KrogerConnecti
   return (data as KrogerConnection | null) ?? null;
 }
 
+export async function saveLocation(
+  householdId: string,
+  locationId: string,
+  storeName: string | null
+): Promise<void> {
+  const { error } = await service()
+    .from("kroger_connection")
+    .upsert(
+      { household_id: householdId, location_id: locationId, store_name: storeName },
+      { onConflict: "household_id" }
+    );
+  if (error) throw error;
+}
+
 export async function saveTokens(
   householdId: string,
   tokens: { access_token: string; refresh_token: string; expires_at: string },
