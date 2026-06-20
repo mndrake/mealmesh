@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Env / secrets — never commit. .env.example is the only tracked env file.
+.env
+.env.*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
