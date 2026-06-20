@@ -1,7 +1,45 @@
 // Impure Kroger network calls (kept out of kroger.ts so that stays pure/testable).
-import { apiBase, basicAuthHeader, clientCredentialsBody, locationsQuery, productsQuery } from "./kroger";
+import {
+  apiBase,
+  basicAuthHeader,
+  clientCredentialsBody,
+  locationsQuery,
+  productsQuery,
+  refreshTokenBody,
+} from "./kroger";
 
 type Env = Record<string, string | undefined>;
+
+/** Refresh the user (authorization-code) token using the stored refresh token. */
+export async function refreshUserToken(
+  env: Env,
+  refreshToken: string
+): Promise<{ access_token: string; refresh_token?: string; expires_in: number }> {
+  const res = await fetch(`${apiBase(env)}/v1/connect/oauth2/token`, {
+    method: "POST",
+    headers: {
+      Authorization: basicAuthHeader(env.KROGER_CLIENT_ID!, env.KROGER_CLIENT_SECRET!),
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: refreshTokenBody(refreshToken),
+  });
+  if (!res.ok) throw new Error(`token refresh failed: ${res.status}`);
+  return res.json() as Promise<{ access_token: string; refresh_token?: string; expires_in: number }>;
+}
+
+/** PUT items into the user's Kroger cart. Returns the raw Response (204 = success). */
+export async function addToCart(
+  env: Env,
+  accessToken: string,
+  items: { upc: string; quantity: number }[],
+  modality: string
+): Promise<Response> {
+  return fetch(`${apiBase(env)}/v1/cart/add`, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ items: items.map((i) => ({ upc: i.upc, quantity: i.quantity, modality })) }),
+  });
+}
 
 /** Get a client-credentials token for Locations/Products (no user involved). */
 export async function clientCredToken(env: Env): Promise<string> {
