@@ -63,7 +63,20 @@ function splitBody(body) {
 }
 
 function main() {
-  if (!fs.existsSync(REPO)) die(`recipe-repo not found at ${REPO}`);
+  if (!fs.existsSync(REPO)) {
+    // recipe-repo is gitignored and not published to GitHub. On a fresh clone or
+    // in CI it won't be present — fall back to the committed src/data/recipes.json
+    // bundle instead of failing, so build/test still work without the source.
+    if (fs.existsSync(path.join(OUT_DATA, "recipes.json"))) {
+      console.warn(
+        `[build-data] recipe-repo not found at ${REPO}; using the committed ` +
+          `src/data/recipes.json (source-less build, e.g. CI). Regenerate locally ` +
+          `with recipe-repo present when recipes change.`
+      );
+      return;
+    }
+    die(`recipe-repo not found at ${REPO} and no committed src/data/recipes.json to fall back to`);
+  }
   const schema = JSON.parse(fs.readFileSync(SCHEMA_PATH, "utf8"));
   const ajv = new Ajv({ allErrors: true, strict: false });
   const validate = ajv.compile(schema);
