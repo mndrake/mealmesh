@@ -1,0 +1,44 @@
+name: CI
+
+# Deterministic build/test gate. Works without recipe-repo because the generated
+# bundle (app/src/data/recipes.json + app/public/recipe-images) is committed and
+# build-data.mjs falls back to it when the source isn't present.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npx tsc -p tsconfig.app.json --noEmit
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
