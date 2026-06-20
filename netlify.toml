@@ -52,6 +52,10 @@
   from = "/api/kroger/match"
   to = "/.netlify/functions/kroger-match"
   status = 200
+[[redirects]]
+  from = "/api/kroger/cart"
+  to = "/.netlify/functions/kroger-cart"
+  status = 200
 
 # SPA fallback so client-side routing / deep links resolve to index.html.
 [[redirects]]

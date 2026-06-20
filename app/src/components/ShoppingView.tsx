@@ -1,15 +1,18 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { recipesById } from "../lib/recipes";
 import { cookedMeals } from "../lib/planner";
 import { buildList, SECTION_LABELS } from "../lib/shopping";
 import { normalizeForShopping } from "../lib/normalize";
 import { useStore, actions } from "../lib/store";
 import { exportShoppingText } from "../lib/exporter";
+import { SendToMarianosModal } from "./SendToMarianosModal";
 
-export function ShoppingView() {
+export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
   const plan = useStore((s) => s.activePlan);
   const checked = useStore((s) => s.checked);
   const checkedSet = useMemo(() => new Set(checked), [checked]);
+  // Opens immediately when returning from the Kroger OAuth redirect (openSend).
+  const [showKroger, setShowKroger] = useState(openSend);
 
   const { list, mealCount } = useMemo(() => {
     const meals = cookedMeals(plan, recipesById);
@@ -42,6 +45,9 @@ export function ShoppingView() {
         </button>
         <button className="btn secondary small" onClick={() => window.print()}>
           🖨 Print
+        </button>
+        <button className="btn small" onClick={() => setShowKroger(true)}>
+          🛒 Send to Mariano's
         </button>
         <button className="btn ghost small" onClick={actions.clearChecked}>
           Uncheck all
@@ -104,6 +110,8 @@ export function ShoppingView() {
           </div>
         )}
       </div>
+
+      {showKroger && <SendToMarianosModal list={list} onClose={() => setShowKroger(false)} />}
     </div>
   );
 }

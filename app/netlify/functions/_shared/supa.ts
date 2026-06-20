@@ -90,6 +90,13 @@ export async function saveLocation(
   if (error) throw error;
 }
 
+export async function setModality(householdId: string, modality: string): Promise<void> {
+  await service()
+    .from("kroger_connection")
+    .update({ modality })
+    .eq("household_id", householdId);
+}
+
 export async function saveTokens(
   householdId: string,
   tokens: { access_token: string; refresh_token: string; expires_at: string },

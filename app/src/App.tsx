@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Recipe } from "./lib/types";
 import { recipes, recipesById } from "./lib/recipes";
 import { useStore, actions } from "./lib/store";
@@ -15,11 +15,26 @@ type Tab = "browse" | "plan" | "shopping";
 type Slot = "breakfast" | "lunch" | "dinner" | "snack";
 
 export default function App() {
-  const [tab, setTab] = useState<Tab>("browse");
+  // Detect the Kroger OAuth return once, from the URL on first render. Deriving it here
+  // (rather than setting state in an effect) lets us open the shopping tab immediately.
+  const [krogerReturn] = useState(() =>
+    typeof window === "undefined"
+      ? null
+      : new URLSearchParams(window.location.search).get("kroger")
+  );
+  const krogerConnected = krogerReturn === "connected";
+  const [tab, setTab] = useState<Tab>(krogerConnected ? "shopping" : "browse");
   const [addTarget, setAddTarget] = useState<Recipe | null>(null);
   const plan = useStore((s) => s.activePlan);
   const favoritesCount = useStore((s) => s.favorites.length);
   const { email, signOut } = useAuth();
+
+  // Clean the ?kroger= param from the URL (and surface a connect error). No setState here.
+  useEffect(() => {
+    if (!krogerReturn) return;
+    if (krogerReturn === "error") alert("Couldn't connect to Kroger. Please try again.");
+    window.history.replaceState({}, "", window.location.pathname);
+  }, [krogerReturn]);
 
   // count distinct planned meals for the nav badge
   const plannedCount = cookedMeals(plan, recipesById).length;
@@ -106,7 +121,7 @@ export default function App() {
         </div>
         {tab === "browse" && <BrowseView onAddToPlan={setAddTarget} />}
         {tab === "plan" && <PlannerView />}
-        {tab === "shopping" && <ShoppingView />}
+        {tab === "shopping" && <ShoppingView openSend={krogerConnected} />}
       </main>
 
       {addTarget && (
