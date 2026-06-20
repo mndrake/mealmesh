@@ -1,8 +1,25 @@
-// Tiny localStorage-backed store with a useSyncExternalStore hook.
-// Single-user, no auth — all state lives in the browser and is exportable.
+// State store. Public surface (useStore, getState, actions, emptyPlan) is unchanged from
+// the original localStorage-only version — components depend on it. Internally it runs in
+// one of two modes:
+//   • local  — no Supabase / signed out: localStorage singleton, exactly as before.
+//   • cloud  — connect(client, householdId): each action does an optimistic in-memory
+//              update (instant) then writes through to Supabase and reconciles; Realtime
+//              applies other devices' changes; localStorage stays a fast/offline cache.
+// The auth layer calls connect()/disconnect(); see auth-provider.tsx.
 import { useSyncExternalStore } from "react";
+import type { SupabaseClient, RealtimeChannel } from "@supabase/supabase-js";
 import { DAYS } from "./planner";
 import type { Plan, PlanDay } from "./types";
+import {
+  hydrate,
+  writeActivePlan,
+  insertSavedPlan,
+  deleteSavedPlan,
+  setFavorite,
+  setCheckoff,
+  clearCheckoffs,
+  pushFullState,
+} from "./cloudStore";
 
 const KEY = "mealmesh.state.v1";
 
@@ -19,22 +36,34 @@ export interface AppState {
   favorites: string[]; // recipe ids
   checked: string[]; // shopping list item names checked off
   locked: string[]; // "<dayIndex>:<slot>" keys pinned against regenerate
+  // ---- ephemeral (not persisted to localStorage) ----
+  loading: boolean; // hydrating from the cloud
+  syncError: boolean; // last cloud write failed to reconcile
+  importAvailable: boolean; // local data can be imported into an empty household
 }
 
 export function emptyPlan(): Plan {
   return DAYS.map(
-    (day): PlanDay => ({
-      day,
-      breakfast: null,
-      lunch: null,
-      dinner: null,
-      snack: null,
-    })
+    (day): PlanDay => ({ day, breakfast: null, lunch: null, dinner: null, snack: null })
   );
 }
 
+const EPHEMERAL = { loading: false, syncError: false, importAvailable: false };
+
 function defaultState(): AppState {
-  return { activePlan: emptyPlan(), savedPlans: [], favorites: [], checked: [], locked: [] };
+  return { activePlan: emptyPlan(), savedPlans: [], favorites: [], checked: [], locked: [], ...EPHEMERAL };
+}
+
+// Durable subset that round-trips through localStorage (cache + offline view).
+type Durable = Pick<AppState, "activePlan" | "savedPlans" | "favorites" | "checked" | "locked">;
+function durableOf(s: AppState): Durable {
+  return {
+    activePlan: s.activePlan,
+    savedPlans: s.savedPlans,
+    favorites: s.favorites,
+    checked: s.checked,
+    locked: s.locked,
+  };
 }
 
 function load(): AppState {
@@ -42,10 +71,19 @@ function load(): AppState {
     const raw = localStorage.getItem(KEY);
     if (!raw) return defaultState();
     const parsed = JSON.parse(raw);
-    return { ...defaultState(), ...parsed };
+    return { ...defaultState(), ...parsed, ...EPHEMERAL };
   } catch {
     return defaultState();
   }
+}
+
+function hasData(s: Durable): boolean {
+  return (
+    s.savedPlans.length > 0 ||
+    s.favorites.length > 0 ||
+    s.checked.length > 0 ||
+    s.activePlan.some((d) => d.breakfast || d.lunch || d.dinner || d.snack)
+  );
 }
 
 let state: AppState = load();
@@ -58,9 +96,9 @@ function emit() {
 function set(next: Partial<AppState>) {
   state = { ...state, ...next };
   try {
-    localStorage.setItem(KEY, JSON.stringify(state));
+    localStorage.setItem(KEY, JSON.stringify(durableOf(state)));
   } catch {
-    /* quota / private mode — keep working in-memory */
+    /* quota / private mode / SSR — keep working in-memory */
   }
   emit();
 }
@@ -82,84 +120,255 @@ export function getState(): AppState {
   return state;
 }
 
-// ---- actions ----
+// ---------------------------------------------------------------------------
+// Cloud orchestration
+// ---------------------------------------------------------------------------
+interface CloudCtx {
+  client: SupabaseClient;
+  householdId: string;
+  userId?: string;
+  activePlanId: string | null;
+}
+let cloud: CloudCtx | null = null;
+let channel: RealtimeChannel | null = null;
+let inFlight = 0; // outstanding own writes (echo guard)
+let staleAfterWrites = false; // a remote change arrived mid-write; resync when writes drain
+let syncScheduled = false;
+let importPending = false; // suspend write-through until the one-time import is resolved
+let pendingImport: { local: AppState; cloud: AppState } | null = null;
 
+export function isCloud(): boolean {
+  return cloud !== null;
+}
+
+/** Pull server truth back into the snapshot (UI "retry" after a sync error). */
+export function retrySync() {
+  if (cloud) {
+    set({ syncError: false });
+    scheduleSync();
+  }
+}
+
+/** Run a cloud write with optimistic state already applied; reconcile on error. */
+function push(fn: (ctx: CloudCtx) => Promise<string | void>) {
+  if (!cloud || importPending) return;
+  const ctx = cloud;
+  inFlight++;
+  Promise.resolve()
+    .then(() => fn(ctx))
+    .then((planId) => {
+      if (typeof planId === "string") ctx.activePlanId = planId;
+      if (state.syncError) set({ syncError: false });
+    })
+    .catch((err) => {
+      console.warn("[store] cloud write failed:", err?.message ?? err);
+      set({ syncError: true });
+      scheduleSync(); // pull server truth back
+    })
+    .finally(() => {
+      inFlight--;
+      if (inFlight === 0 && staleAfterWrites) {
+        staleAfterWrites = false;
+        scheduleSync();
+      }
+    });
+}
+
+/** Coalesced re-hydrate from Supabase (server is source of truth on reconnect/remote change). */
+function scheduleSync() {
+  if (!cloud || syncScheduled) return;
+  syncScheduled = true;
+  setTimeout(async () => {
+    syncScheduled = false;
+    if (!cloud || importPending) return;
+    try {
+      const res = await hydrate(cloud.client, cloud.householdId, emptyPlan);
+      cloud.activePlanId = res.activePlanId;
+      set({ ...res.state, ...EPHEMERAL });
+    } catch (e) {
+      console.warn("[store] resync failed:", e);
+    }
+  }, 50);
+}
+
+function onRemoteChange() {
+  if (inFlight > 0) staleAfterWrites = true; // our own write is settling; resync after
+  else scheduleSync();
+}
+
+function subscribeRealtime() {
+  if (!cloud) return;
+  const h = cloud.householdId;
+  channel = cloud.client
+    .channel(`mealmesh-${h}`)
+    .on("postgres_changes", { event: "*", schema: "public", table: "plans", filter: `household_id=eq.${h}` }, onRemoteChange)
+    .on("postgres_changes", { event: "*", schema: "public", table: "favorites", filter: `household_id=eq.${h}` }, onRemoteChange)
+    // checkoffs can't be filtered by household here; RLS already scopes events to ours.
+    .on("postgres_changes", { event: "*", schema: "public", table: "shopping_checkoffs" }, onRemoteChange)
+    .subscribe();
+}
+
+/** Enter cloud mode: hydrate, wire Realtime, and offer a one-time local import. */
+export async function connect(client: SupabaseClient, householdId: string, userId?: string) {
+  cloud = { client, householdId, userId, activePlanId: null };
+  importPending = false;
+  pendingImport = null;
+  set({ loading: true });
+  try {
+    const res = await hydrate(client, householdId, emptyPlan);
+    cloud.activePlanId = res.activePlanId;
+    const local = durableOf(state);
+    if (res.isEmpty && hasData(local)) {
+      // keep showing local data; suspend write-through until the user decides
+      importPending = true;
+      pendingImport = { local: { ...state }, cloud: { ...defaultState(), ...res.state } };
+      set({ loading: false, importAvailable: true });
+    } else {
+      set({ ...res.state, ...EPHEMERAL });
+    }
+    subscribeRealtime();
+  } catch (e) {
+    console.warn("[store] connect/hydrate failed:", e);
+    set({ loading: false, syncError: true });
+  }
+}
+
+/** Leave cloud mode (sign-out): tear down Realtime, fall back to the local cache. */
+export async function disconnect() {
+  if (channel && cloud) await cloud.client.removeChannel(channel);
+  channel = null;
+  cloud = null;
+  importPending = false;
+  pendingImport = null;
+  inFlight = 0;
+  staleAfterWrites = false;
+  set({ ...load() });
+}
+
+/** Resolve the one-time import prompt. accept=true pushes local data up; false discards it. */
+export async function resolveImport(accept: boolean) {
+  const pi = pendingImport;
+  pendingImport = null;
+  set({ importAvailable: false });
+  if (!cloud || !pi) {
+    importPending = false;
+    return;
+  }
+  if (!accept) {
+    importPending = false;
+    set({ ...pi.cloud, ...EPHEMERAL });
+    return;
+  }
+  set({ loading: true });
+  try {
+    const planId = await pushFullState(cloud.client, cloud.householdId, cloud.activePlanId, pi.local);
+    cloud.activePlanId = planId;
+    importPending = false;
+    const res = await hydrate(cloud.client, cloud.householdId, emptyPlan);
+    cloud.activePlanId = res.activePlanId;
+    set({ ...res.state, ...EPHEMERAL });
+  } catch (e) {
+    console.warn("[store] import failed:", e);
+    importPending = false;
+    set({ loading: false, syncError: true });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Actions — optimistic in-memory update (unchanged behavior) + cloud write-through
+// ---------------------------------------------------------------------------
 export const actions = {
   setActivePlan(plan: Plan) {
     set({ activePlan: plan });
+    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, userId: c.userId }));
   },
 
   setSlot(dayIndex: number, slot: keyof Omit<PlanDay, "day">, value: PlanDay[typeof slot]) {
-    const activePlan = state.activePlan.map((d, i) =>
-      i === dayIndex ? { ...d, [slot]: value } : d
-    );
+    const activePlan = state.activePlan.map((d, i) => (i === dayIndex ? { ...d, [slot]: value } : d));
     set({ activePlan });
+    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, userId: c.userId }));
   },
 
   clearPlan() {
-    set({ activePlan: emptyPlan(), locked: [] });
+    set({ activePlan: emptyPlan(), locked: [], checked: [] });
+    push(async (c) => {
+      const planId = await writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, userId: c.userId });
+      await clearCheckoffs(c.client, planId);
+      return planId;
+    });
   },
 
   toggleLock(key: string) {
-    const locked = state.locked.includes(key)
-      ? state.locked.filter((k) => k !== key)
-      : [...state.locked, key];
+    const locked = state.locked.includes(key) ? state.locked.filter((k) => k !== key) : [...state.locked, key];
     set({ locked });
+    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, userId: c.userId }));
   },
 
   unlock(key: string) {
-    if (state.locked.includes(key)) set({ locked: state.locked.filter((k) => k !== key) });
+    if (!state.locked.includes(key)) return;
+    set({ locked: state.locked.filter((k) => k !== key) });
+    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, userId: c.userId }));
   },
 
   clearLocks() {
     set({ locked: [] });
+    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, userId: c.userId }));
   },
 
   toggleFavorite(id: string) {
-    const favorites = state.favorites.includes(id)
-      ? state.favorites.filter((f) => f !== id)
-      : [...state.favorites, id];
-    set({ favorites });
+    const on = !state.favorites.includes(id);
+    set({ favorites: on ? [...state.favorites, id].sort() : state.favorites.filter((f) => f !== id) });
+    push((c) => setFavorite(c.client, c.householdId, id, on));
   },
 
   toggleChecked(name: string) {
-    const checked = state.checked.includes(name)
-      ? state.checked.filter((c) => c !== name)
-      : [...state.checked, name];
-    set({ checked });
+    const on = !state.checked.includes(name);
+    set({ checked: on ? [...state.checked, name] : state.checked.filter((x) => x !== name) });
+    push(async (c) => {
+      if (!c.activePlanId) {
+        c.activePlanId = await writeActivePlan(c.client, { householdId: c.householdId, planId: null, activePlan: state.activePlan, locked: state.locked, userId: c.userId });
+      }
+      await setCheckoff(c.client, c.activePlanId, name, on);
+    });
   },
 
   clearChecked() {
     set({ checked: [] });
+    push(async (c) => {
+      if (c.activePlanId) await clearCheckoffs(c.client, c.activePlanId);
+    });
   },
 
   savePlanAs(name: string) {
-    const sp: SavedPlan = {
-      id: `${name}-${state.savedPlans.length + 1}-${Math.floor(performance.now())}`,
-      name,
-      createdAt: Date.now(),
-      plan: state.activePlan,
-    };
+    const sp: SavedPlan = { id: crypto.randomUUID(), name, createdAt: Date.now(), plan: state.activePlan };
     set({ savedPlans: [...state.savedPlans, sp] });
+    push((c) => insertSavedPlan(c.client, { id: sp.id, name: sp.name, plan: sp.plan }, c.householdId));
     return sp.id;
   },
 
   loadPlan(id: string) {
     const sp = state.savedPlans.find((p) => p.id === id);
-    if (sp) set({ activePlan: sp.plan, locked: [] });
+    if (!sp) return;
+    set({ activePlan: sp.plan, locked: [] });
+    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, userId: c.userId }));
   },
 
   deletePlan(id: string) {
     set({ savedPlans: state.savedPlans.filter((p) => p.id !== id) });
+    push((c) => deleteSavedPlan(c.client, id));
   },
 
-  importState(next: AppState) {
+  importState(next: Partial<AppState>) {
     set({
       activePlan: next.activePlan ?? emptyPlan(),
       savedPlans: next.savedPlans ?? [],
       favorites: next.favorites ?? [],
       checked: next.checked ?? [],
       locked: next.locked ?? [],
+    });
+    push(async (c) => {
+      const planId = await pushFullState(c.client, c.householdId, c.activePlanId, state);
+      return planId;
     });
   },
 };

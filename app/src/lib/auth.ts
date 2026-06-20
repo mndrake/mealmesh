@@ -13,6 +13,8 @@ export interface AuthValue {
   status: AuthStatus;
   user: User | null;
   email: string | null;
+  /** The signed-in user's household (resolved from household_members), or null. */
+  householdId: string | null;
   /** Sends a magic link to the given email. Resolves to an error message or null on success. */
   signInWithEmail: (email: string) => Promise<string | null>;
   signOut: () => Promise<void>;
@@ -22,6 +24,7 @@ export const DEFAULT_AUTH: AuthValue = {
   status: isSupabaseConfigured ? "loading" : "unconfigured",
   user: null,
   email: null,
+  householdId: null,
   async signInWithEmail() {
     return "Auth is not configured.";
   },

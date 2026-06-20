@@ -7,6 +7,7 @@ import { BrowseView } from "./components/BrowseView";
 import { PlannerView } from "./components/PlannerView";
 import { ShoppingView } from "./components/ShoppingView";
 import { AddToPlanModal } from "./components/AddToPlanModal";
+import { CloudStatus } from "./components/CloudStatus";
 import { exportAllState } from "./lib/exporter";
 import { useAuth } from "./lib/auth";
 
@@ -100,6 +101,9 @@ export default function App() {
       </header>
 
       <main>
+        <div className="container" style={{ paddingBottom: 0 }}>
+          <CloudStatus />
+        </div>
         {tab === "browse" && <BrowseView onAddToPlan={setAddTarget} />}
         {tab === "plan" && <PlannerView />}
         {tab === "shopping" && <ShoppingView />}
