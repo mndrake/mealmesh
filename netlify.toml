@@ -40,6 +40,18 @@
   from = "/api/kroger/callback"
   to = "/.netlify/functions/kroger-callback"
   status = 200
+[[redirects]]
+  from = "/api/kroger/locations"
+  to = "/.netlify/functions/kroger-locations"
+  status = 200
+[[redirects]]
+  from = "/api/kroger/location"
+  to = "/.netlify/functions/kroger-location"
+  status = 200
+[[redirects]]
+  from = "/api/kroger/match"
+  to = "/.netlify/functions/kroger-match"
+  status = 200
 
 # SPA fallback so client-side routing / deep links resolve to index.html.
 [[redirects]]

@@ -61,3 +61,85 @@ export function computeExpiresAt(nowMs: number, expiresInSec: number, skewSec = 
 export function needsRefresh(expiresAtMs: number | null | undefined, nowMs: number): boolean {
   return expiresAtMs == null || nowMs >= expiresAtMs;
 }
+
+// ---- Locations / Products: query building + response shaping (pure) ----
+
+export interface KrogerStore {
+  locationId: string;
+  name: string;
+  address: string;
+}
+
+export interface ProductMatch {
+  upc: string;
+  productId: string;
+  description: string;
+  price: number | null;
+  available: boolean;
+}
+
+export interface ReviewRow {
+  listName: string;
+  displayQty: string;
+  matched: ProductMatch | null;
+  alternates: ProductMatch[];
+  quantity: number; // integer packages to buy; default 1
+  include: boolean;
+}
+
+export function locationsQuery(zip: string, radiusMiles = 15, limit = 10): string {
+  return new URLSearchParams({
+    "filter.zipCode.near": zip,
+    "filter.radiusInMiles": String(radiusMiles),
+    "filter.chain": "Marianos",
+    "filter.limit": String(limit),
+  }).toString();
+}
+
+export function productsQuery(term: string, locationId: string, limit = 5): string {
+  return new URLSearchParams({
+    "filter.term": term,
+    "filter.locationId": locationId,
+    "filter.limit": String(limit),
+  }).toString();
+}
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export function toStores(resp: any): KrogerStore[] {
+  return (resp?.data ?? []).map((l: any) => ({
+    locationId: String(l.locationId ?? ""),
+    name: l.name || l.chain || "Mariano's",
+    address: [l.address?.addressLine1, l.address?.city, l.address?.state]
+      .filter(Boolean)
+      .join(", "),
+  }));
+}
+
+function toMatch(p: any): ProductMatch | null {
+  if (!p?.upc) return null;
+  const item = p.items?.[0];
+  const price = item?.price?.promo || item?.price?.regular || null;
+  const f = item?.fulfillment ?? {};
+  return {
+    upc: String(p.upc),
+    productId: String(p.productId ?? p.upc),
+    description: p.description ?? "",
+    price: typeof price === "number" ? price : null,
+    available: Boolean(f.instore || f.curbside || f.delivery || f.shiptohome),
+  };
+}
+
+/** Map a Products search response to a review row (top match + alternates). */
+export function toReviewRow(resp: any, listName: string, displayQty: string): ReviewRow {
+  const products = (resp?.data ?? []).map(toMatch).filter(Boolean) as ProductMatch[];
+  const [matched, ...alternates] = products;
+  return {
+    listName,
+    displayQty,
+    matched: matched ?? null,
+    alternates,
+    quantity: 1,
+    include: Boolean(matched),
+  };
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
