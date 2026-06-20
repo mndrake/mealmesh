@@ -109,11 +109,29 @@ loading states), `supabase/migrations/`.
 
 ---
 
+## M5 — Send shopping list to Mariano's / Kroger (PULLED FORWARD — current priority)
+**Goal:** one-tap **"build my Mariano's cart"** from the weekly shopping list.
+Full design in [`kroger-integration.md`](./kroger-integration.md).
+
+Pulled out of "out of scope" now that the backend exists. Netlify **Functions** host the
+Kroger OAuth broker + API proxy; the **Supabase** household + a `kroger_connection` table hold
+the (encrypted) per-household Kroger tokens. Achievable outcome is **cart-building** — items
+land pre-added; the one-time Kroger account login and final checkout stay manual (no public API
+places or pays for an order).
+
+**Phases (PRs):** (1) `kroger_connection` table + Netlify function skeleton + OAuth
+(authorize / callback / refresh, gated by the Supabase session JWT); (2) Locations (pick the
+Mariano's store) + Products search proxy + pure match-shaping with unit tests; (3) "Send to
+Mariano's" UI on the shopping list (connect → pick store → review/swap → send → open cart).
+
+**External dependency (long pole):** a Kroger **Production** developer app with the
+`cart.basic:write` scope — self-serve registration (see kroger-integration.md → Prerequisites).
+
 ## Dependency order
-`M0 → M1 → M2 → M3 → M4`. M3 depends on M2 (needs cloud state + auth). M4 can absorb small
-items as they arise but is gated last.
+`M0 → M1 → M2 → M5 (Kroger, pulled forward) → M3 → M4`. Kroger only needs M1/M2 (auth +
+deployed backend); it's independent of M3. M3 depends on M2. M4 is gated last.
 
 ## Out of scope (noted, not planned here)
-- Sending the shopping list to Mariano's/Kroger (separate effort; prompt drafted earlier).
 - Moving the 278 read-only recipes into the database.
 - Multi-household / public multi-tenant features beyond the single family.
+- Kroger **Partner** Carts API and any true auto-checkout (no public API places or pays for an order).
