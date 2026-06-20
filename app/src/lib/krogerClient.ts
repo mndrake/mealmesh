@@ -41,8 +41,14 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
     headers: { ...(await authHeaders()), ...(init?.headers ?? {}) },
   });
   const text = await res.text();
-  const body = text ? JSON.parse(text) : {};
-  if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
+  let body: Record<string, unknown> = {};
+  try {
+    body = text ? JSON.parse(text) : {};
+  } catch {
+    // Non-JSON body = the function crashed/returned an error page; surface it cleanly.
+    throw new Error(`Server error (${res.status})${text ? `: ${text.slice(0, 140)}` : ""}`);
+  }
+  if (!res.ok) throw new Error(String(body.error ?? `HTTP ${res.status}`));
   return body as T;
 }
 
