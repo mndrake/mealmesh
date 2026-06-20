@@ -30,6 +30,6 @@ export default async (req: Request): Promise<Response> => {
     return json({ rows });
   } catch (e) {
     console.warn("[kroger] match error:", (e as Error).message);
-    return json({ error: "match_failed" }, 502);
+    return json({ error: "match_failed", detail: (e as Error).message }, 502);
   }
 };

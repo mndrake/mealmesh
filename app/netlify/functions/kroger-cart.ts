@@ -52,10 +52,11 @@ export default async (req: Request): Promise<Response> => {
       await setModality(householdId, modality);
       return json({ ok: true, added: items.length });
     }
-    console.warn("[kroger] cart add status:", res.status);
-    return json({ error: "cart_failed", status: res.status }, 502);
+    const detail = (await res.text().catch(() => "")).slice(0, 200);
+    console.warn("[kroger] cart add status:", res.status, detail);
+    return json({ error: "cart_failed", status: res.status, detail }, 502);
   } catch (e) {
     console.warn("[kroger] cart error:", (e as Error).message);
-    return json({ error: "cart_failed" }, 502);
+    return json({ error: "cart_failed", detail: (e as Error).message }, 502);
   }
 };
