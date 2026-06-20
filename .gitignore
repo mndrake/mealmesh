@@ -5,3 +5,8 @@ app/dist/
 .DS_Store
 *.log
 .venv/
+
+# Secrets — only .env.example is tracked
+.env
+.env.*
+!.env.example
