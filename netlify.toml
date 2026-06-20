@@ -13,6 +13,11 @@
 # (which fails the build and publishes nothing). Matches the CI Node version.
 [build.environment]
   NODE_VERSION = "20"
+  # The Supabase URL + publishable (anon) key are PUBLIC by design — Vite embeds them
+  # in the client bundle and RLS, not key secrecy, protects the data. Tell Netlify's
+  # secrets scanner these values are expected in the build output so it doesn't fail
+  # the deploy. (Set them as regular, non-secret env vars in the Netlify UI.)
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY"
 
 # SPA fallback so client-side routing / deep links resolve to index.html.
 [[redirects]]
