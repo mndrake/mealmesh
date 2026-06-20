@@ -68,12 +68,21 @@ export interface PlanOptions {
    *  The app passes [] so the whole library is eligible. */
   requireTags?: string[];
   excludeTags?: string[];
+  /** Restrict Mon–Fri breakfasts to make-ahead / no-cook recipes (overnight oats,
+   *  muffins, etc.) since there's less time on work days. Default true (matches
+   *  planner.py and the parity fixtures). */
+  easyWeekdayBreakfast?: boolean;
+  /** Restrict Mon–Fri lunches to office-friendly, no-cook recipes (easy to pack for
+   *  work). Default true (matches planner.py). */
+  officeWeekdayLunch?: boolean;
 }
 
 /** Build a 7-day plan from the recipe pool. Mirrors planner.build_plan. */
 export function buildPlan(recipes: Recipe[], opts: PlanOptions = {}): Plan {
   const requireTags = opts.requireTags ?? ["diabetic-friendly"];
   const excludeTags = opts.excludeTags ?? ["no-fish-violation"];
+  const easyWeekdayBreakfast = opts.easyWeekdayBreakfast ?? true;
+  const officeWeekdayLunch = opts.officeWeekdayLunch ?? true;
 
   const ok = (r: Recipe): boolean => {
     const t = new Set(r.tags);
@@ -86,12 +95,14 @@ export function buildPlan(recipes: Recipe[], opts: PlanOptions = {}): Plan {
   const lun = pool.filter((r) => r.category === "lunch");
   const din = pool.filter((r) => r.category === "dinner");
 
-  const bfWeekday = bf.filter(
-    (r) => r.prep_style === "no_cook" || r.prep_style === "make_ahead"
-  );
+  const bfWeekday = easyWeekdayBreakfast
+    ? bf.filter((r) => r.prep_style === "no_cook" || r.prep_style === "make_ahead")
+    : bf;
   const bfWeekendCook = bf.filter((r) => r.prep_style === "cook");
   const bfWeekend = bfWeekendCook.length ? bfWeekendCook : bf;
-  const lunOffice = lun.filter((r) => r.office_friendly && r.prep_style === "no_cook");
+  const lunOffice = officeWeekdayLunch
+    ? lun.filter((r) => r.office_friendly && r.prep_style === "no_cook")
+    : lun;
   const batchDin = din.filter((r) => r.batch);
 
   // dinners: schedule batch dinners early (Tue/Fri) so leftovers feed weekend lunches

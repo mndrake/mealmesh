@@ -20,6 +20,8 @@ export function PlannerView() {
   const locked = useStore((s) => s.locked);
   const lockedSet = useMemo(() => new Set(locked), [locked]);
   const [require, setRequire] = useState<string[]>([]);
+  const [easyBreakfast, setEasyBreakfast] = useState(true);
+  const [officeLunch, setOfficeLunch] = useState(true);
   const [detail, setDetail] = useState<Recipe | null>(null);
   const [picker, setPicker] = useState<{ di: number; slot: Slot } | null>(null);
   const [dragOver, setDragOver] = useState<string | null>(null);
@@ -27,13 +29,20 @@ export function PlannerView() {
 
   const week = useMemo(() => weekTotals(plan, recipesById), [plan]);
 
+  const planOpts = {
+    requireTags: require,
+    excludeTags: [],
+    easyWeekdayBreakfast: easyBreakfast,
+    officeWeekdayLunch: officeLunch,
+  };
+
   function suggest() {
     try {
       setError(null);
       // Plan generation runs on raw recipes so the app's plan matches the Python
       // reference exactly (ingredient renames in normalize.ts could shift the greedy
       // perishable-overlap tie-breaks). Chosen recipes still render via recipesById.
-      const next = buildPlan(rawRecipes, { requireTags: require, excludeTags: [] });
+      const next = buildPlan(rawRecipes, planOpts);
       actions.setActivePlan(next);
       actions.clearLocks(); // a fresh week starts with nothing pinned
     } catch {
@@ -48,10 +57,7 @@ export function PlannerView() {
       setError(null);
       // Rebuild on raw recipes (same reason as suggest), but keep locked slots and
       // drop their recipes from the pool so nothing pinned gets duplicated.
-      const next = regeneratePlan(rawRecipes, plan, lockedSet, {
-        requireTags: require,
-        excludeTags: [],
-      });
+      const next = regeneratePlan(rawRecipes, plan, lockedSet, planOpts);
       actions.setActivePlan(next);
     } catch {
       setError(
@@ -111,6 +117,29 @@ export function PlannerView() {
             ↻ Regenerate{lockedSet.size > 0 ? ` (keep ${lockedSet.size} 🔒)` : ""}
           </button>
         </div>
+      </div>
+
+      <div className="row" style={{ gap: 6, marginBottom: 14, alignItems: "center" }}>
+        <span className="muted" style={{ fontSize: "0.8rem" }}>
+          Mon–Fri prep:
+        </span>
+        <button
+          className={`toggle ${easyBreakfast ? "on" : ""}`}
+          onClick={() => setEasyBreakfast((v) => !v)}
+          title="Limit weekday breakfasts to make-ahead or no-cook (overnight oats, muffins) — less time on work mornings"
+        >
+          🌙 Easy breakfasts
+        </button>
+        <button
+          className={`toggle ${officeLunch ? "on" : ""}`}
+          onClick={() => setOfficeLunch((v) => !v)}
+          title="Limit weekday lunches to office-friendly, no-cook recipes — easy to pack for work, no cooking"
+        >
+          💼 Packable lunches
+        </button>
+        <span className="muted" style={{ fontSize: "0.74rem" }}>
+          (applies to auto-suggest &amp; regenerate; weekends stay unrestricted)
+        </span>
       </div>
 
       {error && (
