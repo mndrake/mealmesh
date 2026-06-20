@@ -48,7 +48,10 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
     // Non-JSON body = the function crashed/returned an error page; surface it cleanly.
     throw new Error(`Server error (${res.status})${text ? `: ${text.slice(0, 140)}` : ""}`);
   }
-  if (!res.ok) throw new Error(String(body.error ?? `HTTP ${res.status}`));
+  if (!res.ok) {
+    const extra = [body.status, body.detail].filter(Boolean).join(" ");
+    throw new Error(`${String(body.error ?? `HTTP ${res.status}`)}${extra ? ` — ${extra}` : ""}`);
+  }
   return body as T;
 }
 
