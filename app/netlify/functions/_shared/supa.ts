@@ -3,6 +3,16 @@
 // the browser. JWT verification uses an anon client to validate the caller's session.
 import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
 
+// supabase-js eagerly constructs a Realtime client whose constructor resolves a WebSocket
+// implementation. Netlify's Node 20 functions have no global WebSocket, so createClient
+// throws ("Node.js 20 detected without native WebSocket support"). These functions never
+// open a realtime channel, so a stub constructor satisfies the resolution and is never
+// instantiated. (Removable once the functions runtime is Node 22+.)
+const g = globalThis as { WebSocket?: unknown };
+if (typeof g.WebSocket === "undefined") {
+  g.WebSocket = class StubWebSocket {};
+}
+
 // The URL + anon key are the same public values the SPA uses; fall back to the VITE_
 // vars so they don't have to be duplicated under un-prefixed names in Netlify. The
 // service_role key is a real secret and has no fallback.
