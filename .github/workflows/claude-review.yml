@@ -1,0 +1,62 @@
+name: Claude PR Review
+
+# Automatically review every pull request for security issues and coding best
+# practices using Anthropic's Claude Code action. Runs on open and on each new push.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+# Least privilege: read the code, write PR review comments. No id-token needed
+# because we authenticate with ANTHROPIC_API_KEY (not OIDC/Bedrock/Vertex).
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    # Skip PRs opened from forks: repository secrets (ANTHROPIC_API_KEY) are not
+    # available to fork PRs, so the review would fail. Same-repo branches only.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history so the action can diff the PR accurately
+
+      - name: Claude security & best-practices review
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          track_progress: true
+          prompt: |
+            Review this pull request's changes with a focus on SECURITY and CODING
+            BEST PRACTICES. Post concise inline comments only on lines with a real
+            issue; if the PR looks clean, say so briefly instead of inventing nits.
+
+            MealMesh is a personal/family meal-planning app: a Vite + React +
+            TypeScript SPA (in app/) backed by Supabase (Postgres + Auth + RLS +
+            Realtime). Prioritize, in order:
+
+            1. SECURITY
+               - Supabase Row-Level Security: every table RLS-enabled and scoped to
+                 the household via is_member(); no policy that leaks another
+                 household's rows; SECURITY DEFINER functions pin search_path.
+               - Secrets: only the publishable anon key may reach the browser. Flag
+                 ANY service_role key, access/refresh token, or secret in client code,
+                 env exposed via VITE_*, logs, or committed files.
+               - Auth/session handling, invite-only allowlist integrity, redirect-URL
+                 scoping, injection, XSS, unsafe JSON/localStorage handling, and risky
+                 dependencies.
+            2. CORRECTNESS & ROBUSTNESS
+               - Optimistic-update/reconcile and Realtime sync bugs (lost writes,
+                 echo loops, missing error handling), race conditions, edge cases.
+            3. BEST PRACTICES
+               - Type safety (no stray any), reuse over duplication, clear naming,
+                 test coverage for new logic, accessibility of new UI.
+
+            Be pragmatic — surface material issues, not style nits already handled by
+            eslint/tsc. Reference the project's docs/security.md expectations where relevant.
+          # Grant only what's needed to inspect the PR and post review comments.
+          claude_args: |
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*)"
