@@ -41,7 +41,7 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
     headers: { ...(await authHeaders()), ...(init?.headers ?? {}) },
   });
   const text = await res.text();
-  let body: Record<string, unknown> = {};
+  let body: Record<string, unknown>;
   try {
     body = text ? JSON.parse(text) : {};
   } catch {
