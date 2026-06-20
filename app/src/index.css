@@ -801,3 +801,31 @@ a {
   border: 1px solid var(--border);
   border-radius: 7px;
 }
+.progress {
+  height: 8px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.2s ease;
+}
+.kroger-receipt {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  margin: 8px 0;
+  font-size: 0.84rem;
+}
+.kroger-receipt.error {
+  background: var(--warn-soft);
+  border-color: #f1d9b5;
+  color: var(--warn);
+}
+.kroger-receipt ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}

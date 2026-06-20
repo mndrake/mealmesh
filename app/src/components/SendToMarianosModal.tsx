@@ -16,7 +16,8 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
   const [rows, setRows] = useState<ReviewRow[]>([]);
   const [modality, setModality] = useState("PICKUP");
   const [added, setAdded] = useState(0);
-  const [failedCount, setFailedCount] = useState(0);
+  const [failedItems, setFailedItems] = useState<string[]>([]);
+  const [progress, setProgress] = useState({ done: 0, total: 0 });
 
   // Non-staple shopping items to match (staples are "check pantry", not bought here).
   const items = list.sections.flatMap((s) => s.items).map(([name, displayQty]) => ({ name, displayQty }));
@@ -94,22 +95,35 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
   }
 
   async function send() {
+    const included = rows.filter((r) => r.include && r.matched);
+    const payload = included.map((r) => ({ upc: r.matched!.upc, quantity: r.quantity }));
+    setProgress({ done: 0, total: payload.length });
     setStep("sending");
-    const payload = rows
-      .filter((r) => r.include && r.matched)
-      .map((r) => ({ upc: r.matched!.upc, quantity: r.quantity }));
-    try {
-      const res = await krogerClient.cart(payload, modality);
-      setAdded(res.added);
-      setFailedCount(res.failed?.length ?? 0);
-      setStep("done");
-    } catch (e) {
-      fail(e);
+    // Send in small chunks so we can show real progress; a failed chunk doesn't abort.
+    let ok = 0;
+    const failedUpcs: string[] = [];
+    const CHUNK = 4;
+    for (let i = 0; i < payload.length; i += CHUNK) {
+      const chunk = payload.slice(i, i + CHUNK);
+      try {
+        const res = await krogerClient.cart(chunk, modality);
+        ok += res.added;
+        for (const f of res.failed ?? []) failedUpcs.push(f.upc);
+      } catch {
+        for (const it of chunk) failedUpcs.push(it.upc);
+      }
+      setProgress({ done: Math.min(i + CHUNK, payload.length), total: payload.length });
     }
+    // Map the refused UPCs back to the user's item names so the receipt is readable.
+    const nameByUpc = new Map(included.map((r) => [r.matched!.upc, r.listName]));
+    setFailedItems(failedUpcs.map((u) => nameByUpc.get(u) ?? u));
+    setAdded(ok);
+    setStep("done");
   }
 
   const includedCount = rows.filter((r) => r.include && r.matched).length;
-  const skipped = rows.filter((r) => !r.matched).length;
+  const noMatchItems = rows.filter((r) => !r.matched).map((r) => r.listName);
+  const skipped = noMatchItems.length;
 
   return (
     <div className="overlay" onClick={onClose}>
@@ -217,7 +231,12 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
                   </div>
                 ))}
               </div>
-              <div className="row" style={{ marginTop: 12 }}>
+              <p className="muted" style={{ fontSize: "0.76rem", marginBottom: 8 }}>
+                Items are <strong>added</strong> to your existing Mariano's cart (sending again
+                makes duplicates). Your cart's store/fulfillment is whatever's set in your
+                Mariano's account — this picker only chooses where prices &amp; matches come from.
+              </p>
+              <div className="row" style={{ marginTop: 4 }}>
                 <button className="btn" onClick={send} disabled={!includedCount}>
                   Send {includedCount} to cart
                 </button>
@@ -229,7 +248,17 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
           )}
 
           {step === "sending" && (
-            <p className="muted">Adding {includedCount} items to your Mariano's cart…</p>
+            <>
+              <p className="muted">
+                Adding to your Mariano's cart… {progress.done} of {progress.total}
+              </p>
+              <div className="progress">
+                <div
+                  className="progress-fill"
+                  style={{ width: `${progress.total ? (progress.done / progress.total) * 100 : 0}%` }}
+                />
+              </div>
+            </>
           )}
 
           {step === "done" && (
@@ -237,8 +266,34 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
               <p>
                 ✅ Added <strong>{added}</strong> item{added === 1 ? "" : "s"} to your Mariano's
                 cart ({modality.toLowerCase()}).
-                {failedCount ? ` ${failedCount} couldn't be added (not available for this store/modality).` : ""}
-                {skipped ? ` ${skipped} item(s) had no match — grab those in store.` : ""}
+              </p>
+
+              {failedItems.length > 0 && (
+                <div className="kroger-receipt error">
+                  <strong>Couldn't add to cart ({failedItems.length}) — buy these separately:</strong>
+                  <ul>
+                    {failedItems.map((n, i) => (
+                      <li key={i}>{n}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {noMatchItems.length > 0 && (
+                <div className="kroger-receipt">
+                  <strong>No Mariano's match ({noMatchItems.length}) — grab in store:</strong>
+                  <ul>
+                    {noMatchItems.map((n, i) => (
+                      <li key={i}>{n}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <p className="muted" style={{ fontSize: "0.76rem" }}>
+                Tip: Kroger's API can only add items — it can't read or clear your cart, so
+                MealMesh can't verify the final cart or remove duplicates. Review the cart on
+                Mariano's before checkout.
               </p>
               <a className="btn" href="https://www.marianos.com/cart" target="_blank" rel="noreferrer">
                 Open Mariano's cart ↗
