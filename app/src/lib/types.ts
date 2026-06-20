@@ -7,7 +7,9 @@ export type Section =
   | "Produce"
   | "Meat & Poultry"
   | "Dairy & Eggs"
+  | "Frozen"
   | "Bakery"
+  | "Canned Goods (Soups, vegetables, and pasta sauces, etc.)"
   | "Pantry & Dry Goods"
   | "Condiments & Spices";
 

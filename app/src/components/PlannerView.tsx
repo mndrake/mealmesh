@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { Recipe, PlanDay, MealRef, Category } from "../lib/types";
-import { recipes, recipesById } from "../lib/recipes";
+import { rawRecipes, recipesById } from "../lib/recipes";
 import { buildPlan } from "../lib/planner";
 import { dayTotals, weekTotals } from "../lib/nutrition";
 import { useStore, actions } from "../lib/store";
@@ -28,7 +28,10 @@ export function PlannerView() {
   function suggest() {
     try {
       setError(null);
-      const next = buildPlan(recipes, { requireTags: require, excludeTags: [] });
+      // Plan generation runs on raw recipes so the app's plan matches the Python
+      // reference exactly (ingredient renames in normalize.ts could shift the greedy
+      // perishable-overlap tie-breaks). Chosen recipes still render via recipesById.
+      const next = buildPlan(rawRecipes, { requireTags: require, excludeTags: [] });
       actions.setActivePlan(next);
     } catch {
       setError(

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { recipesById } from "../lib/recipes";
 import { cookedMeals } from "../lib/planner";
 import { buildList } from "../lib/shopping";
+import { normalizeForShopping } from "../lib/normalize";
 import { useStore, actions } from "../lib/store";
 import { exportShoppingText } from "../lib/exporter";
 
@@ -12,7 +13,7 @@ export function ShoppingView() {
 
   const { list, mealCount } = useMemo(() => {
     const meals = cookedMeals(plan, recipesById);
-    return { list: buildList(meals), mealCount: meals.length };
+    return { list: buildList(normalizeForShopping(meals)), mealCount: meals.length };
   }, [plan]);
 
   const itemCount = list.sections.reduce((n, s) => n + s.items.length, 0);
