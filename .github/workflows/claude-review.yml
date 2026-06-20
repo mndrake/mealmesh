@@ -18,8 +18,8 @@ permissions:
 jobs:
   review:
     runs-on: ubuntu-latest
-    # Skip PRs opened from forks: repository secrets (ANTHROPIC_API_KEY) are not
-    # available to fork PRs, so the review would fail. Same-repo branches only.
+    # Skip PRs opened from forks: repository secrets (CLAUDE_CODE_OAUTH_TOKEN) are
+    # not available to fork PRs, so the review would fail. Same-repo branches only.
     if: github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - name: Checkout
@@ -30,7 +30,9 @@ jobs:
       - name: Claude security & best-practices review
         uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Authenticated via a Claude subscription token (claude setup-token),
+          # stored as the CLAUDE_CODE_OAUTH_TOKEN repo secret.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           track_progress: true
           prompt: |
             Review this pull request's changes with a focus on SECURITY and CODING
