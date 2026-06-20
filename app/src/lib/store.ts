@@ -18,6 +18,7 @@ export interface AppState {
   savedPlans: SavedPlan[];
   favorites: string[]; // recipe ids
   checked: string[]; // shopping list item names checked off
+  locked: string[]; // "<dayIndex>:<slot>" keys pinned against regenerate
 }
 
 export function emptyPlan(): Plan {
@@ -33,7 +34,7 @@ export function emptyPlan(): Plan {
 }
 
 function defaultState(): AppState {
-  return { activePlan: emptyPlan(), savedPlans: [], favorites: [], checked: [] };
+  return { activePlan: emptyPlan(), savedPlans: [], favorites: [], checked: [], locked: [] };
 }
 
 function load(): AppState {
@@ -96,7 +97,22 @@ export const actions = {
   },
 
   clearPlan() {
-    set({ activePlan: emptyPlan() });
+    set({ activePlan: emptyPlan(), locked: [] });
+  },
+
+  toggleLock(key: string) {
+    const locked = state.locked.includes(key)
+      ? state.locked.filter((k) => k !== key)
+      : [...state.locked, key];
+    set({ locked });
+  },
+
+  unlock(key: string) {
+    if (state.locked.includes(key)) set({ locked: state.locked.filter((k) => k !== key) });
+  },
+
+  clearLocks() {
+    set({ locked: [] });
   },
 
   toggleFavorite(id: string) {
@@ -130,7 +146,7 @@ export const actions = {
 
   loadPlan(id: string) {
     const sp = state.savedPlans.find((p) => p.id === id);
-    if (sp) set({ activePlan: sp.plan });
+    if (sp) set({ activePlan: sp.plan, locked: [] });
   },
 
   deletePlan(id: string) {
@@ -143,6 +159,7 @@ export const actions = {
       savedPlans: next.savedPlans ?? [],
       favorites: next.favorites ?? [],
       checked: next.checked ?? [],
+      locked: next.locked ?? [],
     });
   },
 };

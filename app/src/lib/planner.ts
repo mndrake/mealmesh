@@ -137,6 +137,44 @@ export function buildPlan(recipes: Recipe[], opts: PlanOptions = {}): Plan {
   return plan;
 }
 
+/** Rebuild a plan while keeping locked slots from the current plan.
+ *  `lockedKeys` are "<dayIndex>:<slot>" strings. Locked recipe ids are removed from
+ *  the build pool so a regenerate can never duplicate a meal you pinned. Snack
+ *  strings carry no id and are preserved purely by the overlay. */
+export function regeneratePlan(
+  recipes: Recipe[],
+  current: Plan,
+  lockedKeys: Set<string>,
+  opts: PlanOptions = {}
+): Plan {
+  const SLOTS = ["breakfast", "lunch", "dinner", "snack"] as const;
+  const lockedIds = new Set<string>();
+  current.forEach((day, di) => {
+    for (const slot of SLOTS) {
+      if (!lockedKeys.has(`${di}:${slot}`)) continue;
+      const ref = day[slot];
+      if (ref && typeof ref !== "string") lockedIds.add(ref.id);
+    }
+  });
+
+  const fresh = buildPlan(
+    recipes.filter((r) => !lockedIds.has(r.id)),
+    opts
+  );
+
+  const keep = (di: number, slot: (typeof SLOTS)[number]) =>
+    lockedKeys.has(`${di}:${slot}`);
+  return fresh.map(
+    (day, di): PlanDay => ({
+      day: day.day,
+      breakfast: keep(di, "breakfast") ? current[di].breakfast : day.breakfast,
+      lunch: keep(di, "lunch") ? current[di].lunch : day.lunch,
+      dinner: keep(di, "dinner") ? current[di].dinner : day.dinner,
+      snack: keep(di, "snack") ? current[di].snack : day.snack,
+    })
+  );
+}
+
 /** Recipes actually cooked/assembled (leftovers excluded) -> for the shopping list.
  *  Snack slots are included so a recipe placed there is shopped for, consistent with
  *  the nutrition totals. Canned snack *strings* (from auto-suggest) carry no recipe and

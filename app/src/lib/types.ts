@@ -24,6 +24,9 @@ export interface Ingredient {
   exclude_from_shopping?: boolean;
   optional?: boolean;
   note?: string;
+  /** Set by normalize.ts when display normalization changed the item name and/or
+   *  section, so the UI can show what the original recipe data said. */
+  normalizedFrom?: { item?: string; section?: Section };
 }
 
 export interface Nutrition {

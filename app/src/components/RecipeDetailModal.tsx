@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import type { Recipe, Ingredient, Section } from "../lib/types";
-import { SECTION_ORDER } from "../lib/shopping";
+import { SECTION_ORDER, SECTION_LABELS } from "../lib/shopping";
 
 function fmtQty(i: Ingredient): string {
   const parts: string[] = [];
@@ -8,6 +8,17 @@ function fmtQty(i: Ingredient): string {
   if (i.unit && i.unit !== "each" && i.unit !== "to taste") parts.push(i.unit);
   else if (i.unit === "to taste") return "to taste";
   return parts.join(" ");
+}
+
+// Tooltip explaining what the original recipe data said before normalization.
+function normalizedTitle(
+  from: NonNullable<Ingredient["normalizedFrom"]>,
+  section: Section
+): string {
+  const parts: string[] = [];
+  if (from.item) parts.push(`name: “${from.item}”`);
+  if (from.section) parts.push(`aisle: ${from.section} → ${section}`);
+  return `Normalized from original data (${parts.join("; ")})`;
 }
 
 function groupBySection(ings: Ingredient[]): [Section, Ingredient[]][] {
@@ -95,7 +106,10 @@ export function RecipeDetailModal({
           {groupBySection(recipe.ingredients).map(([section, items]) => (
             <div key={section}>
               <div style={{ fontWeight: 600, fontSize: "0.82rem", marginTop: 8 }}>
-                {section}
+                {SECTION_LABELS[section].label}
+                {SECTION_LABELS[section].hint && (
+                  <span className="section-hint">{SECTION_LABELS[section].hint}</span>
+                )}
               </div>
               <ul className="ingredient-list">
                 {items.map((i, idx) => (
@@ -105,6 +119,14 @@ export function RecipeDetailModal({
                       {i.buy_as && i.buy_as !== i.item ? i.buy_as : i.item}
                       {i.note ? `, ${i.note}` : ""}
                       {i.optional ? " (optional)" : ""}
+                      {i.normalizedFrom && (
+                        <span
+                          className="norm-mark"
+                          title={normalizedTitle(i.normalizedFrom, section)}
+                        >
+                          ✎
+                        </span>
+                      )}
                       {i.staple ? " " : ""}
                       {i.staple && <span className="chip">staple</span>}
                     </span>

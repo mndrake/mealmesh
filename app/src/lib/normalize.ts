@@ -323,6 +323,31 @@ const OVERRIDES: Record<string, ItemOverride> = {
   "no-salt-added chickpeas": { section: CANNED },
   "no-salt-added white beans": { section: CANNED },
 
+  // ── Plural/synonym merges (shopping-only, via buyItem) ──────────────────────
+  // Collapse duplicate lines like "onion" + "onions". Display + the raw-fed planner
+  // are untouched. Only fold genuinely identical items — never a narrower into a
+  // broader category (no "green beans" -> "beans").
+  onions: { buyItem: "onion" },
+  "red onions": { buyItem: "red onion" },
+  shallot: { buyItem: "shallots" },
+  scallion: { buyItem: "green onions", section: "Produce" },
+  scallions: { buyItem: "green onions", section: "Produce" },
+  "green onion": { buyItem: "green onions", section: "Produce" },
+  "spring onions": { buyItem: "green onions", section: "Produce" },
+  "fresh scallions": { buyItem: "green onions", section: "Produce" },
+  carrot: { buyItem: "carrots" },
+  potato: { buyItem: "potatoes" },
+  tomatoes: { buyItem: "tomato" },
+  lemons: { buyItem: "lemon" },
+  apples: { buyItem: "apple" },
+  eggs: { buyItem: "egg" },
+  zucchinis: { buyItem: "zucchini" },
+  courgettes: { buyItem: "zucchini" },
+  "english cucumbers": { buyItem: "english cucumber" },
+
+  // Ambiguous-bean call: bare "green beans" is fresh far more often than canned here.
+  "green beans": { section: "Produce" },
+
   // ── Non-grocery items: drop from the shopping list ──────────────────────────
   water: { exclude: true },
   "cold water": { exclude: true },
@@ -340,15 +365,18 @@ function applyConvert(ing: Ingredient, conv: ItemOverride["convert"]): Ingredien
   return { ...ing, qty: ing.qty * conv.factor, unit: conv.to };
 }
 
-/** Display pass: fix mislabeled names and wrong sections; keep prep wording. */
+/** Display pass: fix mislabeled names and wrong sections; keep prep wording.
+ *  Records `normalizedFrom` whenever the visible name or section changed. */
 export function normalizeIngredientForDisplay(ing: Ingredient): Ingredient {
   const o = OVERRIDES[ing.item];
   if (!o) return ing;
-  return {
-    ...ing,
-    item: o.item ?? ing.item,
-    section: o.section ?? ing.section,
-  };
+  const item = o.item ?? ing.item;
+  const section = o.section ?? ing.section;
+  if (item === ing.item && section === ing.section) return ing;
+  const from: { item?: string; section?: Section } = {};
+  if (item !== ing.item) from.item = ing.item;
+  if (section !== ing.section) from.section = ing.section;
+  return { ...ing, item, section, normalizedFrom: from };
 }
 
 /** Shopping pass: display fixes + collapse prep-modified veg into whole counts. */

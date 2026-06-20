@@ -168,6 +168,24 @@ a {
   letter-spacing: 0.03em;
 }
 
+/* normalization hints: section subtitle + per-ingredient "edited" mark */
+.section-hint {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.68rem;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+.norm-mark {
+  margin-left: 5px;
+  color: var(--accent);
+  font-size: 0.74rem;
+  cursor: help;
+  opacity: 0.75;
+}
+
 /* ---- filter panel ---- */
 .filters {
   background: var(--surface);
@@ -475,6 +493,22 @@ a {
   border-color: var(--accent);
   background: var(--accent-soft);
 }
+.slot.locked {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.slot .lock-btn {
+  background: transparent;
+  border: none;
+  padding: 0 2px;
+  font-size: 0.8rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.55;
+}
+.slot .lock-btn.on {
+  opacity: 1;
+}
 .slot .meal-title {
   font-weight: 600;
   cursor: pointer;
@@ -610,4 +644,51 @@ a {
   color: var(--muted);
   font-size: 0.8rem;
   margin-left: 4px;
+}
+
+/* ---- print: weekly plan / shopping list ---- */
+@media print {
+  /* drop all interactive chrome; keep the content (headings, board, list) */
+  .appbar,
+  .disclaimer,
+  .overlay,
+  .btn,
+  .toggle,
+  .add-btn,
+  .lock-btn,
+  .slot-actions,
+  .close,
+  .badge {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+  main {
+    padding-top: 0;
+  }
+  .totals-bar,
+  .shop-section {
+    box-shadow: none;
+  }
+  /* let the week board print in full instead of scrolling */
+  .board-scroll {
+    overflow: visible !important;
+  }
+  .board {
+    min-width: 0 !important;
+    gap: 4px;
+  }
+  .slot {
+    min-height: 0;
+  }
+  /* keep meals, days, and aisles from splitting across pages */
+  .slot,
+  .shop-section,
+  .board .dayh {
+    break-inside: avoid;
+  }
+  .shop-cols {
+    columns: 2;
+  }
 }

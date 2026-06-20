@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import type { Recipe, PlanDay, MealRef, Category } from "../lib/types";
 import { rawRecipes, recipesById } from "../lib/recipes";
-import { buildPlan } from "../lib/planner";
+import { buildPlan, regeneratePlan } from "../lib/planner";
 import { dayTotals, weekTotals } from "../lib/nutrition";
 import { useStore, actions } from "../lib/store";
 import { RecipeDetailModal } from "./RecipeDetailModal";
@@ -17,6 +17,8 @@ export function PlannerView() {
   const plan = useStore((s) => s.activePlan);
   const savedPlans = useStore((s) => s.savedPlans);
   const favorites = useStore((s) => s.favorites);
+  const locked = useStore((s) => s.locked);
+  const lockedSet = useMemo(() => new Set(locked), [locked]);
   const [require, setRequire] = useState<string[]>([]);
   const [detail, setDetail] = useState<Recipe | null>(null);
   const [picker, setPicker] = useState<{ di: number; slot: Slot } | null>(null);
@@ -32,6 +34,24 @@ export function PlannerView() {
       // reference exactly (ingredient renames in normalize.ts could shift the greedy
       // perishable-overlap tie-breaks). Chosen recipes still render via recipesById.
       const next = buildPlan(rawRecipes, { requireTags: require, excludeTags: [] });
+      actions.setActivePlan(next);
+      actions.clearLocks(); // a fresh week starts with nothing pinned
+    } catch {
+      setError(
+        "Not enough recipes match those constraints to fill a week. Loosen the filters and try again."
+      );
+    }
+  }
+
+  function regenerate() {
+    try {
+      setError(null);
+      // Rebuild on raw recipes (same reason as suggest), but keep locked slots and
+      // drop their recipes from the pool so nothing pinned gets duplicated.
+      const next = regeneratePlan(rawRecipes, plan, lockedSet, {
+        requireTags: require,
+        excludeTags: [],
+      });
       actions.setActivePlan(next);
     } catch {
       setError(
@@ -81,6 +101,14 @@ export function PlannerView() {
           ))}
           <button className="btn" onClick={suggest}>
             ✨ Auto-suggest week
+          </button>
+          <button
+            className="btn secondary"
+            onClick={regenerate}
+            disabled={plan.every((d) => !d.breakfast && !d.lunch && !d.dinner && !d.snack)}
+            title="Rebuild non-locked slots; pinned 🔒 meals stay put"
+          >
+            ↻ Regenerate{lockedSet.size > 0 ? ` (keep ${lockedSet.size} 🔒)` : ""}
           </button>
         </div>
       </div>
@@ -133,11 +161,16 @@ export function PlannerView() {
                 kcal={dt.total.kcal}
                 estimated={dt.estimated}
                 dragOver={dragOver}
+                lockedSet={lockedSet}
                 onDragOverSlot={setDragOver}
                 onDrop={handleDrop}
                 onOpenDetail={setDetail}
                 onAdd={(slot) => setPicker({ di, slot })}
-                onClear={(slot) => setSlot(di, slot, null)}
+                onClear={(slot) => {
+                  setSlot(di, slot, null);
+                  actions.unlock(`${di}:${slot}`);
+                }}
+                onToggleLock={(slot) => actions.toggleLock(`${di}:${slot}`)}
               />
             );
           })}
@@ -196,6 +229,9 @@ function PlanToolbar({ savedCount, plan }: { savedCount: number; plan: PlanDay[]
       <button className="btn secondary small" onClick={() => exportPlanJson(plan)}>
         Export
       </button>
+      <button className="btn secondary small" onClick={() => window.print()}>
+        🖨 Print
+      </button>
       <button
         className="btn ghost small"
         onClick={() => confirm("Clear the whole plan?") && actions.clearPlan()}
@@ -212,11 +248,13 @@ interface RowProps {
   kcal: number;
   estimated: boolean;
   dragOver: string | null;
+  lockedSet: Set<string>;
   onDragOverSlot: (k: string | null) => void;
   onDrop: (di: number, slot: Slot, e: React.DragEvent) => void;
   onOpenDetail: (r: Recipe) => void;
   onAdd: (slot: Slot) => void;
   onClear: (slot: Slot) => void;
+  onToggleLock: (slot: Slot) => void;
 }
 
 function Row({
@@ -225,11 +263,13 @@ function Row({
   kcal,
   estimated,
   dragOver,
+  lockedSet,
   onDragOverSlot,
   onDrop,
   onOpenDetail,
   onAdd,
   onClear,
+  onToggleLock,
 }: RowProps) {
   return (
     <>
@@ -243,11 +283,22 @@ function Row({
         const key = `${di}:${slot}`;
         const ref = day[slot];
         const isStr = typeof ref === "string";
+        const isLocked = lockedSet.has(key);
         const recipe = ref && !isStr ? recipesById.get((ref as MealRef).id) : undefined;
+        const lockBtn = (
+          <button
+            className={`lock-btn ${isLocked ? "on" : ""}`}
+            onClick={() => onToggleLock(slot)}
+            title={isLocked ? "Locked — kept on regenerate" : "Lock against regenerate"}
+            aria-pressed={isLocked}
+          >
+            {isLocked ? "🔒" : "🔓"}
+          </button>
+        );
         return (
           <div
             key={slot}
-            className={`slot ${!ref ? "empty" : ""} ${dragOver === key ? "dragover" : ""}`}
+            className={`slot ${!ref ? "empty" : ""} ${isLocked ? "locked" : ""} ${dragOver === key ? "dragover" : ""}`}
             onDragOver={(e) => {
               e.preventDefault();
               onDragOverSlot(key);
@@ -264,6 +315,7 @@ function Row({
                 <span className="meal-meta">snack</span>
                 <span>{ref as string}</span>
                 <div className="slot-actions">
+                  {lockBtn}
                   <button className="btn ghost small" onClick={() => onClear(slot)}>
                     ✕
                   </button>
@@ -294,6 +346,7 @@ function Row({
                   ) : null}
                 </span>
                 <div className="slot-actions">
+                  {lockBtn}
                   <button className="add-btn" onClick={() => onAdd(slot)}>
                     swap
                   </button>

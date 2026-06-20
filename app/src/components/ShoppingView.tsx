@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { recipesById } from "../lib/recipes";
 import { cookedMeals } from "../lib/planner";
-import { buildList } from "../lib/shopping";
+import { buildList, SECTION_LABELS } from "../lib/shopping";
 import { normalizeForShopping } from "../lib/normalize";
 import { useStore, actions } from "../lib/store";
 import { exportShoppingText } from "../lib/exporter";
@@ -40,20 +40,30 @@ export function ShoppingView() {
         <button className="btn secondary small" onClick={() => exportShoppingText(list)}>
           Export
         </button>
+        <button className="btn secondary small" onClick={() => window.print()}>
+          🖨 Print
+        </button>
         <button className="btn ghost small" onClick={actions.clearChecked}>
           Uncheck all
         </button>
       </div>
 
       <p className="muted" style={{ marginTop: 0, fontSize: "0.82rem" }}>
-        Quantities are merged across the week and grouped by store section. Pantry
-        staples are listed separately to check before shopping.
+        Quantities are merged across the week and grouped by store section. Ingredient
+        names and aisles are normalized — chopped/sliced veg are rolled up into whole
+        counts, and mislabeled items are re-sectioned. Pantry staples are listed
+        separately to check before shopping.
       </p>
 
       <div className="shop-cols">
         {list.sections.map(({ section, items }) => (
           <div className="shop-section" key={section}>
-            <h3>{section}</h3>
+            <h3>
+              {SECTION_LABELS[section].label}
+              {SECTION_LABELS[section].hint && (
+                <span className="section-hint">{SECTION_LABELS[section].hint}</span>
+              )}
+            </h3>
             {items.map(([name, qty]) => {
               const id = `${section}:${name}`;
               const isChecked = checkedSet.has(id);

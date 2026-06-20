@@ -14,6 +14,23 @@ export const SECTION_ORDER: Section[] = [
   "Condiments & Spices",
 ];
 
+/** UI presentation for each section: a short header plus an optional hint line.
+ *  The Section value stays the canonical identity (and localStorage key); this
+ *  only controls how it's displayed. */
+export const SECTION_LABELS: Record<Section, { label: string; hint?: string }> = {
+  Produce: { label: "Produce" },
+  "Meat & Poultry": { label: "Meat & Poultry" },
+  "Dairy & Eggs": { label: "Dairy & Eggs" },
+  Frozen: { label: "Frozen" },
+  Bakery: { label: "Bakery" },
+  "Canned Goods (Soups, vegetables, and pasta sauces, etc.)": {
+    label: "Canned Goods",
+    hint: "Soups, vegetables, and pasta sauces, etc.",
+  },
+  "Pantry & Dry Goods": { label: "Pantry & Dry Goods" },
+  "Condiments & Spices": { label: "Condiments & Spices" },
+};
+
 const VOL_TO_TSP: Record<string, number> = { tsp: 1, tbsp: 3, cup: 48, "fl oz": 6 };
 const MASS_TO_OZ: Record<string, number> = { oz: 1, lb: 16 };
 
