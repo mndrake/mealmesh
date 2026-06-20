@@ -19,7 +19,10 @@ export default async (req: Request): Promise<Response> => {
     items?: { upc: string; quantity: number }[];
     modality?: string;
   };
-  const items = (body.items ?? []).filter((i) => i.upc && i.quantity > 0);
+  // Harden values: Kroger 400s on a non-integer quantity or a UPC with stray whitespace.
+  const items = (body.items ?? [])
+    .filter((i) => i.upc && i.quantity > 0)
+    .map((i) => ({ upc: String(i.upc).trim(), quantity: Math.max(1, Math.floor(Number(i.quantity))) }));
   const modality = body.modality === "DELIVERY" ? "DELIVERY" : "PICKUP";
   if (!items.length) return json({ error: "no_items" }, 400);
 
@@ -53,8 +56,9 @@ export default async (req: Request): Promise<Response> => {
       return json({ ok: true, added: items.length });
     }
     const detail = (await res.text().catch(() => "")).slice(0, 200);
-    console.warn("[kroger] cart add status:", res.status, detail);
-    return json({ error: "cart_failed", status: res.status, detail }, 502);
+    console.warn("[kroger] cart add status:", res.status, detail, JSON.stringify(items));
+    // Echo back the first few items we sent so the exact UPC/quantity is visible for debugging.
+    return json({ error: "cart_failed", status: res.status, detail, sent: items.slice(0, 5) }, 502);
   } catch (e) {
     console.warn("[kroger] cart error:", (e as Error).message);
     return json({ error: "cart_failed", detail: (e as Error).message }, 502);
