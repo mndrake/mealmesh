@@ -106,6 +106,11 @@ best-effort and keyed by UPC, since we never see the authoritative cart.
   (`description`/`number`/`side`/`shelf`…). We surface a "📍 Aisle N" hint per matched row,
   falling back to the department. Coverage is partial — `aisleLocations` is often empty — so
   it's shown only when present and never gates sending.
+- **Section cross-check:** `krogerSections.ts` maps Kroger's department to our shopping
+  `Section` (only the confident ones — Produce/Meat/Dairy/Frozen/Bakery; ambiguous departments
+  map to `null`). When the mapped section confidently differs from the section the list grouped
+  an item under, the review shows a "⚠ Kroger: <section>" flag (with the list's section in the
+  tooltip). Display-only — it never re-sections the list or blocks sending.
 
 ## UI
 "🛒 Send to Mariano's" button in `ShoppingView` (next to Export/Print) → modal:

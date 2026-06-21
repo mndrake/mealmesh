@@ -2,7 +2,9 @@
 // (swap/remove/qty) -> choose pickup/delivery -> send to cart -> open cart. We only add
 // items; the user reviews and checks out on Mariano's.
 import { useEffect, useState } from "react";
-import type { ShoppingList } from "../lib/shopping";
+import type { Section } from "../lib/types";
+import { type ShoppingList, SECTION_LABELS } from "../lib/shopping";
+import { sectionMismatch } from "../lib/krogerSections";
 import { krogerClient, type ReviewRow, type KrogerStore, type SentItem } from "../lib/krogerClient";
 
 type Step = "loading" | "needs-auth" | "store" | "review" | "sending" | "done" | "error";
@@ -24,6 +26,32 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
 
   // Non-staple shopping items to match (staples are "check pantry", not bought here).
   const items = list.sections.flatMap((s) => s.items).map(([name, displayQty]) => ({ name, displayQty }));
+  // The list section each item is grouped under, to cross-check against Kroger's department.
+  const sectionByName = new Map<string, Section>();
+  for (const s of list.sections) for (const [name] of s.items) sectionByName.set(name, s.section);
+
+  /** Location hint for a matched row: aisle + a flag when Kroger's department disagrees
+   *  with the section the list grouped the item under. */
+  function locationHint(r: ReviewRow) {
+    if (!r.matched) return null;
+    const mism = sectionMismatch(sectionByName.get(r.listName), r.matched.department);
+    const listSection = sectionByName.get(r.listName);
+    return (
+      <>
+        {r.matched.aisle && <span className="kr-aisle">📍 {r.matched.aisle}</span>}
+        {mism ? (
+          <span
+            className="kr-aisle warn"
+            title={listSection ? `Your list groups this under ${SECTION_LABELS[listSection].label}` : undefined}
+          >
+            ⚠ Kroger: {SECTION_LABELS[mism].label}
+          </span>
+        ) : (
+          !r.matched.aisle && r.matched.department && <span className="kr-aisle">📍 {r.matched.department}</span>
+        )}
+      </>
+    );
+  }
 
   function fail(e: unknown) {
     setError(e instanceof Error ? e.message : String(e));
@@ -254,9 +282,7 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
                       {r.matched && !r.matched.available && (
                         <span className="kr-badge warn">unavailable</span>
                       )}
-                      {r.matched && (r.matched.aisle || r.matched.department) && (
-                        <span className="kr-aisle">📍 {r.matched.aisle ?? r.matched.department}</span>
-                      )}
+                      {locationHint(r)}
                     </div>
                     {r.matched ? (
                       <>

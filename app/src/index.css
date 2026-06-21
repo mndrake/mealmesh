@@ -815,6 +815,9 @@ a {
   color: var(--muted);
   white-space: nowrap;
 }
+.kr-aisle.warn {
+  color: var(--warn);
+}
 /* Inline text button (e.g. "Reset after checkout") styled like a link. */
 .linklike {
   background: none;
