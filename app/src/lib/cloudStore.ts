@@ -40,7 +40,7 @@ export async function hydrate(
       .order("cooked_on", { ascending: false }),
     client
       .from("item_locations")
-      .select("item_name,aisle,aisle_number,department")
+      .select("item_name,aisle,aisle_number,department,fetched_at")
       .eq("household_id", householdId),
   ]);
   if (plansRes.error) throw plansRes.error;

@@ -5,7 +5,10 @@ import { cookedMeals } from "../lib/planner";
 import { buildList, SECTION_LABELS } from "../lib/shopping";
 import { normalizeForShopping } from "../lib/normalize";
 import { groupByAisle, locationText } from "../lib/aisleOrder";
+import { formatCookedOn, todayIso } from "../lib/history";
 import { useStore, actions } from "../lib/store";
+
+const fmtDate = (ms: number) => formatCookedOn(todayIso(new Date(ms)));
 import { exportShoppingText } from "../lib/exporter";
 import { SendToMarianosModal } from "./SendToMarianosModal";
 
@@ -30,6 +33,15 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
     () => list.sections.some((s) => s.items.some(([name]) => locMap.get(name)?.department || locMap.get(name)?.aisle)),
     [list, locMap]
   );
+  // Most recent fetch time among located items on the current list (for the "as of" note).
+  const lastFetched = useMemo(() => {
+    let max = 0;
+    for (const s of list.sections) for (const [name] of s.items) {
+      const f = locMap.get(name)?.fetchedAt ?? 0;
+      if (f > max) max = f;
+    }
+    return max;
+  }, [list, locMap]);
   const aisleGroups = useMemo(
     () => (byAisle && hasLocations ? groupByAisle(list, locMap) : null),
     [byAisle, hasLocations, list, locMap]
@@ -55,7 +67,11 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
       <div className={`shop-item ${isChecked ? "checked" : ""}`}>
         <input type="checkbox" id={id} checked={isChecked} onChange={() => actions.toggleChecked(id)} />
         <label htmlFor={id}>{name}</label>
-        {where && <span className="shop-loc">📍 {where}</span>}
+        {where && (
+          <span className="shop-loc" title={loc?.fetchedAt ? `Aisle info fetched ${fmtDate(loc.fetchedAt)}` : undefined}>
+            📍 {where}
+          </span>
+        )}
         {qty && <span className="q">{qty}</span>}
       </div>
     );
@@ -97,8 +113,8 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
 
       <p className="muted" style={{ marginTop: 0, fontSize: "0.82rem" }}>
         {aisleGroups
-          ? "Organized by store aisle from your last Mariano's match. Items without aisle data are grouped by section at the end; aisle coverage from Kroger is partial."
-          : "Quantities are merged across the week and grouped by store section. Ingredient names and aisles are normalized. Pantry staples are listed separately to check before shopping."}
+          ? `Organized by store aisle from your Mariano's match${lastFetched ? ` (aisle info as of ${fmtDate(lastFetched)})` : ""}. Items without aisle data are grouped by section at the end; aisle coverage from Kroger is partial.`
+          : `Quantities are merged across the week and grouped by store section.${lastFetched ? ` Aisle info shown where known (as of ${fmtDate(lastFetched)}).` : ""} Pantry staples are listed separately to check before shopping.`}
       </p>
 
       <div className="shop-cols">

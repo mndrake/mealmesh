@@ -106,6 +106,7 @@ export interface ItemLocation {
   aisle: string | null; // "Aisle 35"
   aisleNumber: number | null; // 35 — for store-walk ordering
   department: string | null; // "Produce" — the Kroger section
+  fetchedAt: number; // ms epoch the location was last fetched (0 = unknown)
 }
 
 /** One "I made this" event with optional quick feedback. Mirrors a cook_log row. */

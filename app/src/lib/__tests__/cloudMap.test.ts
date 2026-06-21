@@ -8,6 +8,8 @@ import {
   checkedFromRows,
   cookEventFromRow,
   cookEventToRow,
+  itemLocationFromRow,
+  itemLocationToRow,
   stateFromRows,
   householdIsEmpty,
   type PlanRow,
@@ -63,6 +65,14 @@ describe("cloudMap", () => {
       .toEqual({ id: "c1", household_id: "h", recipe_id: "r", cooked_on: "2026-06-02", cooked_by: "u", rating: 4, make_again: true, notes: "tasty", plan_id: "p1" });
   });
 
+  it("maps an item_location row to ItemLocation and back (fetched_at round-trips)", () => {
+    const iso = "2026-06-21T00:00:00.000Z";
+    const row = { household_id: "h", item_name: "onion", aisle: "Aisle 35", aisle_number: 35, department: "Produce", fetched_at: iso };
+    const loc = itemLocationFromRow(row);
+    expect(loc).toEqual({ name: "onion", aisle: "Aisle 35", aisleNumber: 35, department: "Produce", fetchedAt: Date.parse(iso) });
+    expect(itemLocationToRow(loc, "h")).toMatchObject({ household_id: "h", item_name: "onion", aisle_number: 35, department: "Produce", fetched_at: iso });
+  });
+
   it("assembles a full AppState from row sets", () => {
     const state = stateFromRows({
       activePlanRow: { id: "p1", data: { days: samplePlan, locked: ["0:dinner"] } } as PlanRow,
@@ -70,7 +80,7 @@ describe("cloudMap", () => {
       favoriteRows: [{ household_id: "h", recipe_id: "x" }],
       checkoffRows: [{ plan_id: "p1", item_name: "Produce:onion" }],
       cookLogRows: [{ id: "c1", household_id: "h", recipe_id: "r", cooked_on: "2026-06-02", rating: null, make_again: null, notes: null, plan_id: "p1" }],
-      itemLocationRows: [{ household_id: "h", item_name: "onion", aisle: "Aisle 35", aisle_number: 35, department: "Produce" }],
+      itemLocationRows: [{ household_id: "h", item_name: "onion", aisle: "Aisle 35", aisle_number: 35, department: "Produce", fetched_at: "2026-06-21T00:00:00.000Z" }],
       emptyPlan,
     });
     expect(state.activePlan).toEqual(samplePlan);
@@ -79,7 +89,7 @@ describe("cloudMap", () => {
     expect(state.favorites).toEqual(["x"]);
     expect(state.checked).toEqual(["Produce:onion"]);
     expect(state.cookLog).toEqual([{ id: "c1", recipeId: "r", cookedOn: "2026-06-02", rating: null, makeAgain: null, notes: null, planId: "p1" }]);
-    expect(state.itemLocations).toEqual([{ name: "onion", aisle: "Aisle 35", aisleNumber: 35, department: "Produce" }]);
+    expect(state.itemLocations).toEqual([{ name: "onion", aisle: "Aisle 35", aisleNumber: 35, department: "Produce", fetchedAt: Date.parse("2026-06-21T00:00:00.000Z") }]);
   });
 
   it("uses an empty plan when there is no active plan row", () => {

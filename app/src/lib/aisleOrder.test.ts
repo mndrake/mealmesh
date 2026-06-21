@@ -8,6 +8,7 @@ const loc = (name: string, department: string | null, aisleNumber: number | null
   department,
   aisleNumber,
   aisle,
+  fetchedAt: 0,
 });
 
 const list: ShoppingList = {

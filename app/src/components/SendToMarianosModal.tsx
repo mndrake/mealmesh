@@ -75,6 +75,7 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
       );
       // Persist store locations back to the shopping list (by item name) so it can be
       // organized by aisle and show location info while shopping.
+      const now = Date.now();
       const locs = rows
         .filter((r) => r.matched && (r.matched.department || r.matched.aisle))
         .map((r) => ({
@@ -82,6 +83,7 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
           aisle: r.matched!.aisle,
           aisleNumber: r.matched!.aisleNumber,
           department: r.matched!.department,
+          fetchedAt: now,
         }));
       if (locs.length) actions.saveItemLocations(locs);
       setStep("review");
