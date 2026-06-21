@@ -16,6 +16,7 @@ import {
   insertSavedPlan,
   deleteSavedPlan,
   renameSavedPlan,
+  updateSavedPlan,
   setFavorite,
   setCheckoff,
   clearCheckoffs,
@@ -404,6 +405,14 @@ export const actions = {
     if (!trimmed) return;
     set({ savedPlans: state.savedPlans.map((p) => (p.id === id ? { ...p, name: trimmed } : p)) });
     push((c) => renameSavedPlan(c.client, id, trimmed));
+  },
+
+  /** Overwrite an existing saved menu with the current active plan. */
+  overwritePlan(id: string) {
+    if (!state.savedPlans.some((p) => p.id === id)) return;
+    const plan = state.activePlan;
+    set({ savedPlans: state.savedPlans.map((p) => (p.id === id ? { ...p, plan, createdAt: Date.now() } : p)) });
+    push((c) => updateSavedPlan(c.client, id, plan));
   },
 
   importState(next: Partial<AppState>) {

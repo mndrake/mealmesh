@@ -21,7 +21,14 @@ export function SavedMenusModal({ onClose }: { onClose: () => void }) {
   function save() {
     const n = name.trim();
     if (!n) return;
-    actions.savePlanAs(n);
+    // If a menu already has this name, offer to overwrite instead of duplicating.
+    const existing = savedPlans.find((p) => p.name.toLowerCase() === n.toLowerCase());
+    if (existing) {
+      if (!confirm(`A menu named "${existing.name}" exists — overwrite it with this week?`)) return;
+      actions.overwritePlan(existing.id);
+    } else {
+      actions.savePlanAs(n);
+    }
     setName("");
   }
 
@@ -74,6 +81,13 @@ export function SavedMenusModal({ onClose }: { onClose: () => void }) {
                         }}
                       >
                         Load
+                      </button>
+                      <button
+                        className="btn secondary small"
+                        title="Overwrite this menu with the current week"
+                        onClick={() => confirm(`Update "${p.name}" with the current week?`) && actions.overwritePlan(p.id)}
+                      >
+                        Update
                       </button>
                       <button
                         className="btn secondary small"

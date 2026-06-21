@@ -1082,6 +1082,15 @@ a {
   color: var(--muted);
 }
 
+.plan-empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
 /* Saved menus manager */
 .menu-list {
   display: flex;

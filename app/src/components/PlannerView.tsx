@@ -32,7 +32,9 @@ export function PlannerView() {
   const [picker, setPicker] = useState<{ di: number; slot: Slot } | null>(null);
   const [dragOver, setDragOver] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showMenus, setShowMenus] = useState(false);
 
+  const planEmpty = plan.every((d) => !d.breakfast && !d.lunch && !d.dinner && !d.snack);
   const week = useMemo(() => weekTotals(plan, recipesById), [plan]);
 
   const planOpts = {
@@ -174,8 +176,20 @@ export function PlannerView() {
         </div>
         {week.estimated && <span className="est">includes est.</span>}
         <div className="spacer" />
-        <PlanToolbar savedCount={savedPlans.length} plan={plan} />
+        <PlanToolbar savedCount={savedPlans.length} plan={plan} onOpenMenus={() => setShowMenus(true)} />
       </div>
+
+      {planEmpty && (
+        <div className="empty-state plan-empty">
+          <span>Your week is empty. Build it with</span>
+          <button className="btn small" onClick={suggest}>
+            ✨ Auto-suggest a week
+          </button>
+          <button className="btn secondary small" onClick={() => setShowMenus(true)}>
+            📚 Load a saved menu ({savedPlans.length})
+          </button>
+        </div>
+      )}
 
       <div className="board-scroll">
         <div className="board">
@@ -227,6 +241,8 @@ export function PlannerView() {
 
       {cooking && <MarkCookedModal recipe={cooking} onClose={() => setCooking(null)} />}
 
+      {showMenus && <SavedMenusModal onClose={() => setShowMenus(false)} />}
+
       {picker && (
         <RecipePickerModal
           category={picker.slot as Category}
@@ -241,13 +257,20 @@ export function PlannerView() {
   );
 }
 
-function PlanToolbar({ savedCount, plan }: { savedCount: number; plan: PlanDay[] }) {
-  const [showMenus, setShowMenus] = useState(false);
+function PlanToolbar({
+  savedCount,
+  plan,
+  onOpenMenus,
+}: {
+  savedCount: number;
+  plan: PlanDay[];
+  onOpenMenus: () => void;
+}) {
   return (
     <div className="row" style={{ gap: 6 }}>
       <button
         className="btn secondary small"
-        onClick={() => setShowMenus(true)}
+        onClick={onOpenMenus}
         title="Save, load, rename, or delete weekly menus"
       >
         📚 Saved menus ({savedCount})
@@ -264,7 +287,6 @@ function PlanToolbar({ savedCount, plan }: { savedCount: number; plan: PlanDay[]
       >
         Clear
       </button>
-      {showMenus && <SavedMenusModal onClose={() => setShowMenus(false)} />}
     </div>
   );
 }

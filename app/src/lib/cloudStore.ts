@@ -144,6 +144,12 @@ export async function renameSavedPlan(client: SupabaseClient, id: string, name: 
   if (error) throw error;
 }
 
+/** Overwrite a saved plan's days with `plan` (used by "update existing menu"). */
+export async function updateSavedPlan(client: SupabaseClient, id: string, plan: Plan): Promise<void> {
+  const { error } = await client.from("plans").update({ data: planData(plan, []) }).eq("id", id).eq("is_active", false);
+  if (error) throw error;
+}
+
 export async function setFavorite(
   client: SupabaseClient,
   householdId: string,
