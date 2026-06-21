@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { Section } from "../lib/types";
-import { recipesById } from "../lib/recipes";
+import { useAllRecipesById } from "../lib/allRecipes";
 import { cookedMeals } from "../lib/planner";
 import { buildList, SECTION_LABELS } from "../lib/shopping";
 import { normalizeForShopping } from "../lib/normalize";
@@ -16,6 +16,7 @@ const fmtDate = (ms: number) => formatCookedOn(todayIso(new Date(ms)));
 
 export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
   const plan = useStore((s) => s.activePlan);
+  const recipesById = useAllRecipesById();
   const checked = useStore((s) => s.checked);
   const itemLocations = useStore((s) => s.itemLocations);
   const checkedSet = useMemo(() => new Set(checked), [checked]);
@@ -28,7 +29,7 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
   const { list, mealCount } = useMemo(() => {
     const meals = cookedMeals(plan, recipesById);
     return { list: buildList(normalizeForShopping(meals)), mealCount: meals.length };
-  }, [plan]);
+  }, [plan, recipesById]);
 
   const itemCount = list.sections.reduce((n, s) => n + s.items.length, 0);
   // Only offer aisle order when some current item actually has location data.

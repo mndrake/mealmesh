@@ -9,7 +9,7 @@
 import { useSyncExternalStore } from "react";
 import type { SupabaseClient, RealtimeChannel } from "@supabase/supabase-js";
 import { DAYS } from "./planner";
-import type { Plan, PlanDay, CookEvent, ItemLocation } from "./types";
+import type { Plan, PlanDay, CookEvent, ItemLocation, Recipe } from "./types";
 import {
   hydrate,
   writeActivePlan,
@@ -24,6 +24,9 @@ import {
   deleteCookEvent as cloudDeleteCookEvent,
   updateCookEvent as cloudUpdateCookEvent,
   upsertItemLocations,
+  insertUserRecipe,
+  updateUserRecipe as cloudUpdateUserRecipe,
+  deleteUserRecipe as cloudDeleteUserRecipe,
   pushFullState,
 } from "./cloudStore";
 
@@ -44,6 +47,7 @@ export interface AppState {
   locked: string[]; // "<dayIndex>:<slot>" keys pinned against regenerate
   cookLog: CookEvent[]; // "I made this" history (newest-first)
   itemLocations: ItemLocation[]; // store aisle/department cache (by item name)
+  userRecipes: Recipe[]; // imported recipes (merged with the bundled set for display)
   // ---- ephemeral (not persisted to localStorage) ----
   loading: boolean; // hydrating from the cloud
   syncError: boolean; // last cloud write failed to reconcile
@@ -59,11 +63,11 @@ export function emptyPlan(): Plan {
 const EPHEMERAL = { loading: false, syncError: false, importAvailable: false };
 
 function defaultState(): AppState {
-  return { activePlan: emptyPlan(), savedPlans: [], favorites: [], checked: [], locked: [], cookLog: [], itemLocations: [], ...EPHEMERAL };
+  return { activePlan: emptyPlan(), savedPlans: [], favorites: [], checked: [], locked: [], cookLog: [], itemLocations: [], userRecipes: [], ...EPHEMERAL };
 }
 
 // Durable subset that round-trips through localStorage (cache + offline view).
-type Durable = Pick<AppState, "activePlan" | "savedPlans" | "favorites" | "checked" | "locked" | "cookLog" | "itemLocations">;
+type Durable = Pick<AppState, "activePlan" | "savedPlans" | "favorites" | "checked" | "locked" | "cookLog" | "itemLocations" | "userRecipes">;
 function durableOf(s: AppState): Durable {
   return {
     activePlan: s.activePlan,
@@ -73,6 +77,7 @@ function durableOf(s: AppState): Durable {
     locked: s.locked,
     cookLog: s.cookLog,
     itemLocations: s.itemLocations,
+    userRecipes: s.userRecipes,
   };
 }
 
@@ -218,6 +223,7 @@ function subscribeRealtime() {
     .on("postgres_changes", { event: "*", schema: "public", table: "shopping_checkoffs" }, onRemoteChange)
     .on("postgres_changes", { event: "*", schema: "public", table: "cook_log", filter: `household_id=eq.${h}` }, onRemoteChange)
     .on("postgres_changes", { event: "*", schema: "public", table: "item_locations", filter: `household_id=eq.${h}` }, onRemoteChange)
+    .on("postgres_changes", { event: "*", schema: "public", table: "user_recipes", filter: `household_id=eq.${h}` }, onRemoteChange)
     .subscribe();
 }
 
@@ -393,6 +399,24 @@ export const actions = {
     push((c) => upsertItemLocations(c.client, entries, c.householdId, c.userId));
   },
 
+  /** Add an imported recipe (optimistic; appears immediately in Browse). */
+  addUserRecipe(recipe: Recipe) {
+    set({ userRecipes: [recipe, ...state.userRecipes] });
+    push((c) => insertUserRecipe(c.client, recipe, c.householdId, c.userId));
+  },
+
+  /** Overwrite an imported recipe in place (review-form edits). */
+  updateUserRecipe(recipe: Recipe) {
+    if (!state.userRecipes.some((r) => r.id === recipe.id)) return;
+    set({ userRecipes: state.userRecipes.map((r) => (r.id === recipe.id ? recipe : r)) });
+    push((c) => cloudUpdateUserRecipe(c.client, recipe, c.householdId));
+  },
+
+  deleteUserRecipe(id: string) {
+    set({ userRecipes: state.userRecipes.filter((r) => r.id !== id) });
+    push((c) => cloudDeleteUserRecipe(c.client, id));
+  },
+
   savePlanAs(name: string) {
     const sp: SavedPlan = { id: crypto.randomUUID(), name, createdAt: Date.now(), plan: state.activePlan };
     set({ savedPlans: [...state.savedPlans, sp] });
@@ -436,6 +460,7 @@ export const actions = {
       locked: next.locked ?? [],
       cookLog: next.cookLog ?? [],
       itemLocations: next.itemLocations ?? [],
+      userRecipes: next.userRecipes ?? [],
     });
     push(async (c) => {
       const planId = await pushFullState(c.client, c.householdId, c.activePlanId, state);

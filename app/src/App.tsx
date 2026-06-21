@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Recipe } from "./lib/types";
-import { recipes, recipesById } from "./lib/recipes";
+import { useAllRecipes, useAllRecipesById } from "./lib/allRecipes";
 import { useStore, actions } from "./lib/store";
 import { cookedMeals } from "./lib/planner";
 import { BrowseView } from "./components/BrowseView";
@@ -29,6 +29,8 @@ export default function App() {
   const plan = useStore((s) => s.activePlan);
   const favoritesCount = useStore((s) => s.favorites.length);
   const cookedCount = useStore((s) => s.cookLog.length);
+  const recipes = useAllRecipes();
+  const recipesById = useAllRecipesById();
   const { email, signOut } = useAuth();
 
   // Clean the ?kroger= param from the URL (and surface a connect error). No setState here.

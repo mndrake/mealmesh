@@ -110,6 +110,19 @@ describe("store cloud sync", () => {
     expect(getState().syncError).toBe(false);
   });
 
+  it("addUserRecipe applies optimistically and inserts a user_recipes row", async () => {
+    const { client, calls } = makeClient(emptyResolver);
+    await connect(client, "hh-1", "user-1");
+
+    const recipe = { id: "u-1", title: "Imported" } as never;
+    actions.addUserRecipe(recipe);
+    expect(getState().userRecipes[0]).toMatchObject({ id: "u-1", title: "Imported" });
+
+    await tick();
+    expect(calls.find((c) => c.table === "user_recipes" && c.type === "insert")).toBeTruthy();
+    expect(getState().syncError).toBe(false);
+  });
+
   it("offers a one-time import when the cloud is empty but local data exists", async () => {
     // seed local data in local mode (no cloud): importState writes in-memory, no network
     actions.importState({ favorites: ["local-fav"] });

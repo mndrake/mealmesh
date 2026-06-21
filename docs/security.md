@@ -42,6 +42,7 @@ household.
 | `VITE_SUPABASE_URL` | Netlify build env + `app/.env.local` | Public. |
 | `VITE_SUPABASE_ANON_KEY` | Netlify build env + `app/.env.local` | Public by design; safe with RLS. |
 | `service_role` key | Supabase dashboard only | **Never** in repo, frontend, or Netlify build. |
+| `ANTHROPIC_API_KEY` | Netlify **function** env only | Recipe-import AI fallback. Server-side secret — never `VITE_`-prefixed, never in the client bundle. Optional: if unset, URL import still works for pages with schema.org recipe data; the AI fallback is simply disabled. |
 
 - `app/.env.local` is git-ignored (extend `.gitignore` to cover `.env*` in M1).
 - Vite exposes only `VITE_`-prefixed vars to the client — keep it that way; never prefix a

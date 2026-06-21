@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { Recipe, PlanDay, MealRef, Category } from "../lib/types";
-import { rawRecipes, recipesById } from "../lib/recipes";
+import { rawRecipes } from "../lib/recipes";
+import { useAllRecipesById } from "../lib/allRecipes";
 import { buildPlan, regeneratePlan } from "../lib/planner";
 import { dayTotals, weekTotals } from "../lib/nutrition";
 import { useStore, actions } from "../lib/store";
@@ -18,6 +19,7 @@ const CONSTRAINTS = ["diabetic-friendly", "vegetarian", "low-carb", "high-protei
 
 export function PlannerView() {
   const plan = useStore((s) => s.activePlan);
+  const recipesById = useAllRecipesById();
   const savedPlans = useStore((s) => s.savedPlans);
   const favorites = useStore((s) => s.favorites);
   const locked = useStore((s) => s.locked);
@@ -35,7 +37,7 @@ export function PlannerView() {
   const [showMenus, setShowMenus] = useState(false);
 
   const planEmpty = plan.every((d) => !d.breakfast && !d.lunch && !d.dinner && !d.snack);
-  const week = useMemo(() => weekTotals(plan, recipesById), [plan]);
+  const week = useMemo(() => weekTotals(plan, recipesById), [plan, recipesById]);
 
   const planOpts = {
     requireTags: require,
@@ -324,6 +326,7 @@ function Row({
   onClear,
   onToggleLock,
 }: RowProps) {
+  const recipesById = useAllRecipesById();
   return (
     <>
       <div className="dayh" style={{ flexDirection: "column", alignItems: "flex-start" }}>

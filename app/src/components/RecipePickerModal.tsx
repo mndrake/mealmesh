@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { Recipe, Category } from "../lib/types";
-import { recipes } from "../lib/recipes";
+import { useAllRecipes } from "../lib/allRecipes";
 import { applyFilters, emptyFilters } from "../lib/filters";
 
 interface Props {
@@ -12,6 +12,7 @@ interface Props {
 
 export function RecipePickerModal({ category, onPick, onClose }: Props) {
   const [search, setSearch] = useState("");
+  const recipes = useAllRecipes();
   const results = useMemo(() => {
     const f = {
       ...emptyFilters(),
@@ -19,7 +20,7 @@ export function RecipePickerModal({ category, onPick, onClose }: Props) {
       categories: category ? [category] : [],
     };
     return applyFilters(recipes, f, new Set()).slice(0, 60);
-  }, [search, category]);
+  }, [recipes, search, category]);
 
   return (
     <div className="overlay" onClick={onClose}>

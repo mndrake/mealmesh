@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import type { Recipe, CookEvent } from "../lib/types";
 import { useStore, actions } from "../lib/store";
-import { recipesById } from "../lib/recipes";
+import { useAllRecipesById } from "../lib/allRecipes";
 import { recentCooks, formatCookedOn } from "../lib/history";
 import { RecipeDetailModal } from "./RecipeDetailModal";
 import { MarkCookedModal } from "./MarkCookedModal";
@@ -19,6 +19,7 @@ function feedback(rating: number | null, makeAgain: boolean | null): string {
 export function HistoryView() {
   const cookLog = useStore((s) => s.cookLog);
   const favorites = useStore((s) => s.favorites);
+  const recipesById = useAllRecipesById();
   const favSet = useMemo(() => new Set(favorites), [favorites]);
   const recent = useMemo(() => recentCooks(cookLog), [cookLog]);
   const [detail, setDetail] = useState<Recipe | null>(null);

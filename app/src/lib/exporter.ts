@@ -1,6 +1,6 @@
 // Export helpers — download plans / shopping lists / full app state as files.
 import type { Plan, PlanDay, MealRef } from "./types";
-import { recipesById } from "./recipes";
+import { allRecipesById } from "./allRecipes";
 import type { ShoppingList } from "./shopping";
 import { getState } from "./store";
 
@@ -17,7 +17,7 @@ function download(filename: string, text: string, type = "application/json") {
 function mealLabel(ref: PlanDay[keyof PlanDay]): string {
   if (!ref) return "—";
   if (typeof ref === "string") return ref;
-  const r = recipesById.get((ref as MealRef).id);
+  const r = allRecipesById().get((ref as MealRef).id);
   const lo = (ref as MealRef).leftover ? " (leftover)" : "";
   return (r?.title ?? ref.id) + lo;
 }

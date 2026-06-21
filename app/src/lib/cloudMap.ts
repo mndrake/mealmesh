@@ -1,6 +1,6 @@
 // Pure mapping between the app's AppState and Supabase row shapes. No network here —
 // cloudStore.ts does the I/O, store.ts orchestrates. Kept pure so it is unit-testable.
-import type { Plan, CookEvent, ItemLocation } from "./types";
+import type { Plan, CookEvent, ItemLocation, Recipe } from "./types";
 import type { AppState, SavedPlan } from "./store";
 
 /** The durable, persisted subset of AppState (no ephemeral UI flags). */
@@ -55,6 +55,14 @@ export interface ItemLocationRow {
   aisle_number: number | null;
   department: string | null;
   fetched_at?: string | null;
+}
+
+export interface UserRecipeRow {
+  id: string;
+  household_id: string;
+  data: Recipe;
+  source_url?: string | null;
+  created_at?: string;
 }
 
 // ---- AppState -> row payloads (for writes) ----
@@ -135,6 +143,23 @@ export function itemLocationToRow(l: ItemLocation, householdId: string, userId?:
   };
 }
 
+/** A stored imported recipe (the full Recipe lives in the JSONB `data` column). The row id
+ *  is authoritative for the recipe id. */
+export function userRecipeFromRow(row: UserRecipeRow): Recipe {
+  return { ...row.data, id: row.id };
+}
+
+/** Insert/upsert payload for an imported recipe. */
+export function userRecipeToRow(r: Recipe, householdId: string, userId?: string) {
+  return {
+    id: r.id,
+    household_id: householdId,
+    data: r,
+    source_url: r.source?.url ?? null,
+    created_by: userId ?? null,
+  };
+}
+
 /** Insert payload for a cook event (id/created_at are server-defaulted). */
 export function cookEventToRow(e: CookEvent, householdId: string, userId?: string) {
   return {
@@ -158,6 +183,7 @@ export function stateFromRows(opts: {
   checkoffRows: CheckoffRow[];
   cookLogRows: CookLogRow[];
   itemLocationRows: ItemLocationRow[];
+  userRecipeRows: UserRecipeRow[];
   emptyPlan: () => Plan;
 }): DurableState {
   const active = opts.activePlanRow
@@ -171,6 +197,7 @@ export function stateFromRows(opts: {
     checked: checkedFromRows(opts.checkoffRows),
     cookLog: opts.cookLogRows.map(cookEventFromRow),
     itemLocations: opts.itemLocationRows.map(itemLocationFromRow),
+    userRecipes: opts.userRecipeRows.map(userRecipeFromRow),
   };
 }
 

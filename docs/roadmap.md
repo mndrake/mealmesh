@@ -143,9 +143,25 @@ Mariano's" UI on the shopping list (connect → pick store → review/swap → s
 **External dependency (long pole):** a Kroger **Production** developer app with the
 `cart.basic:write` scope — self-serve registration (see kroger-integration.md → Prerequisites).
 
+## M6 — Recipe import (by URL) — ✅ DONE
+**Goal:** let the household add their own recipes alongside the bundled read-only set.
+Full design in [`recipe-import.md`](./recipe-import.md).
+
+Imported recipes are mutable per-household data, so they get a Supabase `user_recipes` table
+(migration 0010) and are merged into the app's recipe lookup at runtime
+(`app/src/lib/allRecipes.ts`) — bundled recipes stay read-only and still drive plan
+generation. A Netlify function (`recipe-import`) fetches the page (SSRF-guarded) and extracts
+a recipe from schema.org JSON-LD, falling back to Claude (`claude-opus-4-8`, structured
+output) for pages without it. The user reviews/edits the draft before saving.
+
+**New secret:** `ANTHROPIC_API_KEY` (Netlify function env only) powers the AI fallback;
+JSON-LD import works without it. Import by image / template are deferred (the table + review
+form already support them).
+
 ## Dependency order
 `M0 → M1 → M2 → M5 (Kroger, pulled forward) → M3 → M4`. Kroger only needs M1/M2 (auth +
-deployed backend); it's independent of M3. M3 depends on M2. M4 is gated last.
+deployed backend); it's independent of M3. M3 depends on M2. M4 is gated last. M6 (recipe
+import) builds on M2's synced-state seam.
 
 ## Out of scope (noted, not planned here)
 - Moving the 278 read-only recipes into the database.
