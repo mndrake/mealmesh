@@ -124,7 +124,7 @@ best-effort and keyed by UPC, since we never see the authoritative cart.
   button re-runs the match for the current list and re-saves locations with a fresh timestamp;
   if not yet connected / no store chosen, it falls back to the guided Send flow.
 - **Estimated cost:** the same match also returns the matched product's package `price`, now
-  persisted with the location (migration 0013 adds `price`, `product`, `quantity` to
+  persisted with the location (migrations 0013/0014 add `price`, `product`, `quantity` to
   `item_locations`). The shopping list is the clean **in-store checklist** — two-line rows
   (name on top; muted `aisle · qty · price` below), a "~$X est." pill, and a cost bar
   (**to go / in cart / total**, split by checkoff). It's a simple per-package estimate
@@ -137,6 +137,16 @@ best-effort and keyed by UPC, since we never see the authoritative cart.
   view uncluttered. The quick **"Get / Update prices & aisles"** button refreshes price/aisle
   without touching a user-set quantity (field-merged; PostgREST updates only provided columns).
   Export includes per-item subtotals + an estimated total.
+- **Pantry staples + "need to buy":** the source `staple` flag is inconsistent (same item
+  staple in one recipe, not in another), so `staples.ts` re-derives it consistently on the
+  shopping path (`normalizeForShopping`): a staple is anything in **Condiments & Spices** plus
+  a curated set of baking/pantry basics. `buildList` stays faithful for the parity tests (run
+  on raw recipes); the canonical flag only affects the app path. Staples are listed separately
+  as **"Pantry staples — tap what you're low on"**; tapping **"Need to buy"** sets a per-plan
+  `stapleNeeds` flag (rides in the plan JSONB next to `locked`, so no new table) and
+  ShoppingView **promotes** that staple into its real section — so it's matched, priced,
+  aisle-sorted, sendable to the cart, and checkable like any other item. A **"?" Help** modal
+  (`HelpModal`) explains the whole workflow.
 
 ## UI
 "🛒 Send to Mariano's" button in `ShoppingView` (next to Export/Print) → modal:

@@ -53,7 +53,7 @@ export function exportShoppingText(
     lines.push("");
   }
   if (list.staples.length) {
-    lines.push("Check pantry (staples)");
+    lines.push("Pantry staples (check what you're low on)");
     for (const s of list.staples) lines.push(`  [ ] ${s}`);
     lines.push("");
   }

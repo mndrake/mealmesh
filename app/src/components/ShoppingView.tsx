@@ -20,7 +20,9 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
   const recipesById = useAllRecipesById();
   const checked = useStore((s) => s.checked);
   const itemLocations = useStore((s) => s.itemLocations);
+  const stapleNeeds = useStore((s) => s.stapleNeeds);
   const checkedSet = useMemo(() => new Set(checked), [checked]);
+  const neededSet = useMemo(() => new Set(stapleNeeds), [stapleNeeds]);
   const locMap = useMemo(() => new Map(itemLocations.map((l) => [l.name, l])), [itemLocations]);
   // Opens immediately when returning from the Kroger OAuth redirect (openSend).
   const [showKroger, setShowKroger] = useState(openSend);
@@ -31,10 +33,20 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
   // not edited inline here — the list is the clean in-store checklist.
   const getQty = (name: string) => locMap.get(name)?.quantity ?? 1;
 
-  const { list, mealCount } = useMemo(() => {
-    const meals = cookedMeals(plan, recipesById);
-    return { list: buildList(normalizeForShopping(meals)), mealCount: meals.length };
-  }, [plan, recipesById]);
+  // Build the list, "promoting" staples the user marked "need to buy" into normal items so
+  // they flow into sections/aisle order/cost/cart. allStaplesSet = every staple in the plan
+  // (needed or not) so the UI can show the right toggle on each.
+  const { list, allStaplesSet, mealCount } = useMemo(() => {
+    const meals = normalizeForShopping(cookedMeals(plan, recipesById));
+    const staplesSet = new Set(buildList(meals).staples);
+    const promoted = meals.map((r) => ({
+      ...r,
+      ingredients: r.ingredients.map((i) =>
+        i.staple && neededSet.has(i.buy_as || i.item) ? { ...i, staple: false } : i
+      ),
+    }));
+    return { list: buildList(promoted), allStaplesSet: staplesSet, mealCount: meals.length };
+  }, [plan, recipesById, neededSet]);
 
   const itemCount = list.sections.reduce((n, s) => n + s.items.length, 0);
   const hasLocations = useMemo(
@@ -119,15 +131,17 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
     );
   }
 
-  function Item({ name, qty: recipeQty, section }: { name: string; qty?: string; section: Section | "staple" }) {
+  function Item({ name, qty: recipeQty, section }: { name: string; qty?: string; section: Section }) {
     const id = `${section}:${name}`;
     const isChecked = checkedSet.has(id);
+    const isStapleItem = allStaplesSet.has(name); // a promoted "need to buy" staple
     const loc = locMap.get(name);
     const where = locationText(loc);
     const stale = isStale(loc, Date.now(), STALE_DAYS);
-    const price = section !== "staple" ? loc?.price ?? null : null;
+    const price = loc?.price ?? null;
     const packages = loc?.quantity ?? 1;
-    const hasSub = Boolean(where || recipeQty || price != null);
+    const showNoPrice = hasPrices && price == null;
+    const hasSub = Boolean(where || recipeQty || price != null || showNoPrice || isStapleItem);
     return (
       <div className={`shop-item ${isChecked ? "checked" : ""}`}>
         <input type="checkbox" id={id} checked={isChecked} onChange={() => actions.toggleChecked(id)} />
@@ -145,11 +159,22 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
                 </span>
               )}
               {recipeQty && <span className="q">{recipeQty}</span>}
-              {price != null && (
+              {isStapleItem && (
+                <button
+                  className="staple-tag on"
+                  title="Pantry staple you added — tap to move it back to the pantry list"
+                  onClick={() => actions.toggleStapleNeed(name)}
+                >
+                  ★ staple
+                </button>
+              )}
+              {price != null ? (
                 <span className="shop-price" title={loc?.product ? `Priced as: ${loc.product}${packages > 1 ? ` × ${packages}` : ""}` : undefined}>
                   {packages > 1 ? `${packages}× ` : ""}
                   {formatMoney(price * packages)}
                 </span>
+              ) : (
+                showNoPrice && <span className="shop-price none" title="Kroger didn't match this item">—</span>
               )}
             </div>
           )}
@@ -221,7 +246,7 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
           ? `Organized by Kroger department, ordered by aisle${lastFetched ? ` (as of ${fmtDate(lastFetched)})` : ""}. Items Kroger didn't match are in "Other" at the end.`
           : hasPrices
             ? `Per-package price estimate${lastFetched ? `, as of ${fmtDate(lastFetched)}` : ""}. Swap products or set quantities in “Review & send”.`
-            : `Quantities are merged across the week and grouped by store section. Use “Get prices & aisles” to add cost + aisle order. Staples are listed separately.`}
+            : `Quantities are merged across the week and grouped by store section. Use “Get prices & aisles” to add cost + aisle order. Pantry staples (spices, oils, baking basics) are listed at the end — tap “Need to buy” on anything you're low on to add it to the list.`}
       </p>
 
       <div className="shop-cols">
@@ -250,9 +275,21 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
 
         {list.staples.length > 0 && (
           <div className="shop-section staples">
-            <h3>Check pantry (staples)</h3>
+            <h3>
+              Pantry staples — tap what you're low on
+              <span className="section-hint">added ones join your list &amp; cart</span>
+            </h3>
             {list.staples.map((name) => (
-              <Item key={name} name={name} section="staple" />
+              <div className="shop-item staple-ref" key={name}>
+                <span className="staple-name">{name}</span>
+                <button
+                  className="staple-tag"
+                  title="Add to your shopping list & cart"
+                  onClick={() => actions.toggleStapleNeed(name)}
+                >
+                  + Need to buy
+                </button>
+              </div>
             ))}
           </div>
         )}

@@ -8,6 +8,7 @@ import { PlannerView } from "./components/PlannerView";
 import { ShoppingView } from "./components/ShoppingView";
 import { HistoryView } from "./components/HistoryView";
 import { AddToPlanModal } from "./components/AddToPlanModal";
+import { HelpModal } from "./components/HelpModal";
 import { CloudStatus } from "./components/CloudStatus";
 import { exportAllState } from "./lib/exporter";
 import { useAuth } from "./lib/auth";
@@ -26,6 +27,7 @@ export default function App() {
   const krogerConnected = krogerReturn === "connected";
   const [tab, setTab] = useState<Tab>(krogerConnected ? "shopping" : "browse");
   const [addTarget, setAddTarget] = useState<Recipe | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
   const plan = useStore((s) => s.activePlan);
   const favoritesCount = useStore((s) => s.favorites.length);
   const cookedCount = useStore((s) => s.cookLog.length);
@@ -96,6 +98,14 @@ export default function App() {
           <div className="row" style={{ gap: 6 }}>
             <button
               className="btn ghost small"
+              onClick={() => setShowHelp(true)}
+              title="How MealMesh works"
+              aria-label="Help"
+            >
+              ? Help
+            </button>
+            <button
+              className="btn ghost small"
               onClick={exportAllState}
               title="Download a backup of plans & favorites"
             >
@@ -148,6 +158,8 @@ export default function App() {
           onClose={() => setAddTarget(null)}
         />
       )}
+
+      {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
 
       <footer className="disclaimer">
         <strong>Disclaimer:</strong> Nutrition figures are per serving and approximate —

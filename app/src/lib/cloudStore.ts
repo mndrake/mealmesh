@@ -153,9 +153,9 @@ export async function deleteUserRecipe(client: SupabaseClient, id: string): Prom
  *  returns the active plan id. */
 export async function writeActivePlan(
   client: SupabaseClient,
-  opts: { householdId: string; planId: string | null; activePlan: Plan; locked: string[]; userId?: string }
+  opts: { householdId: string; planId: string | null; activePlan: Plan; locked: string[]; stapleNeeds?: string[]; userId?: string }
 ): Promise<string> {
-  const data = planData(opts.activePlan, opts.locked);
+  const data = planData(opts.activePlan, opts.locked, opts.stapleNeeds ?? []);
   if (opts.planId) {
     const { error } = await client
       .from("plans")
@@ -243,6 +243,7 @@ export async function pushFullState(
     planId: activePlanId,
     activePlan: state.activePlan,
     locked: state.locked,
+    stapleNeeds: state.stapleNeeds,
   });
 
   // Saved plans: replace the inactive rows wholesale.
