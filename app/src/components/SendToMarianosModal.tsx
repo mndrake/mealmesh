@@ -254,6 +254,9 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
                       {r.matched && !r.matched.available && (
                         <span className="kr-badge warn">unavailable</span>
                       )}
+                      {r.matched && (r.matched.aisle || r.matched.department) && (
+                        <span className="kr-aisle">📍 {r.matched.aisle ?? r.matched.department}</span>
+                      )}
                     </div>
                     {r.matched ? (
                       <>

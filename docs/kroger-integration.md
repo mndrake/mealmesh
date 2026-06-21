@@ -101,6 +101,11 @@ best-effort and keyed by UPC, since we never see the authoritative cart.
   "0.5 cup" is context only — never parsed). User can bump qty in review.
 - Carry **UPC** end-to-end (cart needs UPC); drop rows without one.
 - **Review-before-send** always (fuzzy matching); surface skipped/no-match items.
+- **Store location metadata:** Products search (with `filter.locationId`, which we already send)
+  returns `categories` (department, e.g. "Produce") and `aisleLocations[]`
+  (`description`/`number`/`side`/`shelf`…). We surface a "📍 Aisle N" hint per matched row,
+  falling back to the department. Coverage is partial — `aisleLocations` is often empty — so
+  it's shown only when present and never gates sending.
 
 ## UI
 "🛒 Send to Mariano's" button in `ShoppingView` (next to Export/Print) → modal:

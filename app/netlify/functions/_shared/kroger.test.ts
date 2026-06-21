@@ -78,7 +78,7 @@ describe("kroger pure helpers", () => {
     const row = toReviewRow(
       {
         data: [
-          { upc: "0001", productId: "p1", description: "Red Onion", items: [{ price: { regular: 0.99 }, fulfillment: { instore: true } }] },
+          { upc: "0001", productId: "p1", description: "Red Onion", categories: ["Produce"], aisleLocations: [{ description: "Aisle 35", number: "35" }], items: [{ price: { regular: 0.99 }, fulfillment: { instore: true } }] },
           { upc: "0002", productId: "p2", description: "Organic Red Onion", items: [{ price: { promo: 1.49, regular: 1.79 }, fulfillment: {} }] },
           { productId: "noupc", description: "skip me" }, // no UPC → dropped
         ],
@@ -86,11 +86,20 @@ describe("kroger pure helpers", () => {
       "red onion",
       "1 each"
     );
-    expect(row.matched).toMatchObject({ upc: "0001", description: "Red Onion", price: 0.99, available: true });
+    expect(row.matched).toMatchObject({ upc: "0001", description: "Red Onion", price: 0.99, available: true, aisle: "Aisle 35", department: "Produce" });
     expect(row.alternates).toHaveLength(1);
-    expect(row.alternates[0]).toMatchObject({ upc: "0002", price: 1.49 }); // promo preferred
+    expect(row.alternates[0]).toMatchObject({ upc: "0002", price: 1.49, aisle: null, department: null }); // promo preferred; no aisle data
     expect(row.quantity).toBe(1);
     expect(row.include).toBe(true);
+  });
+
+  it("derives an aisle label from aisleLocations[0].number when description is absent", () => {
+    const row = toReviewRow(
+      { data: [{ upc: "0009", description: "Milk", aisleLocations: [{ number: "12" }], items: [{ fulfillment: { instore: true } }] }] },
+      "milk",
+      "1 each"
+    );
+    expect(row.matched).toMatchObject({ aisle: "Aisle 12", department: null });
   });
 
   it("review row with no matches is excluded by default", () => {

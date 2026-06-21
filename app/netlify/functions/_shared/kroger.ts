@@ -76,6 +76,8 @@ export interface ProductMatch {
   description: string;
   price: number | null;
   available: boolean;
+  aisle: string | null; // e.g. "Aisle 35" (often absent — coverage is partial)
+  department: string | null; // e.g. "Produce" (from categories[0])
 }
 
 export interface ReviewRow {
@@ -153,12 +155,17 @@ function toMatch(p: any): ProductMatch | null {
   const item = p.items?.[0];
   const price = item?.price?.promo || item?.price?.regular || null;
   const f = item?.fulfillment ?? {};
+  const al = p.aisleLocations?.[0];
+  const aisle = al?.description ? String(al.description) : al?.number ? `Aisle ${al.number}` : null;
+  const department = Array.isArray(p.categories) && p.categories.length ? String(p.categories[0]) : null;
   return {
     upc: String(p.upc),
     productId: String(p.productId ?? p.upc),
     description: p.description ?? "",
     price: typeof price === "number" ? price : null,
     available: Boolean(f.instore || f.curbside || f.delivery || f.shiptohome),
+    aisle,
+    department,
   };
 }
 

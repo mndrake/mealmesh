@@ -9,6 +9,8 @@ export interface ProductMatch {
   description: string;
   price: number | null;
   available: boolean;
+  aisle: string | null; // e.g. "Aisle 35" (often absent)
+  department: string | null; // e.g. "Produce"
 }
 export interface ReviewRow {
   listName: string;
