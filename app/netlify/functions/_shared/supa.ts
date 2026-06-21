@@ -140,11 +140,14 @@ export async function saveTokens(
 // ---- Item search aliases (override the term used to match an item) ----
 /** Map of item_name -> search_term for the household. */
 export async function getAliases(householdId: string): Promise<Map<string, string>> {
-  const { data } = await service()
+  const map = new Map<string, string>();
+  // Tolerate the table not existing yet (migration 0008 not applied) — aliases are an
+  // enhancement; a missing table must never break matching.
+  const { data, error } = await service()
     .from("item_aliases")
     .select("item_name,search_term")
     .eq("household_id", householdId);
-  const map = new Map<string, string>();
+  if (error) return map;
   for (const r of (data ?? []) as { item_name: string; search_term: string }[]) {
     if (r.item_name && r.search_term) map.set(r.item_name, r.search_term);
   }
