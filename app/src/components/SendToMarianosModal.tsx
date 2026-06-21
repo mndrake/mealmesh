@@ -3,7 +3,7 @@
 // items; the user reviews and checks out on Mariano's.
 import { useEffect, useState } from "react";
 import type { ShoppingList } from "../lib/shopping";
-import { krogerClient, type ReviewRow, type KrogerStore } from "../lib/krogerClient";
+import { krogerClient, type ReviewRow, type KrogerStore, type SentItem } from "../lib/krogerClient";
 
 type Step = "loading" | "needs-auth" | "store" | "review" | "sending" | "done" | "error";
 
@@ -18,6 +18,9 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
   const [added, setAdded] = useState(0);
   const [failedItems, setFailedItems] = useState<string[]>([]);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
+  // What MealMesh has already added to the cart (we can't read the real cart, so we track
+  // our own sends) — used to flag duplicates and items to remove.
+  const [sentItems, setSentItems] = useState<SentItem[]>([]);
 
   // Non-staple shopping items to match (staples are "check pantry", not bought here).
   const items = list.sections.flatMap((s) => s.items).map(([name, displayQty]) => ({ name, displayQty }));
@@ -27,11 +30,20 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
     setStep("error");
   }
 
-  async function startReview() {
+  async function startReview(sent: SentItem[] = sentItems) {
     setStep("loading");
     try {
       const { rows } = await krogerClient.match(items);
-      setRows(rows);
+      // Default already-sent or unavailable matches OFF so we don't duplicate the cart or
+      // add things that can't be fulfilled — the user can still re-check them.
+      const sentUpcs = new Set(sent.map((x) => x.upc));
+      setRows(
+        rows.map((r) =>
+          r.matched && (sentUpcs.has(r.matched.upc) || !r.matched.available)
+            ? { ...r, include: false }
+            : r
+        )
+      );
       setStep("review");
     } catch (e) {
       if (e instanceof Error && e.message === "no_store") setStep("store");
@@ -46,12 +58,22 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
         if (!s.connected) return setStep("needs-auth");
         setModality(s.modality || "PICKUP");
         setStoreName(s.storeName);
-        if (s.storeName) void startReview();
+        setSentItems(s.sentItems ?? []);
+        if (s.storeName) void startReview(s.sentItems ?? []);
         else setStep("store");
       })
       .catch(fail);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function resetSent() {
+    try {
+      const res = await krogerClient.clearSent();
+      setSentItems(res.sentItems);
+    } catch (e) {
+      fail(e);
+    }
+  }
 
   async function connect() {
     try {
@@ -118,12 +140,32 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
     const nameByUpc = new Map(included.map((r) => [r.matched!.upc, r.listName]));
     setFailedItems(failedUpcs.map((u) => nameByUpc.get(u) ?? u));
     setAdded(ok);
+
+    // Record the items that actually landed in the cart so future sends can flag
+    // duplicates/removals. Best-effort: a failure here doesn't affect the send result.
+    const failedSet = new Set(failedUpcs);
+    const addedItems = included
+      .filter((r) => !failedSet.has(r.matched!.upc))
+      .map((r) => ({ upc: r.matched!.upc, name: r.listName, quantity: r.quantity }));
+    if (addedItems.length) {
+      try {
+        const res = await krogerClient.recordSent(addedItems);
+        setSentItems(res.sentItems);
+      } catch {
+        /* history is best-effort */
+      }
+    }
     setStep("done");
   }
 
   const includedCount = rows.filter((r) => r.include && r.matched).length;
   const noMatchItems = rows.filter((r) => !r.matched).map((r) => r.listName);
   const skipped = noMatchItems.length;
+  // Reconcile our send-history against the current list (best-effort, by UPC): which rows
+  // are already in the cart, and which previously-sent items are no longer needed.
+  const sentUpcs = new Set(sentItems.map((s) => s.upc));
+  const currentUpcs = new Set(rows.filter((r) => r.matched).map((r) => r.matched!.upc));
+  const toRemove = sentItems.filter((s) => !currentUpcs.has(s.upc));
 
   return (
     <div className="overlay" onClick={onClose}>
@@ -206,6 +248,12 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
                     />
                     <div className="kr-item">
                       <b>{r.listName}</b> <span className="muted">{r.displayQty}</span>
+                      {r.matched && sentUpcs.has(r.matched.upc) && (
+                        <span className="kr-badge sent">in cart</span>
+                      )}
+                      {r.matched && !r.matched.available && (
+                        <span className="kr-badge warn">unavailable</span>
+                      )}
                     </div>
                     {r.matched ? (
                       <>
@@ -231,11 +279,33 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
                   </div>
                 ))}
               </div>
+              {toRemove.length > 0 && (
+                <div className="kroger-receipt error">
+                  <strong>
+                    Already in your cart but not on this list ({toRemove.length}) — remove in
+                    Mariano's:
+                  </strong>
+                  <ul>
+                    {toRemove.map((s) => (
+                      <li key={s.upc}>{s.name || s.upc}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <p className="muted" style={{ fontSize: "0.76rem", marginBottom: 8 }}>
                 Items are <strong>added</strong> to your existing Mariano's cart (sending again
                 makes duplicates). Your cart's store/fulfillment is whatever's set in your
                 Mariano's account — this picker only chooses where prices &amp; matches come from.
               </p>
+              {sentItems.length > 0 && (
+                <p className="muted" style={{ fontSize: "0.76rem", marginBottom: 8 }}>
+                  MealMesh has {sentItems.length} item{sentItems.length === 1 ? "" : "s"} on record
+                  as already sent.{" "}
+                  <button className="linklike" onClick={resetSent}>
+                    Reset after checkout
+                  </button>
+                </p>
+              )}
               <div className="row" style={{ marginTop: 4 }}>
                 <button className="btn" onClick={send} disabled={!includedCount}>
                   Send {includedCount} to cart
@@ -290,14 +360,35 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
                 </div>
               )}
 
+              {toRemove.length > 0 && (
+                <div className="kroger-receipt error">
+                  <strong>
+                    In your cart but not on this list ({toRemove.length}) — remove in Mariano's:
+                  </strong>
+                  <ul>
+                    {toRemove.map((s) => (
+                      <li key={s.upc}>{s.name || s.upc}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               <p className="muted" style={{ fontSize: "0.76rem" }}>
                 Tip: Kroger's API can only add items — it can't read or clear your cart, so
-                MealMesh can't verify the final cart or remove duplicates. Review the cart on
-                Mariano's before checkout.
+                MealMesh can't verify the final cart or remove duplicates. It tracks what it sent
+                so it can flag duplicates &amp; removals next time. Review the cart on Mariano's
+                before checkout.
               </p>
-              <a className="btn" href="https://www.marianos.com/cart" target="_blank" rel="noreferrer">
-                Open Mariano's cart ↗
-              </a>
+              <div className="row" style={{ marginTop: 4 }}>
+                <a className="btn" href="https://www.marianos.com/cart" target="_blank" rel="noreferrer">
+                  Open Mariano's cart ↗
+                </a>
+                {sentItems.length > 0 && (
+                  <button className="btn ghost" onClick={resetSent}>
+                    Reset sent list
+                  </button>
+                )}
+              </div>
             </>
           )}
         </div>

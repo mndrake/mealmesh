@@ -87,6 +87,39 @@ export interface ReviewRow {
   include: boolean;
 }
 
+/** One product MealMesh has added to the Kroger cart (its own send-history). */
+export interface SentItem {
+  upc: string;
+  name: string; // the user's shopping-list name, for a readable "remove these" hint
+  quantity: number;
+  sentAt: number; // ms epoch of the most recent send
+}
+
+/** Merge newly-sent items into the existing send-history, keyed by UPC. Quantities sum
+ *  (the real cart accumulates on each add) and the latest name + sentAt win. */
+export function mergeSentItems(existing: SentItem[], added: SentItem[]): SentItem[] {
+  const byUpc = new Map<string, SentItem>();
+  for (const it of existing) if (it?.upc) byUpc.set(it.upc, { ...it });
+  for (const it of added) {
+    if (!it?.upc) continue;
+    const prev = byUpc.get(it.upc);
+    byUpc.set(it.upc, {
+      upc: it.upc,
+      name: it.name || prev?.name || "",
+      quantity: (prev?.quantity ?? 0) + (it.quantity ?? 0),
+      sentAt: it.sentAt ?? prev?.sentAt ?? Date.now(),
+    });
+  }
+  return [...byUpc.values()];
+}
+
+/** Items previously sent to the cart whose UPC isn't on the current list — the user should
+ *  remove these in Mariano's to match the plan (the API can't remove them for us). */
+export function itemsToRemove(sent: SentItem[], currentUpcs: string[]): SentItem[] {
+  const current = new Set(currentUpcs);
+  return sent.filter((s) => s?.upc && !current.has(s.upc));
+}
+
 export function locationsQuery(zip: string, radiusMiles = 15, limit = 10): string {
   return new URLSearchParams({
     "filter.zipCode.near": zip,

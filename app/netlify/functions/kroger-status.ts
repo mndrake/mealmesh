@@ -7,12 +7,13 @@ export default async (req: Request): Promise<Response> => {
   const user = await getUser(req);
   if (!user) return json({ error: "unauthorized" }, 401);
   const householdId = await householdIdFor(user.id);
-  if (!householdId) return json({ connected: false, storeName: null, modality: "PICKUP" });
+  if (!householdId) return json({ connected: false, storeName: null, modality: "PICKUP", sentItems: [] });
 
   const conn = await getConnection(householdId);
   return json({
     connected: Boolean(conn?.refresh_token),
     storeName: conn?.store_name ?? null,
     modality: conn?.modality ?? "PICKUP",
+    sentItems: conn?.sent_items ?? [],
   });
 };

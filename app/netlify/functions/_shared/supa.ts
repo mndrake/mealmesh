@@ -2,6 +2,7 @@
 // the ONLY thing that touches kroger_connection / kroger_oauth_state — tokens never reach
 // the browser. JWT verification uses an anon client to validate the caller's session.
 import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
+import type { SentItem } from "./kroger";
 
 // supabase-js eagerly constructs a Realtime client whose constructor resolves a WebSocket
 // implementation. Netlify's Node 20 functions have no global WebSocket, so createClient
@@ -78,15 +79,25 @@ export interface KrogerConnection {
   access_token: string | null;
   refresh_token: string | null;
   expires_at: string | null;
+  sent_items: SentItem[] | null;
 }
 
 export async function getConnection(householdId: string): Promise<KrogerConnection | null> {
   const { data } = await service()
     .from("kroger_connection")
-    .select("location_id,store_name,modality,access_token,refresh_token,expires_at")
+    .select("location_id,store_name,modality,access_token,refresh_token,expires_at,sent_items")
     .eq("household_id", householdId)
     .maybeSingle();
   return (data as KrogerConnection | null) ?? null;
+}
+
+/** Replace the household's Kroger send-history (what MealMesh added to the cart). */
+export async function setSentItems(householdId: string, items: SentItem[]): Promise<void> {
+  const { error } = await service()
+    .from("kroger_connection")
+    .update({ sent_items: items })
+    .eq("household_id", householdId);
+  if (error) throw error;
 }
 
 export async function saveLocation(

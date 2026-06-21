@@ -23,10 +23,17 @@ export interface KrogerStore {
   name: string;
   address: string;
 }
+export interface SentItem {
+  upc: string;
+  name: string;
+  quantity: number;
+  sentAt: number;
+}
 export interface KrogerStatus {
   connected: boolean;
   storeName: string | null;
   modality: string;
+  sentItems: SentItem[];
 }
 
 async function authHeaders(): Promise<Record<string, string>> {
@@ -68,4 +75,10 @@ export const krogerClient = {
       method: "POST",
       body: JSON.stringify({ items, modality }),
     }),
+  // Record what was added to the cart so re-sends can flag duplicates/removals.
+  recordSent: (items: { upc: string; name: string; quantity: number }[]) =>
+    call<{ ok: boolean; sentItems: SentItem[] }>("sent", { method: "POST", body: JSON.stringify({ items }) }),
+  // Reset the send-history after the user checks out / empties their Mariano's cart.
+  clearSent: () =>
+    call<{ ok: boolean; sentItems: SentItem[] }>("sent", { method: "POST", body: JSON.stringify({ clear: true }) }),
 };

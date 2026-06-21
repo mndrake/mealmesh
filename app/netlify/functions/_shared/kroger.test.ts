@@ -11,6 +11,9 @@ import {
   productsQuery,
   toStores,
   toReviewRow,
+  mergeSentItems,
+  itemsToRemove,
+  type SentItem,
 } from "./kroger";
 
 describe("kroger pure helpers", () => {
@@ -94,5 +97,31 @@ describe("kroger pure helpers", () => {
     const row = toReviewRow({ data: [] }, "unobtanium", "as needed");
     expect(row.matched).toBeNull();
     expect(row.include).toBe(false);
+  });
+});
+
+describe("kroger send-history helpers", () => {
+  const sent = (upc: string, name: string, quantity = 1, sentAt = 1): SentItem => ({ upc, name, quantity, sentAt });
+
+  it("mergeSentItems sums quantity by UPC and keeps the latest name/sentAt", () => {
+    const existing = [sent("0001", "onion", 1, 10), sent("0002", "milk", 2, 10)];
+    const added = [sent("0001", "yellow onion", 2, 20), sent("0003", "eggs", 1, 20)];
+    const merged = mergeSentItems(existing, added);
+    expect(merged).toHaveLength(3);
+    expect(merged.find((m) => m.upc === "0001")).toEqual({ upc: "0001", name: "yellow onion", quantity: 3, sentAt: 20 });
+    expect(merged.find((m) => m.upc === "0002")).toEqual({ upc: "0002", name: "milk", quantity: 2, sentAt: 10 });
+    expect(merged.find((m) => m.upc === "0003")).toEqual({ upc: "0003", name: "eggs", quantity: 1, sentAt: 20 });
+  });
+
+  it("mergeSentItems ignores entries without a UPC", () => {
+    const merged = mergeSentItems([], [sent("0001", "onion"), { upc: "", name: "junk", quantity: 1, sentAt: 1 }]);
+    expect(merged).toEqual([sent("0001", "onion")]);
+  });
+
+  it("itemsToRemove returns sent items whose UPC isn't on the current list", () => {
+    const history = [sent("0001", "onion"), sent("0002", "milk"), sent("0003", "old item")];
+    const remove = itemsToRemove(history, ["0001", "0002"]);
+    expect(remove.map((r) => r.upc)).toEqual(["0003"]);
+    expect(itemsToRemove(history, ["0001", "0002", "0003"])).toEqual([]);
   });
 });

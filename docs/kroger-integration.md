@@ -75,6 +75,24 @@ Each verifies the Supabase JWT (`Authorization: Bearer`) → resolves the caller
 | `POST /location` | Save chosen `locationId`/`storeName`. |
 | `POST /match` | Per item: Products search (client-cred, saved location) → top match + alternates. |
 | `POST /cart` | `PUT /v1/cart/add` (user token, refresh-on-401), batched; returns 204. |
+| `POST /sent` | Record/merge what was added (`{items}`) or reset it (`{clear:true}`); returns `sentItems`. |
+
+## Send-history (reconcile against an un-readable cart)
+The public Cart API is **add-only** — no GET (read), no DELETE (clear/remove), and the
+`PUT /v1/cart/add` quantity is an *increment* (re-sending duplicates; negatives are rejected).
+Reading/removing cart lines needs the **Partner Carts API** (separate approval). So MealMesh
+can't see or clean the real cart. Instead it records **its own sends** per household in
+`kroger_connection.sent_items` (jsonb), and uses that history to:
+- **Flag duplicates** — review rows whose UPC was already sent show an "in cart" badge and
+  default to *unchecked*, so re-sending a list doesn't pile up duplicates.
+- **Flag removals** — previously-sent items no longer on the current list are surfaced as
+  "remove in Mariano's" (we can't remove them via the API).
+- **Reset** — a "Reset after checkout / Reset sent list" control clears the history (`{clear}`)
+  once the user has checked out and emptied their cart.
+
+It also surfaces the **availability** already returned by Products search: matches with no
+fulfillment option show an "unavailable" badge and default to unchecked. All of this is
+best-effort and keyed by UPC, since we never see the authoritative cart.
 
 ## Shopping-list → cart
 - Build the match request from the **rendered list** (`buildList(normalizeForShopping(...))`,
