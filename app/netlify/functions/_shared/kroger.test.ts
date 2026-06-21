@@ -67,6 +67,10 @@ describe("kroger pure helpers", () => {
     expect(prod.get("filter.locationId")).toBe("01400943");
     expect(prod.get("filter.limit")).toBe("5");
     expect(prod.get("filter.fulfillment")).toBe("ais,csp,dth"); // only fulfillable products
+    // Passing "" omits the fulfillment filter (broadened search fallback for sparse results).
+    const broad = new URLSearchParams(productsQuery("shallots", "01400943", 12, ""));
+    expect(broad.has("filter.fulfillment")).toBe(false);
+    expect(broad.get("filter.term")).toBe("shallots");
   });
 
   it("maps a Locations response to stores", () => {

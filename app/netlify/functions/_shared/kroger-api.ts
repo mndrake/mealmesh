@@ -65,16 +65,23 @@ export async function getLocations(env: Env, token: string, zip: string): Promis
 }
 
 /** Search products for one term. A failed search is treated as "no match" rather than
- *  failing the whole batch. */
+ *  failing the whole batch. The default search is filtered to online-fulfillable products;
+ *  if that returns too few (e.g. in-store-only produce not flagged for delivery/pickup at
+ *  this store), retry without the fulfillment filter so real items still surface — availability
+ *  is tracked per-product downstream, so unavailable extras don't hurt. */
 export async function searchProducts(
   env: Env,
   token: string,
   term: string,
   locationId: string
 ): Promise<unknown> {
-  const res = await fetch(`${apiBase(env)}/v1/products?${productsQuery(term, locationId)}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) return { data: [] };
-  return res.json();
+  const fetchq = async (q: string): Promise<{ data?: unknown[] }> => {
+    const res = await fetch(`${apiBase(env)}/v1/products?${q}`, { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) return { data: [] };
+    return (await res.json()) as { data?: unknown[] };
+  };
+  const strict = await fetchq(productsQuery(term, locationId));
+  if ((strict.data?.length ?? 0) >= 4) return strict;
+  const broad = await fetchq(productsQuery(term, locationId, 12, "")); // no fulfillment filter
+  return (broad.data?.length ?? 0) > (strict.data?.length ?? 0) ? broad : strict;
 }

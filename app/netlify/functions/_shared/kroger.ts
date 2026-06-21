@@ -176,14 +176,15 @@ export function locationsQuery(zip: string, radiusMiles = 15, limit = 10): strin
 }
 
 export function productsQuery(term: string, locationId: string, limit = 12, fulfillment = "ais,csp,dth"): string {
-  return new URLSearchParams({
+  const q = new URLSearchParams({
     "filter.term": term,
     "filter.locationId": locationId,
-    // Only return products fulfillable at this store (in-store / curbside / delivery), so the
-    // top results aren't unavailable variants. ais=in store, csp=curbside, dth=delivery.
-    "filter.fulfillment": fulfillment,
     "filter.limit": String(limit),
-  }).toString();
+  });
+  // Filter to products fulfillable at this store (ais=in store, csp=curbside, dth=delivery)
+  // so the top results aren't unavailable variants. Pass "" to broaden when that's too narrow.
+  if (fulfillment) q.set("filter.fulfillment", fulfillment);
+  return q.toString();
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
