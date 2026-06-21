@@ -66,6 +66,7 @@ describe("kroger pure helpers", () => {
     expect(prod.get("filter.term")).toBe("red onion");
     expect(prod.get("filter.locationId")).toBe("01400943");
     expect(prod.get("filter.limit")).toBe("5");
+    expect(prod.get("filter.fulfillment")).toBe("ais,csp,dth"); // only fulfillable products
   });
 
   it("maps a Locations response to stores", () => {
@@ -101,17 +102,6 @@ describe("kroger pure helpers", () => {
       "1 each"
     );
     expect(row.matched).toMatchObject({ aisle: "Aisle 12", aisleNumber: 12, department: null });
-  });
-
-  it("treats missing/empty fulfillment as available (unknown), not unavailable", () => {
-    // e.g. "butter": the compact search returns products without fulfillment data.
-    const row = toReviewRow(
-      { data: [{ upc: "B1", description: "Butter", items: [{ price: { regular: 3.49 } }] }] },
-      "butter",
-      "1"
-    );
-    expect(row.matched).toMatchObject({ upc: "B1", available: true });
-    expect(row.include).toBe(true);
   });
 
   it("review row with no matches is excluded by default", () => {

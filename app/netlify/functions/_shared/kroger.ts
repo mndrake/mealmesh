@@ -148,10 +148,13 @@ export function locationsQuery(zip: string, radiusMiles = 15, limit = 10): strin
   }).toString();
 }
 
-export function productsQuery(term: string, locationId: string, limit = 12): string {
+export function productsQuery(term: string, locationId: string, limit = 12, fulfillment = "ais,csp,dth"): string {
   return new URLSearchParams({
     "filter.term": term,
     "filter.locationId": locationId,
+    // Only return products fulfillable at this store (in-store / curbside / delivery), so the
+    // top results aren't unavailable variants. ais=in store, csp=curbside, dth=delivery.
+    "filter.fulfillment": fulfillment,
     "filter.limit": String(limit),
   }).toString();
 }
@@ -179,15 +182,13 @@ function pickImage(images: any): string | null {
   return sizes[0]?.url ? String(sizes[0].url) : null;
 }
 
-/** Availability for the matched store. Kroger's compact search often omits fulfillment
- *  data, so treat *missing/empty* fulfillment as "available (unknown)" and only report
- *  unavailable when Kroger explicitly says all fulfillment options are false. */
+/** Availability for the matched store, from Kroger's fulfillment flags. Strict: only true
+ *  when a fulfillment option is reported. The search is filtered to fulfillable products
+ *  (filter.fulfillment) so matches are available without us having to assume. */
 function availableOf(item: any): boolean {
   const f = item?.fulfillment;
-  if (f == null || typeof f !== "object") return true;
-  const flags = [f.instore, f.curbside, f.delivery, f.shiptohome];
-  if (flags.every((v) => v === undefined)) return true; // no usable signal → assume available
-  return flags.some((v) => v === true);
+  if (!f || typeof f !== "object") return false;
+  return Boolean(f.instore || f.curbside || f.delivery || f.shiptohome);
 }
 
 function toMatch(p: any): ProductMatch | null {
