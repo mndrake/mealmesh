@@ -212,6 +212,30 @@ export async function clearProductCacheItem(householdId: string, itemName: strin
   await service().from("kroger_product_cache").delete().eq("household_id", householdId).eq("item_name", itemName);
 }
 
+// ---- Imported recipe images (re-hosted in Supabase Storage so the CSP stays tight) ----
+
+/** Upload a recipe image to the public `recipe-images` bucket and return its public URL.
+ *  Best-effort: returns null on any failure (the import never fails over a missing image). */
+export async function uploadRecipeImage(
+  householdId: string,
+  recipeId: string,
+  bytes: Uint8Array,
+  contentType: string,
+  ext: string
+): Promise<string | null> {
+  try {
+    const db = service();
+    const path = `${householdId}/${recipeId}.${ext}`;
+    const { error } = await db.storage
+      .from("recipe-images")
+      .upload(path, bytes, { contentType, upsert: true });
+    if (error) return null;
+    return db.storage.from("recipe-images").getPublicUrl(path).data.publicUrl ?? null;
+  } catch {
+    return null;
+  }
+}
+
 // ---- Recipe-import rate limiting (per household; durable across function instances) ----
 
 /** Check the household's import quota and, when allowed, record this attempt. Durable

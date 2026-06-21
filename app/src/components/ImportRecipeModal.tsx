@@ -117,6 +117,15 @@ export function ImportRecipeModal({ onClose, onSaved }: { onClose: () => void; o
                 {via === "jsonld" ? "Extracted from the page" : via === "ai_fetch" ? "Fetched & extracted with AI" : "Extracted with AI"} — review and edit, then save.
               </p>
 
+              {draft.imageUrl && (
+                <div className="import-image">
+                  <img src={draft.imageUrl} alt={draft.title} />
+                  <button className="btn ghost small" onClick={() => patch({ imageUrl: null })}>
+                    Remove image
+                  </button>
+                </div>
+              )}
+
               <label className="cook-field">
                 <span>Title</span>
                 <input value={draft.title} onChange={(e) => patch({ title: e.target.value })} />

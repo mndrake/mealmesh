@@ -87,5 +87,7 @@
     # connect-src allows Supabase REST (https) + Realtime (wss). Scoped to *.supabase.co;
     # pin to your exact project origin for stricter CSP during M4 hardening.
     # style-src 'unsafe-inline' is required because the app uses React inline style props.
-    # img-src also allows Kroger product image hosts (shown in the Send-to-Mariano's picker).
-    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https://*.kroger.com https://*.kgrps.com; font-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co wss://*.supabase.co"
+    # img-src also allows Kroger product image hosts (Send-to-Mariano's picker) and our
+    # Supabase Storage origin (re-hosted imported-recipe images). Scoped to our own hosts —
+    # no broad "https:" allowance.
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https://*.kroger.com https://*.kgrps.com https://*.supabase.co; font-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co wss://*.supabase.co"

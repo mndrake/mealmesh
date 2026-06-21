@@ -25,9 +25,15 @@ merged into the app's recipe lookup at runtime.
 4. Either path produces a complete **draft `Recipe`** (`toDraftRecipe`): ids, store sections
    (`guessSection` / Claude-assigned), perishable flags, and defaulted nutrition (flagged
    `estimated` when the source had none). It is **not** saved server-side.
-5. The user **reviews/edits** the draft (title, meal, cuisine, servings, ingredient lines +
-   section, method, notes) and saves. `actions.addUserRecipe` writes it to `user_recipes`
-   (optimistic + cloud write-through, like the rest of the synced state).
+5. **Image** (best-effort, never blocks the import): the function re-hosts a photo so the app
+   serves it from our own origin. It uses the page's image (JSON-LD `image` → `og:image` →
+   Claude's `image_url`); if none, it asks Claude to **web-search** for a representative,
+   openly-licensed image (`findRecipeImageUrl`). The chosen URL is downloaded (SSRF-guarded,
+   image content-type, ≤5 MB) and uploaded to the `recipe-images` Storage bucket; the public
+   URL becomes `imageUrl`. The review form shows the image with a **Remove** button.
+6. The user **reviews/edits** the draft (image, title, meal, cuisine, servings, ingredient
+   lines + section, method, notes) and saves. `actions.addUserRecipe` writes it to
+   `user_recipes` (optimistic + cloud write-through, like the rest of the synced state).
 
 Saved recipes appear in Browse, the planner picker, the shopping list, nutrition roll-ups,
 and cooking history exactly like bundled recipes — they're merged in
@@ -40,6 +46,11 @@ and cooking history exactly like bundled recipes — they're merged in
 data jsonb, source_url, created_by, created_at, updated_at)`, RLS by household + Realtime.
 The full `Recipe` lives in `data`; the row `id` (a `u-…` uuid) is authoritative.
 
+`supabase/migrations/0012_recipe_images_bucket.sql` — a public `recipe-images` Storage
+bucket (5 MB / image types only). Uploads go through the service role (the function), so no
+write policy is needed; public read is what the `<img>` tag needs. Images are keyed
+`<householdId>/<recipeId>.<ext>`.
+
 ## Security notes
 
 - **`ANTHROPIC_API_KEY`** is a Netlify **function-env** secret — never client-side, never
@@ -49,9 +60,12 @@ The full `Recipe` lives in `data`; the row `id` (a `u-…` uuid) is authoritativ
   loopback, and private/link-local IPv4 (incl. `169.254.169.254` cloud metadata) are
   rejected before any fetch. The fetch follows redirects, caps the body (3 MB) and time
   (12 s), and requires an HTML content-type.
-- **Images aren't re-hosted.** Imported recipes set `imageUrl: null` rather than loading an
-  arbitrary remote image — the CSP `img-src` stays scoped (self + Kroger hosts), so no CSP
-  change was needed.
+- **Images are re-hosted, not hotlinked.** The function downloads the chosen image
+  server-side (SSRF-guarded, image content-type, ≤5 MB) and re-hosts it in Supabase Storage,
+  so the app loads images from our own `*.supabase.co` origin. The CSP `img-src` adds only
+  that host (no broad `https:` allowance); links don't rot when source sites change. Bad
+  AI-found images can be dropped in review. *Known gap:* a deleted recipe's image isn't yet
+  removed from Storage (small, family-scale; cleanup deferred).
 - **Rate limit.** The endpoint is capped per household (default **20 imports / rolling
   hour**) to bound Anthropic spend and fetch abuse. It's durable (Supabase
   `recipe_import_log`, migration 0011) so it holds across stateless function instances;

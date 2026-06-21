@@ -30,6 +30,7 @@ const RecipeSchema = z.object({
   ),
   method: z.string(),
   notes: z.string(),
+  image_url: z.string().nullable(),
   nutrition: z
     .object({
       kcal: z.number(),
@@ -48,6 +49,7 @@ Rules:
 - item is the bare ingredient name (no quantity/unit); put prep notes ("finely chopped") in note.
 - section must be the best-fit grocery aisle from the allowed list.
 - method is the numbered steps as plain text; notes is any extra tips (or "").
+- image_url is the URL of the dish's main photo on the page (a direct https image URL), or null.
 - nutrition is per single serving if the page gives it, else null.`;
 
 type ParsedOut = z.infer<typeof RecipeSchema>;
@@ -72,6 +74,7 @@ function toParsed(out: ParsedOut): ParsedRecipe {
     method: out.method,
     notes: out.notes,
     nutrition: out.nutrition ?? undefined,
+    imageUrl: out.image_url ?? undefined,
   };
 }
 
@@ -103,6 +106,33 @@ export async function extractRecipeWithClaude(env: Env, pageText: string, url: s
   const out = res.parsed_output;
   if (!out) throw new Error("ai_parse_failed");
   return toParsed(out);
+}
+
+const ImageSchema = z.object({ image_url: z.string().nullable() });
+
+/** Find a representative, openly-licensed photo for a dish via web search. Best-effort —
+ *  returns a direct image URL or null. The caller validates + re-hosts it. */
+export async function findRecipeImageUrl(env: Env, title: string): Promise<string | null> {
+  if (!env.ANTHROPIC_API_KEY) return null;
+  const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+  try {
+    const res = await client.messages.parse({
+      model: "claude-opus-4-8",
+      max_tokens: 4000,
+      thinking: { type: "adaptive" },
+      tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 3 }],
+      output_config: { format: zodOutputFormat(ImageSchema), effort: "low" },
+      system:
+        "Find one representative photo of the described dish. Return image_url as a direct, " +
+        "hotlinkable https URL to an image file (.jpg/.png/.webp). Strongly prefer openly-licensed " +
+        "sources (Wikimedia Commons). Return null if you can't find a suitable, directly-linkable image.",
+      messages: [{ role: "user", content: `A photo of this dish: ${title}` }],
+    });
+    const url = res.parsed_output?.image_url ?? null;
+    return url && /^https:\/\//i.test(url) ? url : null;
+  } catch {
+    return null; // image search is best-effort; never block the import
+  }
 }
 
 /** Let Claude fetch the page itself (server-side web-fetch tool) and extract the recipe.
