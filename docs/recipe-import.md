@@ -116,6 +116,11 @@ Env: `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` (required), `ANTHROPIC_API_KEY
 fallback). **Run after migration 0012 is applied** (the bucket must exist). Idempotent —
 recipes that already have an image are skipped, so it's safe to re-run.
 
+It can also run as a **GitHub Action** — `.github/workflows/backfill-images.yml`
+(`workflow_dispatch`, defaults to a dry run) — using the `SUPABASE_SERVICE_ROLE_KEY` /
+`SUPABASE_PROJECT_ID` (and optional `ANTHROPIC_API_KEY`) repo secrets, so you don't need the
+service-role key on your machine. Updated rows propagate to open app sessions via Realtime.
+
 ## Not (yet) built
 
 - Import **by image** (Claude vision) and **by template/paste** — the shared table + review
