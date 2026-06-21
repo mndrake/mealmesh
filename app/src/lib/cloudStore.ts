@@ -101,6 +101,20 @@ export async function deleteCookEvent(client: SupabaseClient, id: string): Promi
   if (error) throw error;
 }
 
+export async function updateCookEvent(
+  client: SupabaseClient,
+  id: string,
+  patch: { cookedOn?: string; rating?: number | null; makeAgain?: boolean | null; notes?: string | null }
+): Promise<void> {
+  const row: Record<string, unknown> = {};
+  if (patch.cookedOn !== undefined) row.cooked_on = patch.cookedOn;
+  if (patch.rating !== undefined) row.rating = patch.rating;
+  if (patch.makeAgain !== undefined) row.make_again = patch.makeAgain;
+  if (patch.notes !== undefined) row.notes = patch.notes;
+  const { error } = await client.from("cook_log").update(row).eq("id", id);
+  if (error) throw error;
+}
+
 /** Upsert the active plan's days+locked. Inserts the active row if none exists yet;
  *  returns the active plan id. */
 export async function writeActivePlan(

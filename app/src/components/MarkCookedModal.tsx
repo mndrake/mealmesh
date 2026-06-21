@@ -1,15 +1,16 @@
 // "Mark as made" (M3): record a cook event with optional quick feedback — date,
 // thumbs (make again), 1–5 rating, and a note. Writes via actions.markCooked.
 import { useEffect, useState } from "react";
-import type { Recipe } from "../lib/types";
+import type { Recipe, CookEvent } from "../lib/types";
 import { actions } from "../lib/store";
 import { todayIso } from "../lib/history";
 
-export function MarkCookedModal({ recipe, onClose }: { recipe: Recipe; onClose: () => void }) {
-  const [cookedOn, setCookedOn] = useState(() => todayIso());
-  const [makeAgain, setMakeAgain] = useState<boolean | null>(null);
-  const [rating, setRating] = useState<number | null>(null);
-  const [notes, setNotes] = useState("");
+/** Record a new "made" event, or edit an existing one when `event` is passed. */
+export function MarkCookedModal({ recipe, event, onClose }: { recipe: Recipe; event?: CookEvent; onClose: () => void }) {
+  const [cookedOn, setCookedOn] = useState(() => event?.cookedOn ?? todayIso());
+  const [makeAgain, setMakeAgain] = useState<boolean | null>(event?.makeAgain ?? null);
+  const [rating, setRating] = useState<number | null>(event?.rating ?? null);
+  const [notes, setNotes] = useState(event?.notes ?? "");
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -18,7 +19,8 @@ export function MarkCookedModal({ recipe, onClose }: { recipe: Recipe; onClose: 
   }, [onClose]);
 
   function save() {
-    actions.markCooked({ recipeId: recipe.id, cookedOn, rating, makeAgain, notes });
+    if (event) actions.editCookEvent(event.id, { cookedOn, rating, makeAgain, notes });
+    else actions.markCooked({ recipeId: recipe.id, cookedOn, rating, makeAgain, notes });
     onClose();
   }
 
@@ -29,7 +31,7 @@ export function MarkCookedModal({ recipe, onClose }: { recipe: Recipe; onClose: 
           ×
         </button>
         <div className="content">
-          <h2 style={{ marginTop: 0 }}>✓ Mark as made</h2>
+          <h2 style={{ marginTop: 0 }}>{event ? "Edit cooking record" : "✓ Mark as made"}</h2>
           <p className="muted" style={{ marginTop: 0 }}>{recipe.title}</p>
 
           <label className="cook-field">

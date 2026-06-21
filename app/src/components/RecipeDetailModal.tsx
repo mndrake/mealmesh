@@ -1,7 +1,16 @@
 import { useEffect } from "react";
 import type { Recipe, Ingredient, Section } from "../lib/types";
 import { SECTION_ORDER, SECTION_LABELS } from "../lib/shopping";
-import { historyLabel, type RecipeHistory } from "../lib/history";
+import { historyLabel, recentCooks, formatCookedOn, type RecipeHistory } from "../lib/history";
+import { useStore } from "../lib/store";
+
+function feedbackText(rating: number | null, makeAgain: boolean | null): string {
+  const parts: string[] = [];
+  if (rating != null) parts.push("★".repeat(rating) + "☆".repeat(5 - rating));
+  if (makeAgain === true) parts.push("👍");
+  else if (makeAgain === false) parts.push("👎");
+  return parts.join("  ");
+}
 
 function fmtQty(i: Ingredient): string {
   const parts: string[] = [];
@@ -59,6 +68,9 @@ export function RecipeDetailModal({
   const n = recipe.nutrition_per_serving;
   const img = recipe.image_source;
   const totalTime = (recipe.prep_minutes ?? 0) + (recipe.cook_minutes ?? 0);
+  // This recipe's cooking history (newest first) — shown with notes on the card.
+  const cookLog = useStore((s) => s.cookLog);
+  const events = recentCooks(cookLog.filter((e) => e.recipeId === recipe.id));
 
   return (
     <div className="overlay" onClick={onClose}>
@@ -176,6 +188,29 @@ export function RecipeDetailModal({
             <>
               <div className="section-h">Notes</div>
               <div className="method">{recipe.notes}</div>
+            </>
+          )}
+
+          {events.length > 0 && (
+            <>
+              <div className="section-h">Cooking history</div>
+              <div className="history-list">
+                {events.map((e) => {
+                  const fb = feedbackText(e.rating, e.makeAgain);
+                  return (
+                    <div className="history-row" key={e.id}>
+                      <div className="history-date">{formatCookedOn(e.cookedOn)}</div>
+                      <div className="history-main">
+                        {fb && <span className="history-fb">{fb}</span>}
+                        {e.notes && <span className="history-note">{e.notes}</span>}
+                        {!fb && !e.notes && (
+                          <span className="muted" style={{ fontSize: "0.8rem" }}>made</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </>
           )}
 

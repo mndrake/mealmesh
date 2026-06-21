@@ -1,11 +1,12 @@
 // History view (M3): the household's cook-log, newest first — what was made, when, and
 // the quick feedback. Click a row to open the recipe; delete removes the event.
 import { useMemo, useState } from "react";
-import type { Recipe } from "../lib/types";
+import type { Recipe, CookEvent } from "../lib/types";
 import { useStore, actions } from "../lib/store";
 import { recipesById } from "../lib/recipes";
 import { recentCooks, formatCookedOn } from "../lib/history";
 import { RecipeDetailModal } from "./RecipeDetailModal";
+import { MarkCookedModal } from "./MarkCookedModal";
 
 function feedback(rating: number | null, makeAgain: boolean | null): string {
   const parts: string[] = [];
@@ -21,6 +22,7 @@ export function HistoryView() {
   const favSet = useMemo(() => new Set(favorites), [favorites]);
   const recent = useMemo(() => recentCooks(cookLog), [cookLog]);
   const [detail, setDetail] = useState<Recipe | null>(null);
+  const [editing, setEditing] = useState<{ recipe: Recipe; event: CookEvent } | null>(null);
 
   if (cookLog.length === 0) {
     return (
@@ -58,6 +60,11 @@ export function HistoryView() {
                 {fb && <span className="history-fb">{fb}</span>}
                 {e.notes && <span className="history-note">{e.notes}</span>}
               </div>
+              {recipe && (
+                <button className="btn secondary small" onClick={() => setEditing({ recipe, event: e })}>
+                  Edit
+                </button>
+              )}
               <button
                 className="btn ghost small"
                 onClick={() => confirm("Remove this cooking record?") && actions.deleteCookEvent(e.id)}
@@ -77,6 +84,10 @@ export function HistoryView() {
           onClose={() => setDetail(null)}
           onToggleFavorite={actions.toggleFavorite}
         />
+      )}
+
+      {editing && (
+        <MarkCookedModal recipe={editing.recipe} event={editing.event} onClose={() => setEditing(null)} />
       )}
     </div>
   );

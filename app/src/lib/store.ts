@@ -22,6 +22,7 @@ import {
   clearCheckoffs,
   insertCookEvent,
   deleteCookEvent as cloudDeleteCookEvent,
+  updateCookEvent as cloudUpdateCookEvent,
   upsertItemLocations,
   pushFullState,
 } from "./cloudStore";
@@ -370,6 +371,17 @@ export const actions = {
   deleteCookEvent(id: string) {
     set({ cookLog: state.cookLog.filter((e) => e.id !== id) });
     push((c) => cloudDeleteCookEvent(c.client, id));
+  },
+
+  /** Edit a recorded cook event (date / rating / thumbs / notes). */
+  editCookEvent(
+    id: string,
+    patch: { cookedOn?: string; rating?: number | null; makeAgain?: boolean | null; notes?: string | null }
+  ) {
+    const clean = { ...patch };
+    if (clean.notes !== undefined) clean.notes = clean.notes && clean.notes.trim() ? clean.notes.trim() : null;
+    set({ cookLog: state.cookLog.map((e) => (e.id === id ? { ...e, ...clean } : e)) });
+    push((c) => cloudUpdateCookEvent(c.client, id, clean));
   },
 
   /** Cache store locations for items (by name), e.g. from a Kroger match. Upserts by name. */
