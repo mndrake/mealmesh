@@ -8,6 +8,7 @@ import { summarize, historyLabel, type RecipeHistory } from "../lib/history";
 import { RecipeDetailModal } from "./RecipeDetailModal";
 import { RecipePickerModal } from "./RecipePickerModal";
 import { MarkCookedModal } from "./MarkCookedModal";
+import { SavedMenusModal } from "./SavedMenusModal";
 import { exportPlanJson } from "../lib/exporter";
 
 type Slot = "breakfast" | "lunch" | "dinner" | "snack";
@@ -241,30 +242,15 @@ export function PlannerView() {
 }
 
 function PlanToolbar({ savedCount, plan }: { savedCount: number; plan: PlanDay[] }) {
-  const saved = useStore((s) => s.savedPlans);
+  const [showMenus, setShowMenus] = useState(false);
   return (
     <div className="row" style={{ gap: 6 }}>
-      <select
-        className="btn secondary small"
-        value=""
-        onChange={(e) => e.target.value && actions.loadPlan(e.target.value)}
-        title="Load a saved plan"
-      >
-        <option value="">Load… ({savedCount})</option>
-        {saved.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.name}
-          </option>
-        ))}
-      </select>
       <button
         className="btn secondary small"
-        onClick={() => {
-          const name = prompt("Save plan as:");
-          if (name) actions.savePlanAs(name.trim());
-        }}
+        onClick={() => setShowMenus(true)}
+        title="Save, load, rename, or delete weekly menus"
       >
-        Save as…
+        📚 Saved menus ({savedCount})
       </button>
       <button className="btn secondary small" onClick={() => exportPlanJson(plan)}>
         Export
@@ -278,6 +264,7 @@ function PlanToolbar({ savedCount, plan }: { savedCount: number; plan: PlanDay[]
       >
         Clear
       </button>
+      {showMenus && <SavedMenusModal onClose={() => setShowMenus(false)} />}
     </div>
   );
 }

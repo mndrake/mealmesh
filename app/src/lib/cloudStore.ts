@@ -139,6 +139,11 @@ export async function deleteSavedPlan(client: SupabaseClient, id: string): Promi
   if (error) throw error;
 }
 
+export async function renameSavedPlan(client: SupabaseClient, id: string, name: string): Promise<void> {
+  const { error } = await client.from("plans").update({ name }).eq("id", id).eq("is_active", false);
+  if (error) throw error;
+}
+
 export async function setFavorite(
   client: SupabaseClient,
   householdId: string,

@@ -15,6 +15,7 @@ import {
   writeActivePlan,
   insertSavedPlan,
   deleteSavedPlan,
+  renameSavedPlan,
   setFavorite,
   setCheckoff,
   clearCheckoffs,
@@ -396,6 +397,13 @@ export const actions = {
   deletePlan(id: string) {
     set({ savedPlans: state.savedPlans.filter((p) => p.id !== id) });
     push((c) => deleteSavedPlan(c.client, id));
+  },
+
+  renamePlan(id: string, name: string) {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    set({ savedPlans: state.savedPlans.map((p) => (p.id === id ? { ...p, name: trimmed } : p)) });
+    push((c) => renameSavedPlan(c.client, id, trimmed));
   },
 
   importState(next: Partial<AppState>) {
