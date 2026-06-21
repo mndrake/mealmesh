@@ -21,6 +21,7 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
   const [added, setAdded] = useState(0);
   const [failedItems, setFailedItems] = useState<string[]>([]);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
+  const [research, setResearch] = useState<number | null>(null); // row index showing the search box
   // What MealMesh has already added to the cart (we can't read the real cart, so we track
   // our own sends) — used to flag duplicates and items to remove.
   const [sentItems, setSentItems] = useState<SentItem[]>([]);
@@ -168,6 +169,7 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
     const m = res[0]?.matched;
     if (!m) return false;
     setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, matched: m, alternates: res[0].alternates, include: true } : r)));
+    setResearch(null);
     void krogerClient.saveAlias(row.listName, t).catch(() => {});
     if (m.department || m.aisle) {
       actions.saveItemLocations([
@@ -317,7 +319,7 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
                       )}
                       {locationHint(r)}
                     </div>
-                    {r.matched ? (
+                    {r.matched && research !== i ? (
                       <>
                         <ProductPicker
                           options={[r.matched, ...r.alternates]}
@@ -331,9 +333,21 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
                           value={r.quantity}
                           onChange={(e) => update(i, { quantity: Math.max(1, Number(e.target.value) || 1) })}
                         />
+                        <button
+                          className="btn ghost small"
+                          title="Search a different term"
+                          onClick={() => setResearch(i)}
+                        >
+                          🔍
+                        </button>
                       </>
                     ) : (
-                      <NoMatchSearch index={i} defaultTerm={r.listName} onResolve={resolveNoMatch} />
+                      <NoMatchSearch
+                        index={i}
+                        defaultTerm={r.listName}
+                        onResolve={resolveNoMatch}
+                        onCancel={r.matched ? () => setResearch(null) : undefined}
+                      />
                     )}
                   </div>
                 ))}
@@ -538,10 +552,12 @@ function NoMatchSearch({
   index,
   defaultTerm,
   onResolve,
+  onCancel,
 }: {
   index: number;
   defaultTerm: string;
   onResolve: (i: number, term: string) => Promise<boolean>;
+  onCancel?: () => void;
 }) {
   const [term, setTerm] = useState(defaultTerm);
   const [state, setState] = useState<"idle" | "searching" | "none">("idle");
@@ -566,6 +582,11 @@ function NoMatchSearch({
       <button className="btn small secondary" onClick={go} disabled={state === "searching" || !term.trim()}>
         {state === "searching" ? "…" : "Search"}
       </button>
+      {onCancel && (
+        <button className="btn ghost small" onClick={onCancel} title="Keep current selection">
+          Cancel
+        </button>
+      )}
       {state === "none" && <span className="muted" style={{ fontSize: "0.74rem" }}>no results</span>}
     </div>
   );

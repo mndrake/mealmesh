@@ -103,6 +103,17 @@ describe("kroger pure helpers", () => {
     expect(row.matched).toMatchObject({ aisle: "Aisle 12", aisleNumber: 12, department: null });
   });
 
+  it("treats missing/empty fulfillment as available (unknown), not unavailable", () => {
+    // e.g. "butter": the compact search returns products without fulfillment data.
+    const row = toReviewRow(
+      { data: [{ upc: "B1", description: "Butter", items: [{ price: { regular: 3.49 } }] }] },
+      "butter",
+      "1"
+    );
+    expect(row.matched).toMatchObject({ upc: "B1", available: true });
+    expect(row.include).toBe(true);
+  });
+
   it("review row with no matches is excluded by default", () => {
     const row = toReviewRow({ data: [] }, "unobtanium", "as needed");
     expect(row.matched).toBeNull();
@@ -113,7 +124,7 @@ describe("kroger pure helpers", () => {
     const row = toReviewRow(
       {
         data: [
-          { upc: "U1", productId: "u1", description: "White Eggplant", items: [{ price: { regular: 2.99 }, fulfillment: {} }] },
+          { upc: "U1", productId: "u1", description: "White Eggplant", items: [{ price: { regular: 2.99 }, fulfillment: { instore: false, curbside: false, delivery: false, shiptohome: false } }] },
           { upc: "A1", productId: "a1", description: "Globe Eggplant", items: [{ price: { regular: 1.99 }, fulfillment: { instore: true } }] },
         ],
       },
@@ -128,8 +139,8 @@ describe("kroger pure helpers", () => {
     const row = toReviewRow(
       {
         data: [
-          { upc: "U1", productId: "u1", description: "White Eggplant", items: [{ fulfillment: {} }] },
-          { upc: "U2", productId: "u2", description: "Graffiti Eggplant", items: [{ fulfillment: {} }] },
+          { upc: "U1", productId: "u1", description: "White Eggplant", items: [{ fulfillment: { instore: false, curbside: false, delivery: false, shiptohome: false } }] },
+          { upc: "U2", productId: "u2", description: "Graffiti Eggplant", items: [{ fulfillment: { instore: false, curbside: false, delivery: false, shiptohome: false } }] },
         ],
       },
       "eggplant",

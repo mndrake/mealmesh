@@ -148,7 +148,7 @@ export function locationsQuery(zip: string, radiusMiles = 15, limit = 10): strin
   }).toString();
 }
 
-export function productsQuery(term: string, locationId: string, limit = 5): string {
+export function productsQuery(term: string, locationId: string, limit = 12): string {
   return new URLSearchParams({
     "filter.term": term,
     "filter.locationId": locationId,
@@ -179,11 +179,21 @@ function pickImage(images: any): string | null {
   return sizes[0]?.url ? String(sizes[0].url) : null;
 }
 
+/** Availability for the matched store. Kroger's compact search often omits fulfillment
+ *  data, so treat *missing/empty* fulfillment as "available (unknown)" and only report
+ *  unavailable when Kroger explicitly says all fulfillment options are false. */
+function availableOf(item: any): boolean {
+  const f = item?.fulfillment;
+  if (f == null || typeof f !== "object") return true;
+  const flags = [f.instore, f.curbside, f.delivery, f.shiptohome];
+  if (flags.every((v) => v === undefined)) return true; // no usable signal → assume available
+  return flags.some((v) => v === true);
+}
+
 function toMatch(p: any): ProductMatch | null {
   if (!p?.upc) return null;
   const item = p.items?.[0];
   const price = item?.price?.promo || item?.price?.regular || null;
-  const f = item?.fulfillment ?? {};
   const al = p.aisleLocations?.[0];
   const aisle = al?.description ? String(al.description) : al?.number ? `Aisle ${al.number}` : null;
   const aisleNum = al?.number != null && al.number !== "" ? Number(al.number) : NaN;
@@ -193,7 +203,7 @@ function toMatch(p: any): ProductMatch | null {
     productId: String(p.productId ?? p.upc),
     description: p.description ?? "",
     price: typeof price === "number" ? price : null,
-    available: Boolean(f.instore || f.curbside || f.delivery || f.shiptohome),
+    available: availableOf(item),
     aisle,
     aisleNumber: Number.isFinite(aisleNum) ? aisleNum : null,
     department,
