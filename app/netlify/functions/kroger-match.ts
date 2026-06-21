@@ -1,6 +1,6 @@
 // POST /api/kroger/match — authed. Body: { items: [{ name, displayQty }] }. Matches each
 // shopping item to a Kroger product at the chosen store; returns review rows.
-import { getUser, householdIdFor, getConnection } from "./_shared/supa";
+import { getUser, householdIdFor, getConnection, getAliases } from "./_shared/supa";
 import { clientCredToken, searchProducts } from "./_shared/kroger-api";
 import { toReviewRow } from "./_shared/kroger";
 import { json } from "./_shared/http";
@@ -21,11 +21,14 @@ export default async (req: Request): Promise<Response> => {
   if (!items.length) return json({ rows: [] });
 
   try {
-    const token = await clientCredToken(process.env);
+    const [token, aliases] = await Promise.all([clientCredToken(process.env), getAliases(householdId)]);
     const rows = await Promise.all(
-      items.map(async (it) =>
-        toReviewRow(await searchProducts(process.env, token, it.name, conn.location_id!), it.name, it.displayQty ?? "")
-      )
+      items.map(async (it) => {
+        // Search a remembered alternative term when one exists, but keep the row keyed to the
+        // original item name so it still maps back to the shopping-list item.
+        const term = aliases.get(it.name) || it.name;
+        return toReviewRow(await searchProducts(process.env, token, term, conn.location_id!), it.name, it.displayQty ?? "");
+      })
     );
     return json({ rows });
   } catch (e) {

@@ -165,7 +165,7 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
 
       <p className="muted" style={{ marginTop: 0, fontSize: "0.82rem" }}>
         {aisleGroups
-          ? `Organized by store aisle from your Mariano's match${lastFetched ? ` (aisle info as of ${fmtDate(lastFetched)})` : ""}. Items without aisle data are grouped by section at the end; aisle coverage from Kroger is partial.`
+          ? `Organized by Kroger department, ordered by aisle${lastFetched ? ` (aisle info as of ${fmtDate(lastFetched)})` : ""}. Items Kroger didn't match are in "Other" at the end; aisle coverage is partial.`
           : `Quantities are merged across the week and grouped by store section.${lastFetched ? ` Aisle info shown where known (as of ${fmtDate(lastFetched)}).` : ""} Pantry staples are listed separately to check before shopping.`}
       </p>
 

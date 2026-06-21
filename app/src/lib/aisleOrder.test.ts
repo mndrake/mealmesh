@@ -21,18 +21,19 @@ const list: ShoppingList = {
 };
 
 describe("groupByAisle", () => {
-  it("groups located items by department (ordered by aisle), then fallback by section", () => {
+  it("groups located items by Kroger department (ordered by aisle); unmatched go to one Other bucket", () => {
     const locations = new Map<string, ItemLocation>([
       ["onion", loc("onion", "Produce", 1, "Aisle 1")],
       ["milk", loc("milk", "Dairy", 12, "Aisle 12")],
-      // spinach + rice have no location → fall back to their list section
+      // spinach + rice have no location → single "Other" group (no fallback to our sections)
     ]);
     const groups = groupByAisle(list, locations);
-    expect(groups.map((g) => g.key)).toEqual(["dept:Produce", "dept:Dairy", "sec:Produce", "sec:Pantry & Dry Goods"]);
+    expect(groups.map((g) => g.key)).toEqual(["dept:Produce", "dept:Dairy", "other"]);
     expect(groups[0].items.map((i) => i.name)).toEqual(["onion"]);
-    expect(groups[2].items.map((i) => i.name)).toEqual(["spinach"]); // unlocated Produce item
-    // checkoff id stays tied to the original section
-    expect(groups[2].items[0].section).toBe("Produce");
+    expect(groups[2].label).toBe("Other (not matched at Kroger)");
+    expect(groups[2].items.map((i) => i.name)).toEqual(["rice", "spinach"]); // sorted by name
+    // checkoff id stays tied to the original section even in the Other bucket
+    expect(groups[2].items.find((i) => i.name === "spinach")?.section).toBe("Produce");
   });
 
   it("orders departments by their lowest aisle number", () => {
@@ -42,9 +43,8 @@ describe("groupByAisle", () => {
       ["rice", loc("rice", "Pantry", 15)],
     ]);
     const groups = groupByAisle(list, locations);
-    expect(groups.map((g) => g.label)).toEqual(["Dairy", "Pantry", "Produce", "Produce"]);
-    // last "Produce" is the section-fallback group for spinach (no location)
-    expect(groups[3].key).toBe("sec:Produce");
+    expect(groups.map((g) => g.label)).toEqual(["Dairy", "Pantry", "Produce", "Other (not matched at Kroger)"]);
+    expect(groups[3].key).toBe("other"); // spinach (no location)
   });
 
   it("locationText prefers aisle, then department", () => {

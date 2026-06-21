@@ -136,3 +136,32 @@ export async function saveTokens(
     .upsert({ household_id: householdId, ...tokens, connected_by: connectedBy }, { onConflict: "household_id" });
   if (error) throw error;
 }
+
+// ---- Item search aliases (override the term used to match an item) ----
+/** Map of item_name -> search_term for the household. */
+export async function getAliases(householdId: string): Promise<Map<string, string>> {
+  const { data } = await service()
+    .from("item_aliases")
+    .select("item_name,search_term")
+    .eq("household_id", householdId);
+  const map = new Map<string, string>();
+  for (const r of (data ?? []) as { item_name: string; search_term: string }[]) {
+    if (r.item_name && r.search_term) map.set(r.item_name, r.search_term);
+  }
+  return map;
+}
+
+export async function saveAlias(
+  householdId: string,
+  itemName: string,
+  searchTerm: string,
+  userId: string | null
+): Promise<void> {
+  const { error } = await service()
+    .from("item_aliases")
+    .upsert(
+      { household_id: householdId, item_name: itemName, search_term: searchTerm, updated_by: userId },
+      { onConflict: "household_id,item_name" }
+    );
+  if (error) throw error;
+}

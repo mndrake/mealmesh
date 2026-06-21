@@ -158,6 +158,25 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
     );
   }
 
+  // Re-search a no-match row with an alternative term. On success, fill the row and remember
+  // the term (so future matches use it) + cache the product's store location.
+  async function resolveNoMatch(i: number, term: string): Promise<boolean> {
+    const t = term.trim();
+    if (!t) return false;
+    const row = rows[i];
+    const { rows: res } = await krogerClient.match([{ name: t, displayQty: row.displayQty }]);
+    const m = res[0]?.matched;
+    if (!m) return false;
+    setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, matched: m, alternates: res[0].alternates, include: true } : r)));
+    void krogerClient.saveAlias(row.listName, t).catch(() => {});
+    if (m.department || m.aisle) {
+      actions.saveItemLocations([
+        { name: row.listName, aisle: m.aisle, aisleNumber: m.aisleNumber, department: m.department, fetchedAt: Date.now() },
+      ]);
+    }
+    return true;
+  }
+
   async function send() {
     const included = rows.filter((r) => r.include && r.matched);
     const payload = included.map((r) => ({ upc: r.matched!.upc, quantity: r.quantity }));
@@ -318,7 +337,7 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
                         />
                       </>
                     ) : (
-                      <span className="muted">no match — buy in store</span>
+                      <NoMatchSearch index={i} defaultTerm={r.listName} onResolve={resolveNoMatch} />
                     )}
                   </div>
                 ))}
@@ -437,6 +456,45 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Inline re-search for a no-match review row: type a better term (e.g. "tortilla chips"
+ *  for "broken tortilla chips") and pick the result; the term is then remembered. */
+function NoMatchSearch({
+  index,
+  defaultTerm,
+  onResolve,
+}: {
+  index: number;
+  defaultTerm: string;
+  onResolve: (i: number, term: string) => Promise<boolean>;
+}) {
+  const [term, setTerm] = useState(defaultTerm);
+  const [state, setState] = useState<"idle" | "searching" | "none">("idle");
+
+  async function go() {
+    if (!term.trim()) return;
+    setState("searching");
+    const ok = await onResolve(index, term).catch(() => false);
+    setState(ok ? "idle" : "none");
+  }
+
+  return (
+    <div className="kr-research">
+      <input
+        className="search"
+        value={term}
+        placeholder="Search term"
+        style={{ maxWidth: 150 }}
+        onChange={(e) => setTerm(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && go()}
+      />
+      <button className="btn small secondary" onClick={go} disabled={state === "searching" || !term.trim()}>
+        {state === "searching" ? "…" : "Search"}
+      </button>
+      {state === "none" && <span className="muted" style={{ fontSize: "0.74rem" }}>no results</span>}
     </div>
   );
 }

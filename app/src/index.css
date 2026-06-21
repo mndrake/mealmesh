@@ -856,6 +856,16 @@ a {
   border: 1px solid var(--border);
   border-radius: 7px;
 }
+.kr-research {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.kr-research .search {
+  padding: 5px 7px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+}
 .progress {
   height: 8px;
   background: var(--surface-2);

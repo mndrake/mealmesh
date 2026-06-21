@@ -84,4 +84,7 @@ export const krogerClient = {
   // Reset the send-history after the user checks out / empties their Mariano's cart.
   clearSent: () =>
     call<{ ok: boolean; sentItems: SentItem[] }>("sent", { method: "POST", body: JSON.stringify({ clear: true }) }),
+  // Remember a better search term for an item (used by future matches); empty term clears it.
+  saveAlias: (itemName: string, searchTerm: string) =>
+    call<{ ok: boolean }>("alias", { method: "POST", body: JSON.stringify({ itemName, searchTerm }) }),
 };
