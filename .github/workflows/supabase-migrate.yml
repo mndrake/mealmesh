@@ -53,7 +53,9 @@ jobs:
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          # Pinned for reproducible CI. The pg-delta "migrations catalog" cache step logs a
+          # harmless warning on push (best-effort; the migration still applies, exit 0).
+          version: 2.107.0
 
       - name: Link project
         run: supabase link --project-ref "$SUPABASE_PROJECT_ID"
