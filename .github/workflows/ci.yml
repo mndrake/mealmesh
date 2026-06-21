@@ -37,6 +37,10 @@ jobs:
       - name: Typecheck
         run: npx tsc -p tsconfig.app.json --noEmit
 
+      # The Netlify functions are bundled by esbuild (no type-checking), so gate them here.
+      - name: Typecheck functions
+        run: npm run typecheck:functions
+
       - name: Test
         run: npm test
 
