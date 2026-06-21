@@ -11,12 +11,17 @@ merged into the app's recipe lookup at runtime.
 2. The SPA calls **`POST /api/recipes/import`** (Netlify function `recipe-import`), authed
    with the Supabase session JWT.
 3. The function fetches the page server-side (SSRF-guarded, size/time-capped) and extracts a
-   recipe in two tiers:
+   recipe in tiers:
    - **schema.org JSON-LD** (`extractJsonLdRecipe`) — reliable and free; most recipe sites
      embed a `Recipe` object. Handles `@graph`, ISO-8601 durations, `recipeYield`, nested
      `HowToStep`/`HowToSection` instructions, and `NutritionInformation`.
-   - **Claude fallback** (`extractRecipeWithClaude`, model `claude-opus-4-8`, structured
-     output) for pages without usable JSON-LD. Only runs when `ANTHROPIC_API_KEY` is set.
+   - **Claude from page text** (`extractRecipeWithClaude`, model `claude-opus-4-8`,
+     structured output) when our fetch succeeded but the page has no usable JSON-LD.
+   - **Claude web-fetch** (`extractRecipeViaWebFetch`) when our own fetch is *blocked*
+     (anti-bot 403, JS-rendered pages). Claude fetches the page itself via the server-side
+     `web_fetch_20260209` tool, scoped to the target host (`allowed_domains`) and bounded
+     (`max_uses`). Reported back to the client as `via: "ai_fetch"`.
+   The Claude tiers only run when `ANTHROPIC_API_KEY` is set; without it, JSON-LD still works.
 4. Either path produces a complete **draft `Recipe`** (`toDraftRecipe`): ids, store sections
    (`guessSection` / Claude-assigned), perishable flags, and defaulted nutrition (flagged
    `estimated` when the source had none). It is **not** saved server-side.
@@ -54,6 +59,30 @@ The full `Recipe` lives in `data`; the row `id` (a `u-…` uuid) is authoritativ
   `Retry-After` header. Checked after URL validation (malformed requests don't burn quota)
   and before any fetch/AI work. If the table isn't present yet it degrades open (still
   auth-gated). Tune via `IMPORT_LIMIT` / `IMPORT_WINDOW_MS` in `recipe-import.ts`.
+
+## Batch import (maintainer tool)
+
+For bulk work, `npm run import:recipes` (`app/scripts/import-recipes.ts`, run via `tsx`)
+scrapes + parses a list of URLs and **verifies each ingredient against Kroger** — reusing
+the exact same pure helpers as the runtime importer, plus the Kroger product search. For each
+ingredient it records availability and, on a confident match, sets `buy_as` (the store
+product name) and the Kroger `section` (`krogerDepartmentToSection`). It writes two files for
+review/commit:
+
+- `scripts/out/imported-recipes.json` — the verified draft recipes.
+- `scripts/out/import-report.md` — per-recipe table flagging unavailable / unmatched
+  ingredients (the items worth fixing before they hit a shopping list).
+
+```
+npm run import:recipes -- --urls urls.txt --location 01400943   # verify at a store
+npm run import:recipes -- https://site/r1 https://site/r2 --no-ai
+npm run import:recipes -- --urls urls.txt --push --household <uuid>   # upsert to user_recipes
+```
+
+Env (all optional except as noted): `ANTHROPIC_API_KEY` (AI fallback), `KROGER_CLIENT_ID` /
+`KROGER_CLIENT_SECRET` (verification; needs `--location`), `SUPABASE_URL` +
+`SUPABASE_SERVICE_ROLE_KEY` (only for `--push`). The git diff of the emitted JSON/report is
+the review trail. This is a developer tool — it is **not** wired into the deployed app.
 
 ## Not (yet) built
 

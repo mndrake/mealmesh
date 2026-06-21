@@ -5,7 +5,7 @@
 // and the response is size/time-capped.
 import { getUser, householdIdFor, checkImportRateLimit } from "./_shared/supa";
 import { isSafeImportUrl, htmlToText, extractJsonLdRecipe, toDraftRecipe } from "./_shared/recipe-import";
-import { extractRecipeWithClaude, hasClaude } from "./_shared/anthropic";
+import { extractRecipeWithClaude, extractRecipeViaWebFetch, hasClaude } from "./_shared/anthropic";
 import { json } from "./_shared/http";
 
 const MAX_BYTES = 3_000_000; // 3 MB of HTML is plenty for a recipe page
@@ -60,28 +60,34 @@ export default async (req: Request): Promise<Response> => {
     );
   }
 
-  let html: string;
+  // Try our own fetch first (cheap). If it works, prefer JSON-LD, then AI over the text we
+  // already have. If it's blocked (anti-bot 403, etc.), fall back to Claude's web-fetch tool.
+  let html: string | null = null;
+  let fetchErr = "";
   try {
     html = await fetchPage(url);
   } catch (e) {
-    const msg = (e as Error).message;
-    return json({ error: "fetch_failed", detail: msg }, 502);
+    fetchErr = (e as Error).message;
   }
 
   // 1) Structured data — reliable and free.
-  const fromJsonLd = extractJsonLdRecipe(html);
-  if (fromJsonLd) {
-    return json({ recipe: toDraftRecipe(fromJsonLd, url), via: "jsonld" });
+  if (html) {
+    const fromJsonLd = extractJsonLdRecipe(html);
+    if (fromJsonLd) return json({ recipe: toDraftRecipe(fromJsonLd, url), via: "jsonld" });
   }
 
-  // 2) Claude fallback for pages without usable JSON-LD.
+  // 2) Claude — extract from the text we fetched, or have Claude fetch the page itself.
   if (!hasClaude(process.env)) {
-    return json({ error: "no_structured_data", detail: "This page has no machine-readable recipe and AI import isn't configured." }, 422);
+    return html
+      ? json({ error: "no_structured_data", detail: "This page has no machine-readable recipe and AI import isn't configured." }, 422)
+      : json({ error: "fetch_failed", detail: fetchErr }, 502);
   }
   try {
-    const parsed = await extractRecipeWithClaude(process.env, htmlToText(html), url);
+    const parsed = html
+      ? await extractRecipeWithClaude(process.env, htmlToText(html), url)
+      : await extractRecipeViaWebFetch(process.env, url);
     if (!parsed.ingredients?.length) return json({ error: "no_recipe", detail: "Couldn't find a recipe on that page." }, 422);
-    return json({ recipe: toDraftRecipe(parsed, url), via: "ai" });
+    return json({ recipe: toDraftRecipe(parsed, url), via: html ? "ai" : "ai_fetch" });
   } catch (e) {
     console.warn("[recipe-import] AI extract error:", (e as Error).message);
     return json({ error: "ai_failed", detail: (e as Error).message }, 502);

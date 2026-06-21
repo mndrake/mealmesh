@@ -65,6 +65,7 @@ export interface DraftIngredient {
   section: Section;
   perishable: boolean;
   staple: boolean;
+  buy_as?: string; // store product name when it differs from `item` (set by Kroger verify)
   optional?: boolean;
   note?: string;
 }

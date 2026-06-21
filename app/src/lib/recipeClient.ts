@@ -7,7 +7,7 @@ import { supabase } from "./supabase";
 
 export interface ImportResult {
   recipe: Recipe;
-  via: "jsonld" | "ai";
+  via: "jsonld" | "ai" | "ai_fetch";
 }
 
 async function authHeaders(): Promise<Record<string, string>> {

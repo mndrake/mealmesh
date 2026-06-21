@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build:data": "node scripts/build-data.mjs",
+    "import:recipes": "tsx scripts/import-recipes.ts",
     "predev": "node scripts/build-data.mjs",
     "dev": "vite",
     "prebuild": "node scripts/build-data.mjs",

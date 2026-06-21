@@ -41,7 +41,7 @@ const RecipeSchema = z.object({
     .nullable(),
 });
 
-const SYSTEM = `You extract a single cooking recipe from the text of a web page into a strict JSON shape.
+const SYSTEM = `You extract a single cooking recipe from a web page into a strict JSON shape.
 Rules:
 - Use only what the page states; do not invent ingredients, steps, or nutrition. Omit unknown numbers as null.
 - qty is the numeric amount as a decimal (e.g. 1.5 for "1 ½"); unit is a short unit word ("cup", "tbsp", "g") or "each" when there is no unit.
@@ -49,6 +49,31 @@ Rules:
 - section must be the best-fit grocery aisle from the allowed list.
 - method is the numbered steps as plain text; notes is any extra tips (or "").
 - nutrition is per single serving if the page gives it, else null.`;
+
+type ParsedOut = z.infer<typeof RecipeSchema>;
+
+/** Map Claude's validated output to our ParsedRecipe intermediate. */
+function toParsed(out: ParsedOut): ParsedRecipe {
+  return {
+    title: out.title,
+    category: out.category,
+    cuisine: out.cuisine,
+    servings: out.servings,
+    prep_minutes: out.prep_minutes ?? undefined,
+    cook_minutes: out.cook_minutes ?? undefined,
+    ingredients: out.ingredients.map((i) => ({
+      qty: i.qty,
+      unit: i.unit || "each",
+      item: i.item,
+      section: i.section as ParsedRecipe["ingredients"][number]["section"],
+      optional: i.optional || undefined,
+      note: i.note || undefined,
+    })),
+    method: out.method,
+    notes: out.notes,
+    nutrition: out.nutrition ?? undefined,
+  };
+}
 
 /** True when the Claude fallback is configured (the API key is present). */
 export function hasClaude(env: Env): boolean {
@@ -77,23 +102,36 @@ export async function extractRecipeWithClaude(env: Env, pageText: string, url: s
 
   const out = res.parsed_output;
   if (!out) throw new Error("ai_parse_failed");
-  return {
-    title: out.title,
-    category: out.category,
-    cuisine: out.cuisine,
-    servings: out.servings,
-    prep_minutes: out.prep_minutes ?? undefined,
-    cook_minutes: out.cook_minutes ?? undefined,
-    ingredients: out.ingredients.map((i) => ({
-      qty: i.qty,
-      unit: i.unit || "each",
-      item: i.item,
-      section: i.section as ParsedRecipe["ingredients"][number]["section"],
-      optional: i.optional || undefined,
-      note: i.note || undefined,
-    })),
-    method: out.method,
-    notes: out.notes,
-    nutrition: out.nutrition ?? undefined,
-  };
+  return toParsed(out);
+}
+
+/** Let Claude fetch the page itself (server-side web-fetch tool) and extract the recipe.
+ *  Used when our own fetch is blocked (anti-bot 403, JS-rendered pages, etc.). The fetch is
+ *  scoped to the target host so Claude can't wander to other sites. */
+export async function extractRecipeViaWebFetch(env: Env, url: string): Promise<ParsedRecipe> {
+  if (!env.ANTHROPIC_API_KEY) throw new Error("ai_unconfigured");
+  const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+
+  let host = "";
+  try {
+    host = new URL(url).hostname;
+  } catch {
+    /* url was validated upstream */
+  }
+
+  const res = await client.messages.parse({
+    model: "claude-opus-4-8",
+    max_tokens: 8000,
+    thinking: { type: "adaptive" },
+    // Server-side web fetch (dynamic filtering built in on Opus 4.8; no beta header needed),
+    // scoped to the recipe's own domain and bounded to a couple of fetches.
+    tools: [{ type: "web_fetch_20260209", name: "web_fetch", max_uses: 3, ...(host ? { allowed_domains: [host] } : {}) }],
+    output_config: { format: zodOutputFormat(RecipeSchema), effort: "medium" },
+    system: SYSTEM,
+    messages: [{ role: "user", content: `Fetch this recipe page and extract the recipe: ${url}` }],
+  });
+
+  const out = res.parsed_output;
+  if (!out) throw new Error("ai_parse_failed");
+  return toParsed(out);
 }

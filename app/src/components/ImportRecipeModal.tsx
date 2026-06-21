@@ -14,7 +14,7 @@ export function ImportRecipeModal({ onClose, onSaved }: { onClose: () => void; o
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState<Recipe | null>(null);
-  const [via, setVia] = useState<"jsonld" | "ai" | null>(null);
+  const [via, setVia] = useState<"jsonld" | "ai" | "ai_fetch" | null>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -114,7 +114,7 @@ export function ImportRecipeModal({ onClose, onSaved }: { onClose: () => void; o
           {draft && (
             <>
               <p className="muted" style={{ marginTop: 0 }}>
-                {via === "ai" ? "Extracted with AI" : "Extracted from the page"} — review and edit, then save.
+                {via === "jsonld" ? "Extracted from the page" : via === "ai_fetch" ? "Fetched & extracted with AI" : "Extracted with AI"} — review and edit, then save.
               </p>
 
               <label className="cook-field">
