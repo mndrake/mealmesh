@@ -3,6 +3,31 @@
 // else falls back to its normal list section. Pure + testable; ShoppingView renders it.
 import type { Section, ItemLocation } from "./types";
 import type { ShoppingList } from "./shopping";
+import { SECTION_LABELS } from "./shopping";
+import { krogerDepartmentToSection } from "./krogerSections";
+
+// Fresh/perimeter sections occupy distinct store areas (produce wall, meat/dairy cases,
+// freezers, bakery). For these we trust our curated section over Kroger's product department,
+// which is often wrong for fresh items (e.g. a jarred "roasted red pepper" filed under
+// International matched for fresh "red bell pepper"). Center-store items keep Kroger's dept.
+const PERIMETER: ReadonlySet<Section> = new Set<Section>([
+  "Produce",
+  "Meat & Poultry",
+  "Dairy & Eggs",
+  "Frozen",
+  "Bakery",
+]);
+
+/** The department label to group an item under: Kroger's product department, except for
+ *  fresh/perimeter items where Kroger disagrees with our section — then use our section. */
+function groupDept(item: AisleItem): string | null {
+  const dept = item.location?.department ?? null;
+  if (!dept) return null; // not matched → handled as "Other" by the caller (unchanged)
+  if (PERIMETER.has(item.section) && krogerDepartmentToSection(dept) !== item.section) {
+    return SECTION_LABELS[item.section].label;
+  }
+  return dept;
+}
 
 export interface AisleItem {
   name: string;
@@ -27,8 +52,9 @@ export function groupByAisle(list: ShoppingList, locations: Map<string, ItemLoca
     for (const [name, qty] of items) {
       const loc = locations.get(name) ?? null;
       const item: AisleItem = { name, qty, section, location: loc };
-      if (loc?.department) {
-        (located.get(loc.department) ?? located.set(loc.department, []).get(loc.department)!).push(item);
+      const dept = groupDept(item);
+      if (dept) {
+        (located.get(dept) ?? located.set(dept, []).get(dept)!).push(item);
       } else {
         other.push(item);
       }
