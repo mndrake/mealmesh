@@ -1,0 +1,52 @@
+name: Deploy Supabase Migrations
+
+# Apply pending SQL migrations to the production Supabase database whenever they
+# change on main. Netlify deploys the frontend + functions on push to main, but it
+# does NOT touch the database — this workflow closes that gap so a merged migration
+# (e.g. a new column) is live before/with the code that depends on it.
+#
+# Runs only when files under supabase/migrations/ change, plus a manual trigger
+# (workflow_dispatch) to apply a migration that's already on main — like the first
+# time you enable this, or to re-run after fixing secrets.
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   SUPABASE_ACCESS_TOKEN  — personal access token (supabase.com/dashboard/account/tokens)
+#   SUPABASE_DB_PASSWORD   — the production database password
+#   SUPABASE_PROJECT_ID    — the project ref (from the dashboard URL .../project/<ref>)
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/migrations/**"
+      - ".github/workflows/supabase-migrate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Never let two migration runs overlap — apply them strictly one at a time.
+concurrency:
+  group: supabase-migrate
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link project
+        run: supabase link --project-ref "$SUPABASE_PROJECT_ID"
+
+      - name: Push migrations
+        run: supabase db push
