@@ -413,3 +413,21 @@ export function toDraftRecipe(
 export function randomId(): string {
   return "u-" + (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2));
 }
+
+// ---- Rate limiting (per household; protects the Anthropic spend + fetch abuse) --------
+
+/** Decide whether another import is allowed given the timestamps (ms) of recent import
+ *  events. Pure so the I/O wrapper in supa.ts stays thin and this stays testable.
+ *  `retryAfterSec` is how long until the oldest in-window event ages out (0 when allowed). */
+export function importRateDecision(
+  recentMs: number[],
+  nowMs: number,
+  limit: number,
+  windowMs: number
+): { allowed: boolean; retryAfterSec: number } {
+  const inWindow = recentMs.filter((t) => Number.isFinite(t) && nowMs - t < windowMs);
+  if (inWindow.length < limit) return { allowed: true, retryAfterSec: 0 };
+  const oldest = Math.min(...inWindow);
+  const retryAfterSec = Math.max(1, Math.ceil((windowMs - (nowMs - oldest)) / 1000));
+  return { allowed: false, retryAfterSec };
+}

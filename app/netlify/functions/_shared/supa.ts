@@ -3,6 +3,7 @@
 // the browser. JWT verification uses an anon client to validate the caller's session.
 import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
 import type { SentItem } from "./kroger";
+import { importRateDecision } from "./recipe-import";
 
 // supabase-js eagerly constructs a Realtime client whose constructor resolves a WebSocket
 // implementation. Netlify's Node 20 functions have no global WebSocket, so createClient
@@ -209,4 +210,36 @@ export async function upsertProductCache(
 /** Drop a cached match (e.g. after an alias changes the search term for an item). */
 export async function clearProductCacheItem(householdId: string, itemName: string): Promise<void> {
   await service().from("kroger_product_cache").delete().eq("household_id", householdId).eq("item_name", itemName);
+}
+
+// ---- Recipe-import rate limiting (per household; durable across function instances) ----
+
+/** Check the household's import quota and, when allowed, record this attempt. Durable
+ *  (Supabase-backed) so it holds across stateless function invocations. Tolerates the
+ *  table not existing yet (migration 0011 not applied) by degrading open — the endpoint
+ *  is still auth-gated. Returns the decision; on block, `retryAfterSec` is the wait. */
+export async function checkImportRateLimit(
+  householdId: string,
+  limit: number,
+  windowMs: number
+): Promise<{ allowed: boolean; retryAfterSec: number }> {
+  const db = service();
+  const now = Date.now();
+  const cutoff = new Date(now - windowMs).toISOString();
+
+  const { data, error } = await db
+    .from("recipe_import_log")
+    .select("created_at")
+    .eq("household_id", householdId)
+    .gte("created_at", cutoff);
+  if (error) return { allowed: true, retryAfterSec: 0 }; // table missing → degrade open
+
+  const recentMs = (data ?? []).map((r) => Date.parse((r as { created_at: string }).created_at));
+  const decision = importRateDecision(recentMs, now, limit, windowMs);
+  if (!decision.allowed) return decision;
+
+  // Record this attempt, then opportunistically prune aged-out rows (best-effort).
+  await db.from("recipe_import_log").insert({ household_id: householdId });
+  void db.from("recipe_import_log").delete().eq("household_id", householdId).lt("created_at", cutoff);
+  return decision;
 }

@@ -3,13 +3,18 @@
 // Returns a draft Recipe for the client to review and save (it is NOT persisted here —
 // the SPA writes it to user_recipes after the user confirms). The fetch is SSRF-guarded
 // and the response is size/time-capped.
-import { getUser, householdIdFor } from "./_shared/supa";
+import { getUser, householdIdFor, checkImportRateLimit } from "./_shared/supa";
 import { isSafeImportUrl, htmlToText, extractJsonLdRecipe, toDraftRecipe } from "./_shared/recipe-import";
 import { extractRecipeWithClaude, hasClaude } from "./_shared/anthropic";
 import { json } from "./_shared/http";
 
 const MAX_BYTES = 3_000_000; // 3 MB of HTML is plenty for a recipe page
 const FETCH_TIMEOUT_MS = 12_000;
+
+// Per-household quota: caps Anthropic spend + fetch abuse. Generous for a family adding
+// recipes; a runaway client is stopped well before it costs much.
+const IMPORT_LIMIT = 20;
+const IMPORT_WINDOW_MS = 60 * 60 * 1000; // rolling hour
 
 async function fetchPage(url: string): Promise<string> {
   const ctrl = new AbortController();
@@ -44,6 +49,16 @@ export default async (req: Request): Promise<Response> => {
   const body = (await req.json().catch(() => ({}))) as { url?: string };
   const url = (body.url ?? "").trim();
   if (!url || !isSafeImportUrl(url)) return json({ error: "bad_url" }, 400);
+
+  // Rate limit (durable, per household) — checked after URL validation so malformed
+  // requests don't consume quota, before any fetch/AI work.
+  const rl = await checkImportRateLimit(householdId, IMPORT_LIMIT, IMPORT_WINDOW_MS);
+  if (!rl.allowed) {
+    return new Response(
+      JSON.stringify({ error: "rate_limited", detail: `Too many imports — try again in about ${Math.ceil(rl.retryAfterSec / 60)} min.` }),
+      { status: 429, headers: { "content-type": "application/json", "retry-after": String(rl.retryAfterSec) } }
+    );
+  }
 
   let html: string;
   try {

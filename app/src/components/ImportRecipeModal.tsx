@@ -231,6 +231,7 @@ export function ImportRecipeModal({ onClose, onSaved }: { onClose: () => void; o
 function friendlyError(msg: string): string {
   if (msg.includes("bad_url")) return "That doesn't look like a valid recipe URL.";
   if (msg.includes("fetch_failed")) return "Couldn't load that page (it may block automated access). Try another source.";
+  if (msg.includes("rate_limited")) return msg.replace(/^rate_limited:?\s*/, "") || "Too many imports recently — please try again later.";
   if (msg.includes("no_structured_data")) return "This page has no machine-readable recipe, and AI import isn't configured on the server.";
   if (msg.includes("no_recipe")) return "Couldn't find a recipe on that page.";
   if (msg.includes("ai_failed") || msg.includes("ai_parse")) return "AI extraction failed. Try again, or another source.";

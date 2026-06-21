@@ -47,6 +47,13 @@ The full `Recipe` lives in `data`; the row `id` (a `u-…` uuid) is authoritativ
 - **Images aren't re-hosted.** Imported recipes set `imageUrl: null` rather than loading an
   arbitrary remote image — the CSP `img-src` stays scoped (self + Kroger hosts), so no CSP
   change was needed.
+- **Rate limit.** The endpoint is capped per household (default **20 imports / rolling
+  hour**) to bound Anthropic spend and fetch abuse. It's durable (Supabase
+  `recipe_import_log`, migration 0011) so it holds across stateless function instances;
+  decision logic is the pure, tested `importRateDecision`. Over quota returns `429` with a
+  `Retry-After` header. Checked after URL validation (malformed requests don't burn quota)
+  and before any fetch/AI work. If the table isn't present yet it degrades open (still
+  auth-gated). Tune via `IMPORT_LIMIT` / `IMPORT_WINDOW_MS` in `recipe-import.ts`.
 
 ## Not (yet) built
 

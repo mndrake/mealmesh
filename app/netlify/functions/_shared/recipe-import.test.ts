@@ -8,6 +8,7 @@ import {
   guessSection,
   extractJsonLdRecipe,
   toDraftRecipe,
+  importRateDecision,
 } from "./recipe-import";
 
 describe("isSafeImportUrl", () => {
@@ -80,6 +81,28 @@ describe("guessSection", () => {
     expect(guessSection("ground cumin")).toBe("Condiments & Spices");
     expect(guessSection("all-purpose flour")).toBe("Pantry & Dry Goods");
     expect(guessSection("mystery widget")).toBe("Pantry & Dry Goods"); // default
+  });
+});
+
+describe("importRateDecision", () => {
+  const now = 1_000_000_000_000;
+  const hour = 60 * 60 * 1000;
+
+  it("allows while under the limit (only counting in-window events)", () => {
+    const recent = [now - 10 * 60_000, now - 2 * hour /* aged out */];
+    expect(importRateDecision(recent, now, 3, hour)).toEqual({ allowed: true, retryAfterSec: 0 });
+  });
+
+  it("blocks at the limit and reports when the oldest in-window event ages out", () => {
+    const recent = [now - 50 * 60_000, now - 20 * 60_000, now - 5 * 60_000];
+    const d = importRateDecision(recent, now, 3, hour);
+    expect(d.allowed).toBe(false);
+    expect(d.retryAfterSec).toBe(10 * 60); // oldest was 50 min ago → 10 min left in the hour
+  });
+
+  it("ignores events older than the window when counting", () => {
+    const recent = [now - 2 * hour, now - 3 * hour, now - 90 * 60_000];
+    expect(importRateDecision(recent, now, 2, hour).allowed).toBe(true);
   });
 });
 
