@@ -262,6 +262,7 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
                             <option key={m.upc} value={m.upc}>
                               {m.description}
                               {m.price != null ? ` — $${m.price.toFixed(2)}` : ""}
+                              {m.available ? "" : " — unavailable"}
                             </option>
                           ))}
                         </select>

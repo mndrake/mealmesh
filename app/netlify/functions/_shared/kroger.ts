@@ -165,11 +165,16 @@ function toMatch(p: any): ProductMatch | null {
 /** Map a Products search response to a review row (top match + alternates). */
 export function toReviewRow(resp: any, listName: string, displayQty: string): ReviewRow {
   const products = (resp?.data ?? []).map(toMatch).filter(Boolean) as ProductMatch[];
-  const [matched, ...alternates] = products;
+  // Default to the first *available* product so we don't pre-select something that can't be
+  // fulfilled when an in-stock alternate exists; fall back to the top result if none are.
+  const found = products.findIndex((p) => p.available);
+  const i = found >= 0 ? found : 0;
+  const matched = products[i] ?? null;
+  const alternates = products.filter((_, idx) => idx !== i);
   return {
     listName,
     displayQty,
-    matched: matched ?? null,
+    matched,
     alternates,
     quantity: 1,
     include: Boolean(matched),

@@ -98,6 +98,36 @@ describe("kroger pure helpers", () => {
     expect(row.matched).toBeNull();
     expect(row.include).toBe(false);
   });
+
+  it("prefers an available alternate when the top result is unavailable", () => {
+    const row = toReviewRow(
+      {
+        data: [
+          { upc: "U1", productId: "u1", description: "White Eggplant", items: [{ price: { regular: 2.99 }, fulfillment: {} }] },
+          { upc: "A1", productId: "a1", description: "Globe Eggplant", items: [{ price: { regular: 1.99 }, fulfillment: { instore: true } }] },
+        ],
+      },
+      "eggplant",
+      "4 each"
+    );
+    expect(row.matched).toMatchObject({ upc: "A1", available: true });
+    expect(row.alternates.map((a) => a.upc)).toEqual(["U1"]); // unavailable one kept as an option
+  });
+
+  it("keeps the top result when every product is unavailable", () => {
+    const row = toReviewRow(
+      {
+        data: [
+          { upc: "U1", productId: "u1", description: "White Eggplant", items: [{ fulfillment: {} }] },
+          { upc: "U2", productId: "u2", description: "Graffiti Eggplant", items: [{ fulfillment: {} }] },
+        ],
+      },
+      "eggplant",
+      "4 each"
+    );
+    expect(row.matched).toMatchObject({ upc: "U1", available: false });
+    expect(row.alternates.map((a) => a.upc)).toEqual(["U2"]);
+  });
 });
 
 describe("kroger send-history helpers", () => {
