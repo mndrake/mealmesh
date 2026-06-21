@@ -40,10 +40,9 @@ export async function hydrate(
       .select("id,recipe_id,cooked_on,rating,make_again,notes,plan_id")
       .eq("household_id", householdId)
       .order("cooked_on", { ascending: false }),
-    client
-      .from("item_locations")
-      .select("item_name,aisle,aisle_number,department,fetched_at")
-      .eq("household_id", householdId),
+    // select("*") so a client deployed before migration 0013 (price/product columns) still
+    // hydrates — missing columns just map to null rather than erroring.
+    client.from("item_locations").select("*").eq("household_id", householdId),
     client.from("user_recipes").select("id,data,source_url,created_at").eq("household_id", householdId),
   ]);
   if (plansRes.error) throw plansRes.error;

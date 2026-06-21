@@ -37,16 +37,28 @@ export function exportPlanJson(plan: Plan) {
   );
 }
 
-export function exportShoppingText(list: ShoppingList) {
+export function exportShoppingText(
+  list: ShoppingList,
+  cost?: { subtotalOf?: Map<string, number | null>; total?: number }
+) {
+  const money = (n: number) => `$${n.toFixed(2)}`;
+  const priced = (name: string) => {
+    const s = cost?.subtotalOf?.get(name);
+    return typeof s === "number" ? `  (${money(s)})` : "";
+  };
   const lines: string[] = ["MealMesh shopping list", ""];
   for (const { section, items } of list.sections) {
     lines.push(section);
-    for (const [name, qty] of items) lines.push(`  [ ] ${name} — ${qty}`);
+    for (const [name, qty] of items) lines.push(`  [ ] ${name} — ${qty}${priced(name)}`);
     lines.push("");
   }
   if (list.staples.length) {
     lines.push("Check pantry (staples)");
     for (const s of list.staples) lines.push(`  [ ] ${s}`);
+    lines.push("");
+  }
+  if (typeof cost?.total === "number" && cost.total > 0) {
+    lines.push(`Estimated total: ${money(cost.total)} (per-package prices; an estimate)`);
   }
   download("mealmesh-shopping.txt", lines.join("\n"), "text/plain");
 }
