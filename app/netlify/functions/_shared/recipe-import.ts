@@ -55,6 +55,7 @@ export interface ParsedRecipe {
   method?: string;
   notes?: string;
   nutrition?: Partial<Nutrition>;
+  imageUrl?: string; // candidate photo URL from the page (re-hosted by the handler)
 }
 
 // The full Recipe shape the SPA consumes (mirror of app/src/lib/types.ts Recipe).
@@ -83,6 +84,7 @@ export interface DraftRecipe {
   nutrition_estimated: boolean;
   source?: { name?: string; url?: string; note?: string };
   imageUrl: string | null;
+  image_source?: { file?: string; page?: string; repository?: string; note?: string };
   ingredients: DraftIngredient[];
   method: string;
   notes: string;
@@ -240,9 +242,51 @@ export function extractJsonLdRecipe(html: string): ParsedRecipe | null {
     ingredients,
     method: instructionText(node.recipeInstructions),
     nutrition,
+    imageUrl: pickJsonLdImage(node.image) ?? undefined,
   };
 }
+
+/** Normalize schema.org `image` (string | ImageObject | array of either) to one URL. */
+export function pickJsonLdImage(image: any): string | null {
+  const first = Array.isArray(image) ? image.find((x) => x) : image;
+  if (!first) return null;
+  const url = typeof first === "string" ? first : first?.url;
+  return typeof url === "string" && /^https?:\/\//i.test(url) ? url : null;
+}
 /* eslint-enable @typescript-eslint/no-explicit-any */
+
+/** First og:image / twitter:image / link[rel=image_src] URL on the page, or null. */
+export function extractOgImage(html: string): string | null {
+  const patterns = [
+    /<meta[^>]+property=["']og:image(?::url)?["'][^>]+content=["']([^"']+)["']/i,
+    /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image(?::url)?["']/i,
+    /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i,
+    /<link[^>]+rel=["']image_src["'][^>]+href=["']([^"']+)["']/i,
+  ];
+  for (const re of patterns) {
+    const m = html.match(re);
+    if (m && /^https?:\/\//i.test(m[1])) return m[1];
+  }
+  return null;
+}
+
+/** Map an image content-type to a file extension (and whitelist allowed image types). */
+export function imageExtFromContentType(contentType: string | null | undefined): string | null {
+  const ct = (contentType ?? "").split(";")[0].trim().toLowerCase();
+  switch (ct) {
+    case "image/jpeg":
+    case "image/jpg":
+      return "jpg";
+    case "image/png":
+      return "png";
+    case "image/webp":
+      return "webp";
+    case "image/gif":
+      return "gif";
+    default:
+      return null;
+  }
+}
 
 function mapCategory(c: unknown): Category | undefined {
   const s = String(Array.isArray(c) ? c[0] : c ?? "").toLowerCase();

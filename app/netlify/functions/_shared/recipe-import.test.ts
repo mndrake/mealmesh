@@ -9,6 +9,9 @@ import {
   extractJsonLdRecipe,
   toDraftRecipe,
   importRateDecision,
+  pickJsonLdImage,
+  extractOgImage,
+  imageExtFromContentType,
 } from "./recipe-import";
 
 describe("isSafeImportUrl", () => {
@@ -103,6 +106,37 @@ describe("importRateDecision", () => {
   it("ignores events older than the window when counting", () => {
     const recent = [now - 2 * hour, now - 3 * hour, now - 90 * 60_000];
     expect(importRateDecision(recent, now, 2, hour).allowed).toBe(true);
+  });
+});
+
+describe("image extraction helpers", () => {
+  it("pickJsonLdImage handles string, ImageObject, and arrays", () => {
+    expect(pickJsonLdImage("https://x.test/a.jpg")).toBe("https://x.test/a.jpg");
+    expect(pickJsonLdImage({ url: "https://x.test/b.png" })).toBe("https://x.test/b.png");
+    expect(pickJsonLdImage(["https://x.test/c.jpg", "https://x.test/d.jpg"])).toBe("https://x.test/c.jpg");
+    expect(pickJsonLdImage([{ url: "https://x.test/e.webp" }])).toBe("https://x.test/e.webp");
+    expect(pickJsonLdImage("not-a-url")).toBeNull();
+    expect(pickJsonLdImage(undefined)).toBeNull();
+  });
+
+  it("extractOgImage reads og:image / twitter:image (either attribute order)", () => {
+    expect(extractOgImage(`<meta property="og:image" content="https://x.test/og.jpg">`)).toBe("https://x.test/og.jpg");
+    expect(extractOgImage(`<meta content="https://x.test/og2.jpg" property="og:image">`)).toBe("https://x.test/og2.jpg");
+    expect(extractOgImage(`<meta name="twitter:image" content="https://x.test/tw.jpg">`)).toBe("https://x.test/tw.jpg");
+    expect(extractOgImage(`<p>no image meta</p>`)).toBeNull();
+  });
+
+  it("imageExtFromContentType whitelists image types", () => {
+    expect(imageExtFromContentType("image/jpeg")).toBe("jpg");
+    expect(imageExtFromContentType("image/png; charset=binary")).toBe("png");
+    expect(imageExtFromContentType("image/webp")).toBe("webp");
+    expect(imageExtFromContentType("text/html")).toBeNull();
+    expect(imageExtFromContentType(null)).toBeNull();
+  });
+
+  it("extractJsonLdRecipe pulls the image URL from JSON-LD", () => {
+    const html = `<script type="application/ld+json">{"@type":"Recipe","name":"Z","recipeIngredient":["1 egg"],"image":["https://x.test/z.jpg"]}</script>`;
+    expect(extractJsonLdRecipe(html)?.imageUrl).toBe("https://x.test/z.jpg");
   });
 });
 
