@@ -65,7 +65,7 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
     const items = list.sections.flatMap((s) => s.items).map(([name, displayQty]) => ({ name, displayQty }));
     setRefreshing(true);
     try {
-      const { rows } = await krogerClient.match(items);
+      const { rows } = await krogerClient.match(items, true);
       const now = Date.now();
       const locs = rows
         .filter((r) => r.matched && (r.matched.department || r.matched.aisle))

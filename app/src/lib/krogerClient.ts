@@ -12,6 +12,7 @@ export interface ProductMatch {
   aisle: string | null; // e.g. "Aisle 35" (often absent)
   aisleNumber: number | null; // 35 — for store-walk ordering
   department: string | null; // e.g. "Produce"
+  image: string | null; // small product image URL (often absent)
 }
 export interface ReviewRow {
   listName: string;
@@ -71,8 +72,9 @@ export const krogerClient = {
   locations: (zip: string) => call<{ stores: KrogerStore[] }>(`locations?zip=${encodeURIComponent(zip)}`),
   saveLocation: (locationId: string, storeName: string) =>
     call<{ ok: boolean }>("location", { method: "POST", body: JSON.stringify({ locationId, storeName }) }),
-  match: (items: { name: string; displayQty: string }[]) =>
-    call<{ rows: ReviewRow[] }>("match", { method: "POST", body: JSON.stringify({ items }) }),
+  // force=true bypasses the server cache (used by manual search / refresh).
+  match: (items: { name: string; displayQty: string }[], force = false) =>
+    call<{ rows: ReviewRow[] }>("match", { method: "POST", body: JSON.stringify({ items, force }) }),
   cart: (items: { upc: string; quantity: number }[], modality: string) =>
     call<{ ok: boolean; added: number; failed: { upc: string; status: number }[] }>("cart", {
       method: "POST",

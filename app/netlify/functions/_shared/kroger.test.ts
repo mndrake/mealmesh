@@ -13,6 +13,7 @@ import {
   toReviewRow,
   mergeSentItems,
   itemsToRemove,
+  isCacheFresh,
   type SentItem,
 } from "./kroger";
 
@@ -78,7 +79,7 @@ describe("kroger pure helpers", () => {
     const row = toReviewRow(
       {
         data: [
-          { upc: "0001", productId: "p1", description: "Red Onion", categories: ["Produce"], aisleLocations: [{ description: "Aisle 35", number: "35" }], items: [{ price: { regular: 0.99 }, fulfillment: { instore: true } }] },
+          { upc: "0001", productId: "p1", description: "Red Onion", categories: ["Produce"], aisleLocations: [{ description: "Aisle 35", number: "35" }], images: [{ perspective: "front", sizes: [{ size: "thumbnail", url: "https://www.kroger.com/img/0001.jpg" }] }], items: [{ price: { regular: 0.99 }, fulfillment: { instore: true } }] },
           { upc: "0002", productId: "p2", description: "Organic Red Onion", items: [{ price: { promo: 1.49, regular: 1.79 }, fulfillment: {} }] },
           { productId: "noupc", description: "skip me" }, // no UPC → dropped
         ],
@@ -86,7 +87,7 @@ describe("kroger pure helpers", () => {
       "red onion",
       "1 each"
     );
-    expect(row.matched).toMatchObject({ upc: "0001", description: "Red Onion", price: 0.99, available: true, aisle: "Aisle 35", aisleNumber: 35, department: "Produce" });
+    expect(row.matched).toMatchObject({ upc: "0001", description: "Red Onion", price: 0.99, available: true, aisle: "Aisle 35", aisleNumber: 35, department: "Produce", image: "https://www.kroger.com/img/0001.jpg" });
     expect(row.alternates).toHaveLength(1);
     expect(row.alternates[0]).toMatchObject({ upc: "0002", price: 1.49, aisle: null, department: null }); // promo preferred; no aisle data
     expect(row.quantity).toBe(1);
@@ -162,5 +163,17 @@ describe("kroger send-history helpers", () => {
     const remove = itemsToRemove(history, ["0001", "0002"]);
     expect(remove.map((r) => r.upc)).toEqual(["0003"]);
     expect(itemsToRemove(history, ["0001", "0002", "0003"])).toEqual([]);
+  });
+});
+
+describe("isCacheFresh", () => {
+  const now = 1_000_000_000_000;
+  const ttl = 7 * 24 * 60 * 60 * 1000;
+
+  it("is fresh only for the same store within the TTL", () => {
+    expect(isCacheFresh({ locationId: "L1", fetchedAtMs: now - 1000 }, "L1", now, ttl)).toBe(true);
+    expect(isCacheFresh({ locationId: "L1", fetchedAtMs: now - ttl - 1 }, "L1", now, ttl)).toBe(false); // stale
+    expect(isCacheFresh({ locationId: "L2", fetchedAtMs: now }, "L1", now, ttl)).toBe(false); // other store
+    expect(isCacheFresh(null, "L1", now, ttl)).toBe(false); // missing
   });
 });

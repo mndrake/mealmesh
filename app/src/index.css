@@ -856,6 +856,94 @@ a {
   border: 1px solid var(--border);
   border-radius: 7px;
 }
+/* Image product picker (replaces the native <select> in the review) */
+.kr-thumb {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 5px;
+  background: var(--surface-2);
+  flex: 0 0 auto;
+}
+.kr-thumb.placeholder {
+  display: inline-block;
+  border: 1px solid var(--border);
+}
+.kr-picker {
+  position: relative;
+  max-width: 260px;
+  flex: 1;
+  min-width: 0;
+}
+.kr-picker-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 4px 7px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+.kr-picker-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.82rem;
+}
+.kr-picker-caret {
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+.kr-picker-menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  max-height: 240px;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+.kr-option {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 5px 6px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  font-size: 0.82rem;
+}
+.kr-option:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+.kr-option.sel {
+  font-weight: 600;
+}
+.kr-option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.kr-option-label {
+  flex: 1;
+  min-width: 0;
+}
 .kr-research {
   display: flex;
   align-items: center;

@@ -168,3 +168,45 @@ export async function saveAlias(
     );
   if (error) throw error;
 }
+
+// ---- Kroger product-match cache (limit API calls; refresh only when stale) ----
+export interface ProductCacheEntry {
+  locationId: string;
+  data: unknown; // { matched, alternates }
+  fetchedAtMs: number;
+}
+
+/** item_name -> cached match for the household. Tolerates a missing table (returns empty). */
+export async function getProductCache(householdId: string): Promise<Map<string, ProductCacheEntry>> {
+  const map = new Map<string, ProductCacheEntry>();
+  const { data, error } = await service()
+    .from("kroger_product_cache")
+    .select("item_name,location_id,data,fetched_at")
+    .eq("household_id", householdId);
+  if (error) return map;
+  for (const r of (data ?? []) as { item_name: string; location_id: string; data: unknown; fetched_at: string }[]) {
+    map.set(r.item_name, { locationId: r.location_id, data: r.data, fetchedAtMs: Date.parse(r.fetched_at) });
+  }
+  return map;
+}
+
+export async function upsertProductCache(
+  householdId: string,
+  entries: { itemName: string; locationId: string; data: unknown }[]
+): Promise<void> {
+  if (!entries.length) return;
+  const nowIso = new Date().toISOString();
+  const rows = entries.map((e) => ({
+    household_id: householdId,
+    item_name: e.itemName,
+    location_id: e.locationId,
+    data: e.data,
+    fetched_at: nowIso,
+  }));
+  await service().from("kroger_product_cache").upsert(rows, { onConflict: "household_id,item_name" });
+}
+
+/** Drop a cached match (e.g. after an alias changes the search term for an item). */
+export async function clearProductCacheItem(householdId: string, itemName: string): Promise<void> {
+  await service().from("kroger_product_cache").delete().eq("household_id", householdId).eq("item_name", itemName);
+}

@@ -1,12 +1,12 @@
 // "Send to Mariano's" flow: connect (OAuth) -> pick store -> review matched products
 // (swap/remove/qty) -> choose pickup/delivery -> send to cart -> open cart. We only add
 // items; the user reviews and checks out on Mariano's.
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Section } from "../lib/types";
 import { type ShoppingList, SECTION_LABELS } from "../lib/shopping";
 import { sectionMismatch } from "../lib/krogerSections";
 import { actions } from "../lib/store";
-import { krogerClient, type ReviewRow, type KrogerStore, type SentItem } from "../lib/krogerClient";
+import { krogerClient, type ReviewRow, type KrogerStore, type SentItem, type ProductMatch } from "../lib/krogerClient";
 
 type Step = "loading" | "needs-auth" | "store" | "review" | "sending" | "done" | "error";
 
@@ -164,7 +164,7 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
     const t = term.trim();
     if (!t) return false;
     const row = rows[i];
-    const { rows: res } = await krogerClient.match([{ name: t, displayQty: row.displayQty }]);
+    const { rows: res } = await krogerClient.match([{ name: t, displayQty: row.displayQty }], true);
     const m = res[0]?.matched;
     if (!m) return false;
     setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, matched: m, alternates: res[0].alternates, include: true } : r)));
@@ -319,15 +319,11 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
                     </div>
                     {r.matched ? (
                       <>
-                        <select value={r.matched.upc} onChange={(e) => swap(i, e.target.value)}>
-                          {[r.matched, ...r.alternates].map((m) => (
-                            <option key={m.upc} value={m.upc} disabled={!m.available}>
-                              {m.description}
-                              {m.price != null ? ` — $${m.price.toFixed(2)}` : ""}
-                              {m.available ? "" : " — unavailable"}
-                            </option>
-                          ))}
-                        </select>
+                        <ProductPicker
+                          options={[r.matched, ...r.alternates]}
+                          value={r.matched.upc}
+                          onChange={(upc) => swap(i, upc)}
+                        />
                         <input
                           className="kr-qty"
                           type="number"
@@ -456,6 +452,82 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Product image with a graceful placeholder when missing / failed to load. */
+function ProductThumb({ src, alt }: { src: string | null; alt: string }) {
+  const [ok, setOk] = useState(true);
+  if (!src || !ok) return <span className="kr-thumb placeholder" aria-hidden="true" />;
+  return <img className="kr-thumb" src={src} alt={alt} loading="lazy" onError={() => setOk(false)} />;
+}
+
+const optionLabel = (m: ProductMatch) =>
+  `${m.description}${m.price != null ? ` — $${m.price.toFixed(2)}` : ""}${m.available ? "" : " — unavailable"}`;
+
+/** Image dropdown to pick a matched product / alternate. Replaces a native <select> so we
+ *  can show thumbnails; unavailable options are disabled. */
+function ProductPicker({
+  options,
+  value,
+  onChange,
+}: {
+  options: ProductMatch[];
+  value: string;
+  onChange: (upc: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const current = options.find((o) => o.upc === value) ?? options[0];
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div className="kr-picker" ref={ref}>
+      <button
+        type="button"
+        className="kr-picker-btn"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <ProductThumb src={current?.image ?? null} alt="" />
+        <span className="kr-picker-label">{current ? optionLabel(current) : "—"}</span>
+        <span className="kr-picker-caret" aria-hidden="true">▾</span>
+      </button>
+      {open && (
+        <ul className="kr-picker-menu" role="listbox">
+          {options.map((m) => (
+            <li key={m.upc} role="option" aria-selected={m.upc === value}>
+              <button
+                type="button"
+                className={`kr-option ${m.upc === value ? "sel" : ""}`}
+                disabled={!m.available}
+                onClick={() => {
+                  onChange(m.upc);
+                  setOpen(false);
+                }}
+              >
+                <ProductThumb src={m.image} alt="" />
+                <span className="kr-option-label">{optionLabel(m)}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

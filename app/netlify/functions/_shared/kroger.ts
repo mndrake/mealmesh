@@ -79,6 +79,7 @@ export interface ProductMatch {
   aisle: string | null; // e.g. "Aisle 35" (often absent — coverage is partial)
   aisleNumber: number | null; // 35 — for store-walk ordering
   department: string | null; // e.g. "Produce" (from categories[0])
+  image: string | null; // small product image URL (often absent)
 }
 
 export interface ReviewRow {
@@ -123,6 +124,21 @@ export function itemsToRemove(sent: SentItem[], currentUpcs: string[]): SentItem
   return sent.filter((s) => s?.upc && !current.has(s.upc));
 }
 
+/** Default product-match cache lifetime (7 days). Prices drift but the goal is to avoid
+ *  re-hitting the Kroger API on every open; the user can force a refresh. */
+export const PRODUCT_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+/** A cached product match is usable when it's for the current store and within the TTL. */
+export function isCacheFresh(
+  cached: { locationId: string; fetchedAtMs: number } | null | undefined,
+  currentLocationId: string,
+  nowMs: number,
+  ttlMs = PRODUCT_CACHE_TTL_MS
+): boolean {
+  if (!cached) return false;
+  return cached.locationId === currentLocationId && nowMs - cached.fetchedAtMs < ttlMs;
+}
+
 export function locationsQuery(zip: string, radiusMiles = 15, limit = 10): string {
   return new URLSearchParams({
     "filter.zipCode.near": zip,
@@ -151,6 +167,18 @@ export function toStores(resp: any): KrogerStore[] {
   }));
 }
 
+/** Pick a small product image URL (front perspective preferred). */
+function pickImage(images: any): string | null {
+  if (!Array.isArray(images) || !images.length) return null;
+  const front = images.find((im) => im?.perspective === "front") ?? images[0];
+  const sizes = Array.isArray(front?.sizes) ? front.sizes : [];
+  for (const want of ["thumbnail", "small", "medium", "large"]) {
+    const m = sizes.find((z: any) => z?.size === want);
+    if (m?.url) return String(m.url);
+  }
+  return sizes[0]?.url ? String(sizes[0].url) : null;
+}
+
 function toMatch(p: any): ProductMatch | null {
   if (!p?.upc) return null;
   const item = p.items?.[0];
@@ -169,6 +197,7 @@ function toMatch(p: any): ProductMatch | null {
     aisle,
     aisleNumber: Number.isFinite(aisleNum) ? aisleNum : null,
     department,
+    image: pickImage(p.images),
   };
 }
 

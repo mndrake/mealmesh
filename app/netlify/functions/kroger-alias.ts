@@ -1,7 +1,7 @@
 // POST /api/kroger/alias — authed. Body: { itemName, searchTerm }. Remembers a better
 // search term for a shopping item so future matches use it (see item_aliases). An empty
 // searchTerm clears the alias.
-import { getUser, householdIdFor, saveAlias, service } from "./_shared/supa";
+import { getUser, householdIdFor, saveAlias, clearProductCacheItem, service } from "./_shared/supa";
 import { json } from "./_shared/http";
 
 export default async (req: Request): Promise<Response> => {
@@ -14,6 +14,9 @@ export default async (req: Request): Promise<Response> => {
   const itemName = String(body.itemName ?? "").trim();
   const searchTerm = String(body.searchTerm ?? "").trim();
   if (!itemName) return json({ error: "no_item" }, 400);
+
+  // The search term changed, so any cached match for this item is now wrong — drop it.
+  await clearProductCacheItem(householdId, itemName).catch(() => {});
 
   if (!searchTerm) {
     await service().from("item_aliases").delete().eq("household_id", householdId).eq("item_name", itemName);
