@@ -1,19 +1,39 @@
 import { useMemo, useState } from "react";
-import type { Section } from "../lib/types";
+import type { Section, ItemLocation } from "../lib/types";
 import { useAllRecipesById } from "../lib/allRecipes";
 import { cookedMeals } from "../lib/planner";
 import { buildList, SECTION_LABELS } from "../lib/shopping";
 import { normalizeForShopping } from "../lib/normalize";
-import { groupByAisle, locationText, isStale } from "../lib/aisleOrder";
+import { groupByAisle, groupByAisleWalk, locationText, shelfText, isStale } from "../lib/aisleOrder";
 import { costLine, summarizeCost, formatMoney } from "../lib/cost";
 import { formatCookedOn, todayIso } from "../lib/history";
 import { useStore, actions } from "../lib/store";
-import { krogerClient } from "../lib/krogerClient";
+import { krogerClient, type ReviewRow } from "../lib/krogerClient";
 import { exportShoppingText } from "../lib/exporter";
 import { SendToMarianosModal } from "./SendToMarianosModal";
 
 const STALE_DAYS = 30;
 const fmtDate = (ms: number) => formatCookedOn(todayIso(new Date(ms)));
+
+/** Map matched review rows to persistable item locations (product + aisle + shelf/bin + price). */
+function locsFromRows(rows: ReviewRow[], now: number): ItemLocation[] {
+  return rows
+    .filter((r) => r.matched)
+    .map((r) => ({
+      name: r.listName,
+      aisle: r.matched!.aisle,
+      aisleNumber: r.matched!.aisleNumber,
+      bay: r.matched!.bay,
+      shelf: r.matched!.shelf,
+      side: r.matched!.side,
+      department: r.matched!.department,
+      price: r.matched!.price,
+      product: r.matched!.description,
+      fetchedAt: now,
+    }));
+}
+
+type ViewMode = "list" | "aisle" | "store";
 
 export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
   const plan = useStore((s) => s.activePlan);
@@ -26,11 +46,11 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
   const locMap = useMemo(() => new Map(itemLocations.map((l) => [l.name, l])), [itemLocations]);
   // Opens immediately when returning from the Kroger OAuth redirect (openSend).
   const [showKroger, setShowKroger] = useState(openSend);
-  // null = auto (aisle order once we have locations); true/false = explicit user choice.
-  const [byAisleChoice, setByAisleChoice] = useState<boolean | null>(null);
+  const [anchor, setAnchor] = useState<string | null>(null); // item to focus in the Review modal
+  const [viewChoice, setViewChoice] = useState<ViewMode | null>(null); // null = auto
   const [refreshing, setRefreshing] = useState(false);
-  // Package quantity is set/persisted in the "Review products & prices" step (the Send modal),
-  // not edited inline here — the list is the clean in-store checklist.
+  const [advising, setAdvising] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   const getQty = (name: string) => locMap.get(name)?.quantity ?? 1;
 
   // Build the list, "promoting" staples the user marked "need to buy" into normal items so
@@ -48,18 +68,22 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
     return { list: buildList(promoted), allStaplesSet: staplesSet, mealCount: meals.length };
   }, [plan, recipesById, neededSet]);
 
+  // Items with their expected aisle, so the matcher can prefer same-section products.
+  const matchItems = () =>
+    list.sections.flatMap((s) => s.items.map(([name, displayQty]) => ({ name, displayQty, section: s.section })));
+
   const itemCount = list.sections.reduce((n, s) => n + s.items.length, 0);
   const hasLocations = useMemo(
     () => list.sections.some((s) => s.items.some(([name]) => locMap.get(name)?.department || locMap.get(name)?.aisle)),
     [list, locMap]
   );
-  const byAisle = byAisleChoice ?? hasLocations; // default to aisle order once we have data
+  const view: ViewMode = viewChoice ?? (hasLocations ? "aisle" : "list");
   const hasPrices = useMemo(
     () => list.sections.some((s) => s.items.some(([name]) => typeof locMap.get(name)?.price === "number")),
     [list, locMap]
   );
 
-  // Cost estimate across the (non-staple) list, split into in-cart vs remaining.
+  // Cost estimate across the list, split into in-cart vs remaining.
   const checkedNames = useMemo(() => {
     const set = new Set<string>();
     for (const { section, items } of list.sections) for (const [name] of items) if (checkedSet.has(`${section}:${name}`)) set.add(name);
@@ -79,8 +103,12 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
     return max;
   }, [list, locMap]);
   const aisleGroups = useMemo(
-    () => (byAisle && hasLocations ? groupByAisle(list, locMap) : null),
-    [byAisle, hasLocations, list, locMap]
+    () => (view === "aisle" && hasLocations ? groupByAisle(list, locMap) : null),
+    [view, hasLocations, list, locMap]
+  );
+  const storeGroups = useMemo(
+    () => (view === "store" && hasLocations ? groupByAisleWalk(list, locMap) : null),
+    [view, hasLocations, list, locMap]
   );
   const staleCount = useMemo(
     () =>
@@ -91,33 +119,49 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
     [list, locMap]
   );
 
-  /** Fetch price + aisle/department for the current list from Mariano's (server-cached) and
-   *  persist it, so the list shows cost and organizes by aisle. Falls back to the guided Send
-   *  flow when not connected / no store chosen yet. */
+  /** Fetch price + aisle/shelf/product for the current list from Mariano's (server-cached) and
+   *  persist it. Falls back to the guided Send flow when not connected / no store chosen yet. */
   async function updatePrices() {
-    const items = list.sections.flatMap((s) => s.items).map(([name, displayQty]) => ({ name, displayQty }));
+    const items = matchItems();
     if (!items.length) return;
     setRefreshing(true);
+    setNotice(null);
     try {
       const { rows } = await krogerClient.match(items, true);
-      const now = Date.now();
-      const locs = rows
-        .filter((r) => r.matched)
-        .map((r) => ({
-          name: r.listName,
-          aisle: r.matched!.aisle,
-          aisleNumber: r.matched!.aisleNumber,
-          department: r.matched!.department,
-          price: r.matched!.price,
-          product: r.matched!.description,
-          fetchedAt: now,
-        }));
+      const locs = locsFromRows(rows, Date.now());
       if (locs.length) actions.saveItemLocations(locs);
+      const matched = rows.filter((r) => r.matched).length;
+      setNotice(`Updated ${matched} of ${items.length} items.`);
     } catch {
       setShowKroger(true); // not connected / no store yet — the modal handles setup
     } finally {
       setRefreshing(false);
     }
+  }
+
+  /** Ask the AI advisor to re-pick products for items whose match looks wrong (e.g. a Produce
+   *  item matched to Deli), then persist the corrections. */
+  async function fixMatches() {
+    const items = matchItems();
+    if (!items.length) return;
+    setAdvising(true);
+    setNotice(null);
+    try {
+      const { rows, fixed } = await krogerClient.advise(items);
+      const locs = locsFromRows(rows, Date.now());
+      if (locs.length) actions.saveItemLocations(locs);
+      setNotice(fixed > 0 ? `Advisor fixed ${fixed} match${fixed === 1 ? "" : "es"}.` : "Advisor reviewed the list — nothing needed fixing.");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "";
+      setNotice(msg.includes("no_store") ? "Connect a store first (Review & send)." : "Couldn't run the advisor — try again.");
+    } finally {
+      setAdvising(false);
+    }
+  }
+
+  function openEdit(name: string) {
+    setAnchor(name);
+    setShowKroger(true);
   }
 
   if (mealCount === 0) {
@@ -137,47 +181,60 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
     const isStapleItem = allStaplesSet.has(name); // a promoted "need to buy" staple
     const loc = locMap.get(name);
     const where = locationText(loc);
+    const shelf = shelfText(loc);
     const stale = isStale(loc, Date.now(), STALE_DAYS);
     const price = loc?.price ?? null;
     const packages = loc?.quantity ?? 1;
     const showNoPrice = hasPrices && price == null;
-    const hasSub = Boolean(where || recipeQty || price != null || showNoPrice || isStapleItem);
     return (
       <div className={`shop-item ${isChecked ? "checked" : ""}`}>
         <input type="checkbox" id={id} checked={isChecked} onChange={() => actions.toggleChecked(id)} />
         <div className="shop-main">
           <label htmlFor={id}>{name}</label>
-          {hasSub && (
-            <div className="shop-sub">
-              {where && (
-                <span
-                  className={`shop-loc ${stale ? "stale" : ""}`}
-                  title={loc?.fetchedAt ? `Aisle info fetched ${fmtDate(loc.fetchedAt)}${stale ? " — may be stale" : ""}` : undefined}
-                >
-                  📍 {where}
-                  {stale ? " ⚠" : ""}
-                </span>
-              )}
-              {recipeQty && <span className="q">{recipeQty}</span>}
-              {isStapleItem && (
-                <button
-                  className="staple-tag on"
-                  title="Pantry staple you added — tap to move it back to the pantry list"
-                  onClick={() => actions.toggleStapleNeed(name)}
-                >
-                  ★ staple
-                </button>
-              )}
-              {price != null ? (
-                <span className="shop-price" title={loc?.product ? `Priced as: ${loc.product}${packages > 1 ? ` × ${packages}` : ""}` : undefined}>
-                  {packages > 1 ? `${packages}× ` : ""}
-                  {formatMoney(price * packages)}
-                </span>
-              ) : (
-                showNoPrice && <span className="shop-price none" title="Kroger didn't match this item">—</span>
-              )}
+
+          {/* Which Kroger product is mapped, + edit. */}
+          {loc?.product ? (
+            <div className="shop-product">
+              <span className="prod" title={loc.product}>🛒 {loc.product}{packages > 1 ? ` ×${packages}` : ""}</span>
+              <button className="linklike" onClick={() => openEdit(name)}>change</button>
             </div>
+          ) : (
+            showNoPrice && (
+              <div className="shop-product">
+                <span className="prod muted">no Kroger match</span>
+                <button className="linklike" onClick={() => openEdit(name)}>find product</button>
+              </div>
+            )
           )}
+
+          <div className="shop-sub">
+            {where && (
+              <span
+                className={`shop-loc ${stale ? "stale" : ""}`}
+                title={loc?.fetchedAt ? `Aisle info fetched ${fmtDate(loc.fetchedAt)}${stale ? " — may be stale" : ""}` : undefined}
+              >
+                📍 {where}
+                {stale ? " ⚠" : ""}
+              </span>
+            )}
+            {shelf && <span className="shop-shelf">{shelf}</span>}
+            {recipeQty && <span className="q">{recipeQty}</span>}
+            {isStapleItem && (
+              <button
+                className="staple-tag on"
+                title="Pantry staple you added — tap to move it back to the pantry list"
+                onClick={() => actions.toggleStapleNeed(name)}
+              >
+                ★ staple
+              </button>
+            )}
+            {price != null && (
+              <span className="shop-price">
+                {packages > 1 ? `${packages}× ` : ""}
+                {formatMoney(price * packages)}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -185,6 +242,18 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
 
   const subtotalMap = new Map(
     list.sections.flatMap((s) => s.items.map(([name]) => [name, costLine(name, locMap.get(name)?.price ?? null, getQty(name)).subtotal] as const))
+  );
+
+  const viewBtn = (mode: ViewMode, label: string, title: string) => (
+    <button
+      key={mode}
+      className={`btn secondary small ${view === mode ? "on" : ""}`}
+      onClick={() => setViewChoice(mode)}
+      disabled={mode !== "list" && !hasLocations}
+      title={mode !== "list" && !hasLocations ? "Get prices & aisles first" : title}
+    >
+      {label}
+    </button>
   );
 
   return (
@@ -200,29 +269,36 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
           </span>
         )}
         <div className="spacer" />
-        <button
-          className={`btn secondary small ${byAisle ? "on" : ""}`}
-          onClick={() => setByAisleChoice(!byAisle)}
-          disabled={!hasLocations}
-          title={hasLocations ? "Organize by store aisle (from Kroger)" : "Update prices & aisles first"}
-        >
-          🧭 Aisle order
-        </button>
+        <div className="seg" role="group" aria-label="View">
+          {viewBtn("list", "List", "Grouped by store section")}
+          {viewBtn("aisle", "🧭 Aisle", "Grouped by Kroger department, ordered by aisle")}
+          {viewBtn("store", "🏬 Store", "Aisle → shelf walking order, with product + quantity")}
+        </div>
         <button
           className="btn secondary small"
           onClick={updatePrices}
-          disabled={refreshing}
+          disabled={refreshing || advising}
           title="Fetch prices + aisle info for this list from Mariano's"
         >
           {refreshing ? "↻ Updating…" : hasPrices || hasLocations ? `↻ Update prices & aisles${staleCount ? ` (${staleCount} stale)` : ""}` : "💲 Get prices & aisles"}
         </button>
+        {(hasPrices || hasLocations) && (
+          <button
+            className="btn secondary small"
+            onClick={fixMatches}
+            disabled={advising || refreshing}
+            title="Let the AI advisor fix wrong product matches (e.g. shallots matched to Deli)"
+          >
+            {advising ? "✨ Fixing…" : "✨ Fix matches"}
+          </button>
+        )}
         <button className="btn secondary small" onClick={() => exportShoppingText(list, { subtotalOf: subtotalMap, total: cost.total })}>
           Export
         </button>
         <button className="btn secondary small" onClick={() => window.print()}>
           🖨 Print
         </button>
-        <button className="btn small" onClick={() => setShowKroger(true)} title="Swap products, set quantities, and (optionally) send to your Mariano's cart">
+        <button className="btn small" onClick={() => { setAnchor(null); setShowKroger(true); }} title="Swap products, set quantities, and (optionally) send to your Mariano's cart">
           🛒 Review &amp; send
         </button>
         <button className="btn ghost small" onClick={actions.clearChecked}>
@@ -241,17 +317,21 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
         </div>
       )}
 
+      {notice && <p className="muted" style={{ marginTop: 6, fontSize: "0.82rem" }}>{notice}</p>}
+
       <p className="muted" style={{ marginTop: 6, fontSize: "0.82rem" }}>
-        {aisleGroups
-          ? `Organized by Kroger department, ordered by aisle${lastFetched ? ` (as of ${fmtDate(lastFetched)})` : ""}. Items Kroger didn't match are in "Other" at the end.`
-          : hasPrices
-            ? `Per-package price estimate${lastFetched ? `, as of ${fmtDate(lastFetched)}` : ""}. Swap products or set quantities in “Review & send”.`
-            : `Quantities are merged across the week and grouped by store section. Use “Get prices & aisles” to add cost + aisle order. Pantry staples (spices, oils, baking basics) are listed at the end — tap “Need to buy” on anything you're low on to add it to the list.`}
+        {view === "store"
+          ? `Walking order: by aisle, then shelf/bay. Each item shows the matched product + how many to buy${lastFetched ? ` (as of ${fmtDate(lastFetched)})` : ""}. Shelf/bin show when Kroger has them. Tap “change” to swap a product.`
+          : aisleGroups
+            ? `Organized by Kroger department, ordered by aisle${lastFetched ? ` (as of ${fmtDate(lastFetched)})` : ""}. Items Kroger didn't match are in "Other" at the end.`
+            : hasPrices
+              ? `Per-package price estimate${lastFetched ? `, as of ${fmtDate(lastFetched)}` : ""}. Use “Fix matches” if a product looks wrong, or “change” on any item.`
+              : `Quantities are merged across the week and grouped by store section. Use “Get prices & aisles” to add cost + aisle order. Pantry staples are listed at the end — tap “Need to buy” on anything you're low on.`}
       </p>
 
       <div className="shop-cols">
-        {aisleGroups
-          ? aisleGroups.map((g) => (
+        {(aisleGroups ?? storeGroups)
+          ? (aisleGroups ?? storeGroups)!.map((g) => (
               <div className="shop-section" key={g.key}>
                 <h3>{g.label}</h3>
                 {g.items.map((it) => (
@@ -295,7 +375,16 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
         )}
       </div>
 
-      {showKroger && <SendToMarianosModal list={list} onClose={() => setShowKroger(false)} />}
+      {showKroger && (
+        <SendToMarianosModal
+          list={list}
+          anchor={anchor}
+          onClose={() => {
+            setShowKroger(false);
+            setAnchor(null);
+          }}
+        />
+      )}
     </div>
   );
 }

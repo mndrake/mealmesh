@@ -7,7 +7,7 @@ import { clientCredToken, searchProducts } from "./_shared/kroger-api";
 import { toReviewRow, isCacheFresh, type ReviewRow, type ProductMatch } from "./_shared/kroger";
 import { json } from "./_shared/http";
 
-type Item = { name: string; displayQty?: string };
+type Item = { name: string; displayQty?: string; section?: string };
 
 export default async (req: Request): Promise<Response> => {
   const user = await getUser(req);
@@ -48,7 +48,7 @@ export default async (req: Request): Promise<Response> => {
     await Promise.all(
       needSearch.map(async (it) => {
         const term = aliases.get(it.name) || it.name; // remembered alternative term, if any
-        const row = toReviewRow(await searchProducts(process.env, token!, term, locationId), it.name, it.displayQty ?? "");
+        const row = toReviewRow(await searchProducts(process.env, token!, term, locationId), it.name, it.displayQty ?? "", it.section ?? null);
         searched.set(it.name, row);
         toCache.push({ itemName: it.name, locationId, data: { matched: row.matched, alternates: row.alternates } });
       })

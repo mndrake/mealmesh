@@ -11,6 +11,9 @@ export interface ProductMatch {
   available: boolean;
   aisle: string | null; // e.g. "Aisle 35" (often absent)
   aisleNumber: number | null; // 35 — for store-walk ordering
+  bay: string | null; // bay within the aisle (often absent)
+  shelf: string | null; // shelf number (often absent)
+  side: string | null; // aisle side e.g. "L"/"R" (often absent)
   department: string | null; // e.g. "Produce"
   image: string | null; // small product image URL (often absent)
 }
@@ -72,9 +75,14 @@ export const krogerClient = {
   locations: (zip: string) => call<{ stores: KrogerStore[] }>(`locations?zip=${encodeURIComponent(zip)}`),
   saveLocation: (locationId: string, storeName: string) =>
     call<{ ok: boolean }>("location", { method: "POST", body: JSON.stringify({ locationId, storeName }) }),
-  // force=true bypasses the server cache (used by manual search / refresh).
-  match: (items: { name: string; displayQty: string }[], force = false) =>
+  // force=true bypasses the server cache (used by manual search / refresh). `section` (the
+  // list's grocery aisle) lets the server prefer same-section products (shallots→Produce).
+  match: (items: { name: string; displayQty: string; section?: string }[], force = false) =>
     call<{ rows: ReviewRow[] }>("match", { method: "POST", body: JSON.stringify({ items, force }) }),
+  // AI advisor: re-pick the best product for items whose match looks wrong (Claude chooses
+  // among candidates / suggests a better search term). Returns corrected review rows.
+  advise: (items: { name: string; displayQty: string; section?: string }[]) =>
+    call<{ rows: ReviewRow[]; fixed: number }>("advise", { method: "POST", body: JSON.stringify({ items }) }),
   cart: (items: { upc: string; quantity: number }[], modality: string) =>
     call<{ ok: boolean; added: number; failed: { upc: string; status: number }[] }>("cart", {
       method: "POST",

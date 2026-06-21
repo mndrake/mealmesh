@@ -62,6 +62,56 @@ export function locationText(loc: ItemLocation | null | undefined): string {
   return loc.aisle || loc.department || "";
 }
 
+/** Finer in-store placement ("Bay 3 · Shelf 2 · L"), from the partial Kroger data. */
+export function shelfText(loc: ItemLocation | null | undefined): string {
+  if (!loc) return "";
+  const parts: string[] = [];
+  if (loc.bay) parts.push(`Bay ${loc.bay}`);
+  if (loc.shelf) parts.push(`Shelf ${loc.shelf}`);
+  if (loc.side) parts.push(loc.side);
+  return parts.join(" · ");
+}
+
+const num = (v: string | null | undefined) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : Number.POSITIVE_INFINITY;
+};
+
+/** Store-walk view: group by actual aisle, ordered by aisle number, and within each aisle by
+ *  bay then shelf — the path you'd walk. Unmapped items go in one bucket at the end. */
+export function groupByAisleWalk(list: ShoppingList, locations: Map<string, ItemLocation>): AisleGroup[] {
+  const byAisle = new Map<string, AisleItem[]>();
+  const other: AisleItem[] = [];
+  for (const { section, items } of list.sections) {
+    for (const [name, qty] of items) {
+      const loc = locations.get(name) ?? null;
+      const item: AisleItem = { name, qty, section, location: loc };
+      const label = loc?.aisle || (loc?.aisleNumber != null ? `Aisle ${loc.aisleNumber}` : null);
+      if (label) (byAisle.get(label) ?? byAisle.set(label, []).get(label)!).push(item);
+      else other.push(item);
+    }
+  }
+  const walkSort = (a: AisleItem, b: AisleItem) =>
+    num(a.location?.bay) - num(b.location?.bay) ||
+    num(a.location?.shelf) - num(b.location?.shelf) ||
+    a.name.localeCompare(b.name);
+
+  const groups = [...byAisle.entries()]
+    .map(([label, items]) => ({
+      key: `aisle:${label}`,
+      label,
+      sort: items.reduce((m, i) => Math.min(m, i.location?.aisleNumber ?? Number.POSITIVE_INFINITY), Number.POSITIVE_INFINITY),
+      items: [...items].sort(walkSort),
+    }))
+    .sort((a, b) => a.sort - b.sort || a.label.localeCompare(b.label))
+    .map(({ key, label, items }): AisleGroup => ({ key, label, items }));
+
+  const otherGroup: AisleGroup[] = other.length
+    ? [{ key: "other", label: "Not mapped at your store", items: [...other].sort((a, b) => a.name.localeCompare(b.name)) }]
+    : [];
+  return [...groups, ...otherGroup];
+}
+
 const DAY_MS = 86_400_000;
 
 /** True when a location was fetched longer than `days` ago (store layouts drift).
