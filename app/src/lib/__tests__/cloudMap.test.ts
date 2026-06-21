@@ -81,6 +81,7 @@ describe("cloudMap", () => {
       checkoffRows: [{ plan_id: "p1", item_name: "Produce:onion" }],
       cookLogRows: [{ id: "c1", household_id: "h", recipe_id: "r", cooked_on: "2026-06-02", rating: null, make_again: null, notes: null, plan_id: "p1" }],
       itemLocationRows: [{ household_id: "h", item_name: "onion", aisle: "Aisle 35", aisle_number: 35, department: "Produce", fetched_at: "2026-06-21T00:00:00.000Z" }],
+      userRecipeRows: [{ id: "u-1", household_id: "h", data: { id: "ignored", title: "Imported", servings: 2 } as never, source_url: "https://x.test" }],
       emptyPlan,
     });
     expect(state.activePlan).toEqual(samplePlan);
@@ -90,13 +91,16 @@ describe("cloudMap", () => {
     expect(state.checked).toEqual(["Produce:onion"]);
     expect(state.cookLog).toEqual([{ id: "c1", recipeId: "r", cookedOn: "2026-06-02", rating: null, makeAgain: null, notes: null, planId: "p1" }]);
     expect(state.itemLocations).toEqual([{ name: "onion", aisle: "Aisle 35", aisleNumber: 35, department: "Produce", fetchedAt: Date.parse("2026-06-21T00:00:00.000Z") }]);
+    // user recipe: id comes from the row, not the embedded data
+    expect(state.userRecipes).toEqual([{ id: "u-1", title: "Imported", servings: 2 }]);
   });
 
   it("uses an empty plan when there is no active plan row", () => {
-    const state = stateFromRows({ activePlanRow: null, savedPlanRows: [], favoriteRows: [], checkoffRows: [], cookLogRows: [], itemLocationRows: [], emptyPlan });
+    const state = stateFromRows({ activePlanRow: null, savedPlanRows: [], favoriteRows: [], checkoffRows: [], cookLogRows: [], itemLocationRows: [], userRecipeRows: [], emptyPlan });
     expect(state.activePlan).toEqual(emptyPlan());
     expect(state.cookLog).toEqual([]);
     expect(state.itemLocations).toEqual([]);
+    expect(state.userRecipes).toEqual([]);
   });
 
   it("detects an empty household for the one-time import", () => {

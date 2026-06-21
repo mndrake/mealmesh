@@ -64,6 +64,10 @@
   from = "/api/kroger/alias"
   to = "/.netlify/functions/kroger-alias"
   status = 200
+[[redirects]]
+  from = "/api/recipes/import"
+  to = "/.netlify/functions/recipe-import"
+  status = 200
 
 # SPA fallback so client-side routing / deep links resolve to index.html.
 [[redirects]]

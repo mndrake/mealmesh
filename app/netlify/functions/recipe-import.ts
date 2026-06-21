@@ -1,0 +1,74 @@
+// POST /api/recipes/import — authed. Body: { url }. Fetches the page server-side, extracts
+// a recipe from its schema.org JSON-LD, and falls back to Claude for pages without it.
+// Returns a draft Recipe for the client to review and save (it is NOT persisted here —
+// the SPA writes it to user_recipes after the user confirms). The fetch is SSRF-guarded
+// and the response is size/time-capped.
+import { getUser, householdIdFor } from "./_shared/supa";
+import { isSafeImportUrl, htmlToText, extractJsonLdRecipe, toDraftRecipe } from "./_shared/recipe-import";
+import { extractRecipeWithClaude, hasClaude } from "./_shared/anthropic";
+import { json } from "./_shared/http";
+
+const MAX_BYTES = 3_000_000; // 3 MB of HTML is plenty for a recipe page
+const FETCH_TIMEOUT_MS = 12_000;
+
+async function fetchPage(url: string): Promise<string> {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, {
+      redirect: "follow",
+      signal: ctrl.signal,
+      headers: {
+        // identify as a normal browser; some sites 403 unknown agents
+        "user-agent": "Mozilla/5.0 (compatible; MealMesh/1.0; +https://mealmesh.app)",
+        accept: "text/html,application/xhtml+xml",
+      },
+    });
+    if (!res.ok) throw new Error(`fetch_failed_${res.status}`);
+    const ct = res.headers.get("content-type") || "";
+    if (!/html|xml|text/i.test(ct)) throw new Error("not_html");
+    const buf = await res.arrayBuffer();
+    if (buf.byteLength > MAX_BYTES) throw new Error("too_large");
+    return new TextDecoder("utf-8").decode(buf);
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+export default async (req: Request): Promise<Response> => {
+  const user = await getUser(req);
+  if (!user) return json({ error: "unauthorized" }, 401);
+  const householdId = await householdIdFor(user.id);
+  if (!householdId) return json({ error: "no household" }, 403);
+
+  const body = (await req.json().catch(() => ({}))) as { url?: string };
+  const url = (body.url ?? "").trim();
+  if (!url || !isSafeImportUrl(url)) return json({ error: "bad_url" }, 400);
+
+  let html: string;
+  try {
+    html = await fetchPage(url);
+  } catch (e) {
+    const msg = (e as Error).message;
+    return json({ error: "fetch_failed", detail: msg }, 502);
+  }
+
+  // 1) Structured data — reliable and free.
+  const fromJsonLd = extractJsonLdRecipe(html);
+  if (fromJsonLd) {
+    return json({ recipe: toDraftRecipe(fromJsonLd, url), via: "jsonld" });
+  }
+
+  // 2) Claude fallback for pages without usable JSON-LD.
+  if (!hasClaude(process.env)) {
+    return json({ error: "no_structured_data", detail: "This page has no machine-readable recipe and AI import isn't configured." }, 422);
+  }
+  try {
+    const parsed = await extractRecipeWithClaude(process.env, htmlToText(html), url);
+    if (!parsed.ingredients?.length) return json({ error: "no_recipe", detail: "Couldn't find a recipe on that page." }, 422);
+    return json({ recipe: toDraftRecipe(parsed, url), via: "ai" });
+  } catch (e) {
+    console.warn("[recipe-import] AI extract error:", (e as Error).message);
+    return json({ error: "ai_failed", detail: (e as Error).message }, 502);
+  }
+};

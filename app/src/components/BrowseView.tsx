@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { Recipe } from "../lib/types";
-import { recipes } from "../lib/recipes";
+import { useAllRecipes } from "../lib/allRecipes";
 import {
   applyFilters,
   cuisineIndex,
@@ -13,6 +13,7 @@ import { FilterPanel } from "./FilterPanel";
 import { RecipeCard } from "./RecipeCard";
 import { RecipeDetailModal } from "./RecipeDetailModal";
 import { MarkCookedModal } from "./MarkCookedModal";
+import { ImportRecipeModal } from "./ImportRecipeModal";
 
 interface Props {
   onAddToPlan: (r: Recipe) => void;
@@ -22,15 +23,17 @@ export function BrowseView({ onAddToPlan }: Props) {
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [selected, setSelected] = useState<Recipe | null>(null);
   const [cooking, setCooking] = useState<Recipe | null>(null);
+  const [importing, setImporting] = useState(false);
+  const recipes = useAllRecipes();
   const favorites = useStore((s) => s.favorites);
   const favSet = useMemo(() => new Set(favorites), [favorites]);
   const cookLog = useStore((s) => s.cookLog);
   const cookSummary = useMemo(() => summarize(cookLog), [cookLog]);
-  const cuisines = useMemo(() => cuisineIndex(recipes), []);
+  const cuisines = useMemo(() => cuisineIndex(recipes), [recipes]);
 
   const results = useMemo(
     () => applyFilters(recipes, filters, favSet),
-    [filters, favSet]
+    [recipes, filters, favSet]
   );
 
   return (
@@ -47,6 +50,10 @@ export function BrowseView({ onAddToPlan }: Props) {
         <span className="count-pill">
           {results.length} of {recipes.length}
         </span>
+        <div className="spacer" />
+        <button className="btn small" onClick={() => setImporting(true)}>
+          + Import recipe
+        </button>
       </div>
 
       {results.length === 0 ? (
@@ -83,6 +90,16 @@ export function BrowseView({ onAddToPlan }: Props) {
       )}
 
       {cooking && <MarkCookedModal recipe={cooking} onClose={() => setCooking(null)} />}
+
+      {importing && (
+        <ImportRecipeModal
+          onClose={() => setImporting(false)}
+          onSaved={(r) => {
+            setImporting(false);
+            setSelected(r);
+          }}
+        />
+      )}
     </div>
   );
 }

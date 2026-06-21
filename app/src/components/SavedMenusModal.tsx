@@ -2,7 +2,7 @@
 // saved menu for reuse. Backed by the synced savedPlans (plans table, is_active=false).
 import { useEffect, useState } from "react";
 import { useStore, actions } from "../lib/store";
-import { recipesById } from "../lib/recipes";
+import { useAllRecipesById } from "../lib/allRecipes";
 import { cookedMeals } from "../lib/planner";
 import { formatCookedOn, todayIso } from "../lib/history";
 
@@ -10,6 +10,7 @@ const fmtDate = (ms: number) => (ms ? formatCookedOn(todayIso(new Date(ms))) : "
 
 export function SavedMenusModal({ onClose }: { onClose: () => void }) {
   const savedPlans = useStore((s) => s.savedPlans);
+  const recipesById = useAllRecipesById();
   const [name, setName] = useState("");
 
   useEffect(() => {

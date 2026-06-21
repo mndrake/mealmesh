@@ -7,6 +7,7 @@ import {
   savedPlanToRow,
   cookEventToRow,
   itemLocationToRow,
+  userRecipeToRow,
   stateFromRows,
   householdIsEmpty,
   type DurableState,
@@ -15,8 +16,9 @@ import {
   type CheckoffRow,
   type CookLogRow,
   type ItemLocationRow,
+  type UserRecipeRow,
 } from "./cloudMap";
-import type { Plan, CookEvent, ItemLocation } from "./types";
+import type { Plan, CookEvent, ItemLocation, Recipe } from "./types";
 
 export interface HydrateResult {
   state: DurableState;
@@ -30,7 +32,7 @@ export async function hydrate(
   householdId: string,
   emptyPlan: () => Plan
 ): Promise<HydrateResult> {
-  const [plansRes, favRes, cookRes, locRes] = await Promise.all([
+  const [plansRes, favRes, cookRes, locRes, recipeRes] = await Promise.all([
     client.from("plans").select("*").eq("household_id", householdId),
     client.from("favorites").select("household_id,recipe_id").eq("household_id", householdId),
     client
@@ -42,11 +44,13 @@ export async function hydrate(
       .from("item_locations")
       .select("item_name,aisle,aisle_number,department,fetched_at")
       .eq("household_id", householdId),
+    client.from("user_recipes").select("id,data,source_url,created_at").eq("household_id", householdId),
   ]);
   if (plansRes.error) throw plansRes.error;
   if (favRes.error) throw favRes.error;
   if (cookRes.error) throw cookRes.error;
   if (locRes.error) throw locRes.error;
+  if (recipeRes.error) throw recipeRes.error;
 
   const planRows = (plansRes.data ?? []) as PlanRow[];
   const activePlanRow = planRows.find((r) => r.is_active) ?? null;
@@ -54,6 +58,7 @@ export async function hydrate(
   const favoriteRows = (favRes.data ?? []) as FavoriteRow[];
   const cookLogRows = (cookRes.data ?? []) as CookLogRow[];
   const itemLocationRows = (locRes.data ?? []) as ItemLocationRow[];
+  const userRecipeRows = (recipeRes.data ?? []) as UserRecipeRow[];
 
   let checkoffRows: CheckoffRow[] = [];
   if (activePlanRow) {
@@ -66,7 +71,7 @@ export async function hydrate(
   }
 
   return {
-    state: stateFromRows({ activePlanRow, savedPlanRows, favoriteRows, checkoffRows, cookLogRows, itemLocationRows, emptyPlan }),
+    state: stateFromRows({ activePlanRow, savedPlanRows, favoriteRows, checkoffRows, cookLogRows, itemLocationRows, userRecipeRows, emptyPlan }),
     activePlanId: activePlanRow?.id ?? null,
     isEmpty: householdIsEmpty({ activePlanRow, savedPlanRows, favoriteRows, cookLogRows }),
   };
@@ -112,6 +117,36 @@ export async function updateCookEvent(
   if (patch.makeAgain !== undefined) row.make_again = patch.makeAgain;
   if (patch.notes !== undefined) row.notes = patch.notes;
   const { error } = await client.from("cook_log").update(row).eq("id", id);
+  if (error) throw error;
+}
+
+/** Insert an imported recipe for the household. */
+export async function insertUserRecipe(
+  client: SupabaseClient,
+  recipe: Recipe,
+  householdId: string,
+  userId?: string
+): Promise<void> {
+  const { error } = await client.from("user_recipes").insert(userRecipeToRow(recipe, householdId, userId));
+  if (error) throw error;
+}
+
+/** Overwrite an imported recipe (after an edit in the review form). */
+export async function updateUserRecipe(
+  client: SupabaseClient,
+  recipe: Recipe,
+  householdId: string
+): Promise<void> {
+  const { error } = await client
+    .from("user_recipes")
+    .update({ data: recipe, source_url: recipe.source?.url ?? null, updated_at: new Date().toISOString() })
+    .eq("id", recipe.id)
+    .eq("household_id", householdId);
+  if (error) throw error;
+}
+
+export async function deleteUserRecipe(client: SupabaseClient, id: string): Promise<void> {
+  const { error } = await client.from("user_recipes").delete().eq("id", id);
   if (error) throw error;
 }
 
@@ -261,6 +296,15 @@ export async function pushFullState(
   if (state.itemLocations.length) {
     const rows = state.itemLocations.map((l) => itemLocationToRow(l, householdId));
     const { error } = await client.from("item_locations").insert(rows);
+    if (error) throw error;
+  }
+
+  // Imported recipes: replace (ids are already "u-…" uuids, so they round-trip).
+  const { error: delRecipes } = await client.from("user_recipes").delete().eq("household_id", householdId);
+  if (delRecipes) throw delRecipes;
+  if (state.userRecipes.length) {
+    const rows = state.userRecipes.map((r) => userRecipeToRow(r, householdId));
+    const { error } = await client.from("user_recipes").insert(rows);
     if (error) throw error;
   }
   return planId;

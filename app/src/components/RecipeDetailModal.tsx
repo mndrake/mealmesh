@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import type { Recipe, Ingredient, Section } from "../lib/types";
 import { SECTION_ORDER, SECTION_LABELS } from "../lib/shopping";
 import { historyLabel, recentCooks, formatCookedOn, type RecipeHistory } from "../lib/history";
-import { useStore } from "../lib/store";
+import { useStore, actions } from "../lib/store";
 
 function feedbackText(rating: number | null, makeAgain: boolean | null): string {
   const parts: string[] = [];
@@ -71,6 +71,14 @@ export function RecipeDetailModal({
   // This recipe's cooking history (newest first) — shown with notes on the card.
   const cookLog = useStore((s) => s.cookLog);
   const events = recentCooks(cookLog.filter((e) => e.recipeId === recipe.id));
+  const isImported = useStore((s) => s.userRecipes.some((r) => r.id === recipe.id));
+
+  function deleteImported() {
+    if (confirm(`Delete the imported recipe "${recipe.title}"?`)) {
+      actions.deleteUserRecipe(recipe.id);
+      onClose();
+    }
+  }
 
   return (
     <div className="overlay" onClick={onClose}>
@@ -94,6 +102,7 @@ export function RecipeDetailModal({
             {totalTime > 0 && <span className="chip">{totalTime} min</span>}
             <span className="chip">{recipe.prep_style.replace("_", " ")}</span>
             <span className="chip">serves {recipe.servings}</span>
+            {isImported && <span className="chip">imported</span>}
           </div>
 
           {(historyLabel(history) || onMarkCooked) && (
@@ -214,11 +223,18 @@ export function RecipeDetailModal({
             </>
           )}
 
-          {onAddToPlan && (
-            <div style={{ marginTop: 16 }}>
-              <button className="btn" onClick={() => onAddToPlan(recipe)}>
-                + Add to plan
-              </button>
+          {(onAddToPlan || isImported) && (
+            <div className="row" style={{ marginTop: 16, gap: 8 }}>
+              {onAddToPlan && (
+                <button className="btn" onClick={() => onAddToPlan(recipe)}>
+                  + Add to plan
+                </button>
+              )}
+              {isImported && (
+                <button className="btn ghost" onClick={deleteImported}>
+                  Delete imported recipe
+                </button>
+              )}
             </div>
           )}
 
