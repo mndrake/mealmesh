@@ -8,7 +8,7 @@
     "predev": "node scripts/build-data.mjs",
     "dev": "vite",
     "prebuild": "node scripts/build-data.mjs",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && npm run typecheck:functions && vite build",
     "lint": "eslint .",
     "typecheck:functions": "tsc -p tsconfig.functions.json --noEmit",
     "pretest": "node scripts/build-data.mjs",
