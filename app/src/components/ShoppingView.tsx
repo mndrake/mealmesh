@@ -27,10 +27,9 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
   // null = auto (aisle order once we have locations); true/false = explicit user choice.
   const [byAisleChoice, setByAisleChoice] = useState<boolean | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  // Per-item package quantity for the cost estimate (default 1; in-session).
-  const [qty, setQty] = useState<Record<string, number>>({});
-  const getQty = (name: string) => qty[name] ?? 1;
-  const setItemQty = (name: string, n: number) => setQty((q) => ({ ...q, [name]: Math.max(1, n) }));
+  // Package quantity is set/persisted in the "Review products & prices" step (the Send modal),
+  // not edited inline here — the list is the clean in-store checklist.
+  const getQty = (name: string) => locMap.get(name)?.quantity ?? 1;
 
   const { list, mealCount } = useMemo(() => {
     const meals = cookedMeals(plan, recipesById);
@@ -55,10 +54,9 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
     return set;
   }, [list, checkedSet]);
   const cost = useMemo(() => {
-    const lines = list.sections.flatMap((s) => s.items.map(([name]) => costLine(name, locMap.get(name)?.price ?? null, getQty(name))));
+    const lines = list.sections.flatMap((s) => s.items.map(([name]) => costLine(name, locMap.get(name)?.price ?? null, locMap.get(name)?.quantity ?? 1)));
     return summarizeCost(lines, (n) => checkedNames.has(n));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [list, locMap, qty, checkedNames]);
+  }, [list, locMap, checkedNames]);
 
   const lastFetched = useMemo(() => {
     let max = 0;
@@ -127,36 +125,35 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
     const loc = locMap.get(name);
     const where = locationText(loc);
     const stale = isStale(loc, Date.now(), STALE_DAYS);
-    const price = loc?.price ?? null;
-    const packages = getQty(name);
+    const price = section !== "staple" ? loc?.price ?? null : null;
+    const packages = loc?.quantity ?? 1;
+    const hasSub = Boolean(where || recipeQty || price != null);
     return (
       <div className={`shop-item ${isChecked ? "checked" : ""}`}>
         <input type="checkbox" id={id} checked={isChecked} onChange={() => actions.toggleChecked(id)} />
-        <label htmlFor={id}>{name}</label>
-        {where && (
-          <span
-            className={`shop-loc ${stale ? "stale" : ""}`}
-            title={loc?.fetchedAt ? `Aisle info fetched ${fmtDate(loc.fetchedAt)}${stale ? " — may be stale" : ""}` : undefined}
-          >
-            📍 {where}
-            {stale ? " ⚠" : ""}
-          </span>
-        )}
-        {recipeQty && <span className="q">{recipeQty}</span>}
-        {section !== "staple" && price != null && (
-          <span className="shop-price" title={loc?.product ? `Priced as: ${loc.product}` : undefined}>
-            <span className="stepper">
-              <button aria-label={`Fewer ${name}`} disabled={packages <= 1} onClick={() => setItemQty(name, packages - 1)}>
-                −
-              </button>
-              <span className="pk">{packages}×</span>
-              <button aria-label={`More ${name}`} onClick={() => setItemQty(name, packages + 1)}>
-                +
-              </button>
-            </span>
-            {formatMoney(price * packages)}
-          </span>
-        )}
+        <div className="shop-main">
+          <label htmlFor={id}>{name}</label>
+          {hasSub && (
+            <div className="shop-sub">
+              {where && (
+                <span
+                  className={`shop-loc ${stale ? "stale" : ""}`}
+                  title={loc?.fetchedAt ? `Aisle info fetched ${fmtDate(loc.fetchedAt)}${stale ? " — may be stale" : ""}` : undefined}
+                >
+                  📍 {where}
+                  {stale ? " ⚠" : ""}
+                </span>
+              )}
+              {recipeQty && <span className="q">{recipeQty}</span>}
+              {price != null && (
+                <span className="shop-price" title={loc?.product ? `Priced as: ${loc.product}${packages > 1 ? ` × ${packages}` : ""}` : undefined}>
+                  {packages > 1 ? `${packages}× ` : ""}
+                  {formatMoney(price * packages)}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -200,8 +197,8 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
         <button className="btn secondary small" onClick={() => window.print()}>
           🖨 Print
         </button>
-        <button className="btn small" onClick={() => setShowKroger(true)}>
-          🛒 Send to Mariano's
+        <button className="btn small" onClick={() => setShowKroger(true)} title="Swap products, set quantities, and (optionally) send to your Mariano's cart">
+          🛒 Review &amp; send
         </button>
         <button className="btn ghost small" onClick={actions.clearChecked}>
           Uncheck all
@@ -223,7 +220,7 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
         {aisleGroups
           ? `Organized by Kroger department, ordered by aisle${lastFetched ? ` (as of ${fmtDate(lastFetched)})` : ""}. Items Kroger didn't match are in "Other" at the end.`
           : hasPrices
-            ? `Prices are per package at your store (an estimate — adjust × per item)${lastFetched ? `, as of ${fmtDate(lastFetched)}` : ""}.`
+            ? `Per-package price estimate${lastFetched ? `, as of ${fmtDate(lastFetched)}` : ""}. Swap products or set quantities in “Review & send”.`
             : `Quantities are merged across the week and grouped by store section. Use “Get prices & aisles” to add cost + aisle order. Staples are listed separately.`}
       </p>
 

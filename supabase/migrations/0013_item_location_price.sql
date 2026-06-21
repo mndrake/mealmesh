@@ -4,4 +4,4 @@
 -- open. Price is per package; staleness is tracked by the existing fetched_at.
 alter table public.item_locations
   add column if not exists price   numeric,   -- per-package price at the chosen store
-  add column if not exists product text;      -- the matched product description (what was priced)
+  add column if not exists product text;      -- matched product description (what was priced)

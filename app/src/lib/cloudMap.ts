@@ -56,6 +56,7 @@ export interface ItemLocationRow {
   department: string | null;
   price?: number | null;
   product?: string | null;
+  quantity?: number | null;
   fetched_at?: string | null;
 }
 
@@ -130,13 +131,15 @@ export function itemLocationFromRow(r: ItemLocationRow): ItemLocation {
     department: r.department ?? null,
     price: typeof r.price === "number" ? r.price : null,
     product: r.product ?? null,
+    ...(typeof r.quantity === "number" ? { quantity: r.quantity } : {}),
     fetchedAt: r.fetched_at ? Date.parse(r.fetched_at) : 0,
   };
 }
 
-/** Upsert payload for an item location. */
+/** Upsert payload for an item location. `quantity` is omitted when unset so a price-only
+ *  refresh doesn't overwrite a user-set quantity (PostgREST only updates provided columns). */
 export function itemLocationToRow(l: ItemLocation, householdId: string, userId?: string) {
-  return {
+  const row: Record<string, unknown> = {
     household_id: householdId,
     item_name: l.name,
     aisle: l.aisle,
@@ -147,6 +150,8 @@ export function itemLocationToRow(l: ItemLocation, householdId: string, userId?:
     fetched_at: l.fetchedAt ? new Date(l.fetchedAt).toISOString() : null,
     updated_by: userId ?? null,
   };
+  if (typeof l.quantity === "number") row.quantity = l.quantity;
+  return row;
 }
 
 /** A stored imported recipe (the full Recipe lives in the JSONB `data` column). The row id

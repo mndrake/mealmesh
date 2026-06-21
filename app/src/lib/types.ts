@@ -108,6 +108,8 @@ export interface ItemLocation {
   department: string | null; // "Produce" — the Kroger section
   price: number | null; // per-package price at the chosen store (for cost estimates)
   product: string | null; // matched product description (what the price is for)
+  quantity?: number; // packages to buy (set in the review/mapping step; default 1). Optional
+  // so partial updates (e.g. a price-only refresh) don't clobber a user-set quantity.
   fetchedAt: number; // ms epoch the location was last fetched (0 = unknown)
 }
 

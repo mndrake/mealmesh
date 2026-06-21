@@ -124,13 +124,19 @@ best-effort and keyed by UPC, since we never see the authoritative cart.
   button re-runs the match for the current list and re-saves locations with a fresh timestamp;
   if not yet connected / no store chosen, it falls back to the guided Send flow.
 - **Estimated cost:** the same match also returns the matched product's package `price`, now
-  persisted with the location (migration 0013 adds `price` + `product` to `item_locations`).
-  The shopping list shows a per-item price with a small `×` package-quantity stepper, a header
-  "~$X est." pill, and a cost bar (**to go / in cart / total**, split by checkoff). It's a
-  simple per-package estimate (`cost.ts`, pure + tested) — packages default to 1, adjustable
-  per item; unmatched items are excluded from the total and counted ("N not priced"). The
-  combined fetch is surfaced as **"Get / Update prices & aisles"**, and the list defaults to
-  aisle order once locations exist. Export includes per-item subtotals + an estimated total.
+  persisted with the location (migration 0013 adds `price`, `product`, `quantity` to
+  `item_locations`). The shopping list is the clean **in-store checklist** — two-line rows
+  (name on top; muted `aisle · qty · price` below), a "~$X est." pill, and a cost bar
+  (**to go / in cart / total**, split by checkoff). It's a simple per-package estimate
+  (`cost.ts`, pure + tested); unmatched items are excluded from the total and counted
+  ("N not priced"). The list defaults to aisle order once locations exist.
+- **Mapping is separate from the checklist:** swapping the matched **product** and setting the
+  **package quantity** happen in the **"Review & send"** modal (the Send-to-Mariano's review —
+  product picker with images, qty, re-search). Those edits persist back to `item_locations`
+  (incl. `quantity`) on close, so the checklist reflects them read-only — keeping the in-store
+  view uncluttered. The quick **"Get / Update prices & aisles"** button refreshes price/aisle
+  without touching a user-set quantity (field-merged; PostgREST updates only provided columns).
+  Export includes per-item subtotals + an estimated total.
 
 ## UI
 "🛒 Send to Mariano's" button in `ShoppingView` (next to Export/Print) → modal:
