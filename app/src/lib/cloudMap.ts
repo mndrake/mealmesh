@@ -8,10 +8,12 @@ export type DurableState = Omit<AppState, "loading" | "syncError" | "importAvail
 
 // ---- Row shapes (mirror supabase/migrations/0002_state.sql) ----
 
-/** The plan JSONB column: PlanDay[] plus the per-plan locked-slot keys. */
+/** The plan JSONB column: PlanDay[] plus the per-plan locked-slot keys and the staple
+ *  names the user marked "need to buy" (rides here like `locked`, so no extra table). */
 export interface PlanData {
   days: Plan;
   locked: string[];
+  stapleNeeds?: string[];
 }
 
 export interface PlanRow {
@@ -72,26 +74,26 @@ export interface UserRecipeRow {
 
 /** The JSONB body for the active plan. `locked` lives inside the plan blob so the
  *  PlanDay type stays unchanged. */
-export function planData(activePlan: Plan, locked: string[]): PlanData {
-  return { days: activePlan, locked };
+export function planData(activePlan: Plan, locked: string[], stapleNeeds: string[] = []): PlanData {
+  return { days: activePlan, locked, stapleNeeds };
 }
 
-/** Insert payload for a saved (inactive) plan. Saved plans don't carry lock state. */
+/** Insert payload for a saved (inactive) plan. Saved plans don't carry lock/staple state. */
 export function savedPlanToRow(sp: SavedPlan, householdId: string) {
   return {
     id: sp.id,
     household_id: householdId,
     name: sp.name,
-    data: { days: sp.plan, locked: [] } as PlanData,
+    data: { days: sp.plan, locked: [], stapleNeeds: [] } as PlanData,
     is_active: false,
   };
 }
 
 // ---- Rows -> AppState (for hydrate / realtime) ----
 
-export function activePlanFromRow(row: PlanRow): { activePlan: Plan; locked: string[] } {
+export function activePlanFromRow(row: PlanRow): { activePlan: Plan; locked: string[]; stapleNeeds: string[] } {
   const data = row.data ?? { days: [], locked: [] };
-  return { activePlan: data.days ?? [], locked: data.locked ?? [] };
+  return { activePlan: data.days ?? [], locked: data.locked ?? [], stapleNeeds: data.stapleNeeds ?? [] };
 }
 
 export function savedPlanFromRow(row: PlanRow): SavedPlan {
@@ -199,10 +201,11 @@ export function stateFromRows(opts: {
 }): DurableState {
   const active = opts.activePlanRow
     ? activePlanFromRow(opts.activePlanRow)
-    : { activePlan: opts.emptyPlan(), locked: [] };
+    : { activePlan: opts.emptyPlan(), locked: [], stapleNeeds: [] };
   return {
     activePlan: active.activePlan,
     locked: active.locked,
+    stapleNeeds: active.stapleNeeds,
     savedPlans: opts.savedPlanRows.map(savedPlanFromRow),
     favorites: favoritesFromRows(opts.favoriteRows),
     checked: checkedFromRows(opts.checkoffRows),

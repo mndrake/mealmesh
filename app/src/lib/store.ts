@@ -44,6 +44,7 @@ export interface AppState {
   savedPlans: SavedPlan[];
   favorites: string[]; // recipe ids
   checked: string[]; // shopping list item names checked off
+  stapleNeeds: string[]; // staple names marked "need to buy" (promoted into the list/cart)
   locked: string[]; // "<dayIndex>:<slot>" keys pinned against regenerate
   cookLog: CookEvent[]; // "I made this" history (newest-first)
   itemLocations: ItemLocation[]; // store aisle/department cache (by item name)
@@ -63,17 +64,18 @@ export function emptyPlan(): Plan {
 const EPHEMERAL = { loading: false, syncError: false, importAvailable: false };
 
 function defaultState(): AppState {
-  return { activePlan: emptyPlan(), savedPlans: [], favorites: [], checked: [], locked: [], cookLog: [], itemLocations: [], userRecipes: [], ...EPHEMERAL };
+  return { activePlan: emptyPlan(), savedPlans: [], favorites: [], checked: [], stapleNeeds: [], locked: [], cookLog: [], itemLocations: [], userRecipes: [], ...EPHEMERAL };
 }
 
 // Durable subset that round-trips through localStorage (cache + offline view).
-type Durable = Pick<AppState, "activePlan" | "savedPlans" | "favorites" | "checked" | "locked" | "cookLog" | "itemLocations" | "userRecipes">;
+type Durable = Pick<AppState, "activePlan" | "savedPlans" | "favorites" | "checked" | "stapleNeeds" | "locked" | "cookLog" | "itemLocations" | "userRecipes">;
 function durableOf(s: AppState): Durable {
   return {
     activePlan: s.activePlan,
     savedPlans: s.savedPlans,
     favorites: s.favorites,
     checked: s.checked,
+    stapleNeeds: s.stapleNeeds,
     locked: s.locked,
     cookLog: s.cookLog,
     itemLocations: s.itemLocations,
@@ -299,19 +301,19 @@ export async function resolveImport(accept: boolean) {
 export const actions = {
   setActivePlan(plan: Plan) {
     set({ activePlan: plan });
-    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, userId: c.userId }));
+    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, stapleNeeds: state.stapleNeeds, userId: c.userId }));
   },
 
   setSlot(dayIndex: number, slot: keyof Omit<PlanDay, "day">, value: PlanDay[typeof slot]) {
     const activePlan = state.activePlan.map((d, i) => (i === dayIndex ? { ...d, [slot]: value } : d));
     set({ activePlan });
-    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, userId: c.userId }));
+    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, stapleNeeds: state.stapleNeeds, userId: c.userId }));
   },
 
   clearPlan() {
-    set({ activePlan: emptyPlan(), locked: [], checked: [] });
+    set({ activePlan: emptyPlan(), locked: [], checked: [], stapleNeeds: [] });
     push(async (c) => {
-      const planId = await writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, userId: c.userId });
+      const planId = await writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, stapleNeeds: state.stapleNeeds, userId: c.userId });
       await clearCheckoffs(c.client, planId);
       return planId;
     });
@@ -320,18 +322,18 @@ export const actions = {
   toggleLock(key: string) {
     const locked = state.locked.includes(key) ? state.locked.filter((k) => k !== key) : [...state.locked, key];
     set({ locked });
-    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, userId: c.userId }));
+    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, stapleNeeds: state.stapleNeeds, userId: c.userId }));
   },
 
   unlock(key: string) {
     if (!state.locked.includes(key)) return;
     set({ locked: state.locked.filter((k) => k !== key) });
-    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, userId: c.userId }));
+    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, stapleNeeds: state.stapleNeeds, userId: c.userId }));
   },
 
   clearLocks() {
     set({ locked: [] });
-    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, userId: c.userId }));
+    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, stapleNeeds: state.stapleNeeds, userId: c.userId }));
   },
 
   toggleFavorite(id: string) {
@@ -345,7 +347,7 @@ export const actions = {
     set({ checked: on ? [...state.checked, name] : state.checked.filter((x) => x !== name) });
     push(async (c) => {
       if (!c.activePlanId) {
-        c.activePlanId = await writeActivePlan(c.client, { householdId: c.householdId, planId: null, activePlan: state.activePlan, locked: state.locked, userId: c.userId });
+        c.activePlanId = await writeActivePlan(c.client, { householdId: c.householdId, planId: null, activePlan: state.activePlan, locked: state.locked, stapleNeeds: state.stapleNeeds, userId: c.userId });
       }
       await setCheckoff(c.client, c.activePlanId, name, on);
     });
@@ -356,6 +358,15 @@ export const actions = {
     push(async (c) => {
       if (c.activePlanId) await clearCheckoffs(c.client, c.activePlanId);
     });
+  },
+
+  /** Toggle a pantry staple's "need to buy" flag. When on, ShoppingView promotes it into
+   *  its real shopping section so it's priced, aisle-sorted, and sent to the cart like any
+   *  other item. Rides in the active plan blob (synced via the plans channel). */
+  toggleStapleNeed(name: string) {
+    const on = !state.stapleNeeds.includes(name);
+    set({ stapleNeeds: on ? [...state.stapleNeeds, name] : state.stapleNeeds.filter((x) => x !== name) });
+    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, stapleNeeds: state.stapleNeeds, userId: c.userId }));
   },
 
   /** Record an "I made this" event (optimistic; newest-first). Returns the new id. */
@@ -430,7 +441,7 @@ export const actions = {
     const sp = state.savedPlans.find((p) => p.id === id);
     if (!sp) return;
     set({ activePlan: sp.plan, locked: [] });
-    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, userId: c.userId }));
+    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, stapleNeeds: state.stapleNeeds, userId: c.userId }));
   },
 
   deletePlan(id: string) {
@@ -459,6 +470,7 @@ export const actions = {
       savedPlans: next.savedPlans ?? [],
       favorites: next.favorites ?? [],
       checked: next.checked ?? [],
+      stapleNeeds: next.stapleNeeds ?? [],
       locked: next.locked ?? [],
       cookLog: next.cookLog ?? [],
       itemLocations: next.itemLocations ?? [],

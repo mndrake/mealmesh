@@ -1257,3 +1257,51 @@ a {
   font-size: 0.9rem;
   padding: 6px 0 2px;
 }
+
+/* Pantry staples: reference rows + "need to buy" toggle */
+.shop-item.staple-ref {
+  align-items: center;
+}
+.staple-ref .staple-name {
+  flex: 1;
+  min-width: 0;
+}
+.staple-tag {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.staple-tag:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.staple-tag.on {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft, transparent);
+}
+.shop-sub .shop-price.none {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+/* Help modal */
+.content.help h3 {
+  margin: 16px 0 6px;
+  font-size: 0.95rem;
+}
+.help-steps,
+.help-list {
+  padding-left: 20px;
+  margin: 6px 0;
+}
+.help-steps li,
+.help-list li {
+  margin: 6px 0;
+  line-height: 1.45;
+}

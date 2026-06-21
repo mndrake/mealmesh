@@ -29,20 +29,20 @@ const samplePlan: Plan = [
 describe("cloudMap", () => {
   it("wraps active plan + locked into the data JSONB and back", () => {
     const data = planData(samplePlan, ["0:dinner"]);
-    expect(data).toEqual({ days: samplePlan, locked: ["0:dinner"] });
+    expect(data).toEqual({ days: samplePlan, locked: ["0:dinner"], stapleNeeds: [] });
     const row = { data } as PlanRow;
-    expect(activePlanFromRow(row)).toEqual({ activePlan: samplePlan, locked: ["0:dinner"] });
+    expect(activePlanFromRow(row)).toEqual({ activePlan: samplePlan, locked: ["0:dinner"], stapleNeeds: [] });
   });
 
   it("tolerates a missing/empty data blob", () => {
-    expect(activePlanFromRow({ data: undefined } as unknown as PlanRow)).toEqual({ activePlan: [], locked: [] });
+    expect(activePlanFromRow({ data: undefined } as unknown as PlanRow)).toEqual({ activePlan: [], locked: [], stapleNeeds: [] });
   });
 
   it("maps a saved plan to a row and back (saved plans drop locks)", () => {
     const sp: SavedPlan = { id: "11111111-1111-1111-1111-111111111111", name: "Holiday", createdAt: 0, plan: samplePlan };
     const row = savedPlanToRow(sp, "hh-1");
     expect(row).toMatchObject({ id: sp.id, household_id: "hh-1", name: "Holiday", is_active: false });
-    expect(row.data).toEqual({ days: samplePlan, locked: [] });
+    expect(row.data).toEqual({ days: samplePlan, locked: [], stapleNeeds: [] });
 
     const back = savedPlanFromRow({ ...(row as PlanRow), created_at: "1970-01-01T00:00:00.000Z" });
     expect(back).toEqual({ id: sp.id, name: "Holiday", createdAt: 0, plan: samplePlan });

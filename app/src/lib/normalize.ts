@@ -18,6 +18,7 @@
 // The reference planner.py/shopping.py can never learn these renames (read-only), so
 // the parity tests deliberately run on the RAW recipes — see recipes.ts.
 import type { Ingredient, Recipe, Section } from "./types";
+import { isStaple } from "./staples";
 
 interface ItemOverride {
   /** Rename for BOTH display and shopping — use for genuine mislabels/typos. */
@@ -408,17 +409,15 @@ export function normalizeIngredientForDisplay(ing: Ingredient): Ingredient {
   return { ...ing, item, section, normalizedFrom: from };
 }
 
-/** Shopping pass: display fixes + collapse prep-modified veg into whole counts. */
+/** Shopping pass: display fixes + collapse prep-modified veg into whole counts, and
+ *  re-derive a consistent `staple` flag (the source data's is unreliable — see staples.ts). */
 export function normalizeIngredientForShopping(ing: Ingredient): Ingredient {
   const o = OVERRIDES[ing.item];
-  if (!o) return ing;
-  if (o.exclude) return { ...ing, exclude_from_shopping: true };
-  const converted = applyConvert(ing, o.convert);
-  return {
-    ...converted,
-    item: o.buyItem ?? o.item ?? converted.item,
-    section: o.section ?? converted.section,
-  };
+  if (o?.exclude) return { ...ing, exclude_from_shopping: true };
+  const converted = o ? applyConvert(ing, o.convert) : ing;
+  const item = o?.buyItem ?? o?.item ?? converted.item;
+  const section = o?.section ?? converted.section;
+  return { ...converted, item, section, staple: isStaple(ing.buy_as ?? item, section) };
 }
 
 export function normalizeForDisplay(recipes: Recipe[]): Recipe[] {
