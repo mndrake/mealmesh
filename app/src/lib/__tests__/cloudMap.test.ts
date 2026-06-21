@@ -6,9 +6,12 @@ import {
   savedPlanFromRow,
   favoritesFromRows,
   checkedFromRows,
+  cookEventFromRow,
+  cookEventToRow,
   stateFromRows,
   householdIsEmpty,
   type PlanRow,
+  type CookLogRow,
 } from "../cloudMap";
 import type { Plan } from "../types";
 import type { SavedPlan } from "../store";
@@ -48,12 +51,25 @@ describe("cloudMap", () => {
     expect(checkedFromRows([{ plan_id: "p", item_name: "Produce:onion" }])).toEqual(["Produce:onion"]);
   });
 
+  it("maps a cook_log row to a CookEvent and an event back to an insert row", () => {
+    const row: CookLogRow = {
+      id: "c1", household_id: "h", recipe_id: "r", cooked_on: "2026-06-02",
+      cooked_by: "u", rating: 4, make_again: true, notes: "tasty", plan_id: "p1",
+    };
+    expect(cookEventFromRow(row)).toEqual({
+      id: "c1", recipeId: "r", cookedOn: "2026-06-02", rating: 4, makeAgain: true, notes: "tasty", planId: "p1",
+    });
+    expect(cookEventToRow({ id: "c1", recipeId: "r", cookedOn: "2026-06-02", rating: 4, makeAgain: true, notes: "tasty", planId: "p1" }, "h", "u"))
+      .toEqual({ id: "c1", household_id: "h", recipe_id: "r", cooked_on: "2026-06-02", cooked_by: "u", rating: 4, make_again: true, notes: "tasty", plan_id: "p1" });
+  });
+
   it("assembles a full AppState from row sets", () => {
     const state = stateFromRows({
       activePlanRow: { id: "p1", data: { days: samplePlan, locked: ["0:dinner"] } } as PlanRow,
       savedPlanRows: [{ id: "s1", household_id: "h", name: "Saved", is_active: false, created_at: "1970-01-01T00:00:00.000Z", data: { days: emptyPlan(), locked: [] } } as PlanRow],
       favoriteRows: [{ household_id: "h", recipe_id: "x" }],
       checkoffRows: [{ plan_id: "p1", item_name: "Produce:onion" }],
+      cookLogRows: [{ id: "c1", household_id: "h", recipe_id: "r", cooked_on: "2026-06-02", rating: null, make_again: null, notes: null, plan_id: "p1" }],
       emptyPlan,
     });
     expect(state.activePlan).toEqual(samplePlan);
@@ -61,15 +77,18 @@ describe("cloudMap", () => {
     expect(state.savedPlans).toHaveLength(1);
     expect(state.favorites).toEqual(["x"]);
     expect(state.checked).toEqual(["Produce:onion"]);
+    expect(state.cookLog).toEqual([{ id: "c1", recipeId: "r", cookedOn: "2026-06-02", rating: null, makeAgain: null, notes: null, planId: "p1" }]);
   });
 
   it("uses an empty plan when there is no active plan row", () => {
-    const state = stateFromRows({ activePlanRow: null, savedPlanRows: [], favoriteRows: [], checkoffRows: [], emptyPlan });
+    const state = stateFromRows({ activePlanRow: null, savedPlanRows: [], favoriteRows: [], checkoffRows: [], cookLogRows: [], emptyPlan });
     expect(state.activePlan).toEqual(emptyPlan());
+    expect(state.cookLog).toEqual([]);
   });
 
   it("detects an empty household for the one-time import", () => {
     expect(householdIsEmpty({ activePlanRow: null, savedPlanRows: [], favoriteRows: [] })).toBe(true);
     expect(householdIsEmpty({ activePlanRow: { id: "p" } as PlanRow, savedPlanRows: [], favoriteRows: [] })).toBe(false);
+    expect(householdIsEmpty({ activePlanRow: null, savedPlanRows: [], favoriteRows: [], cookLogRows: [{ id: "c" } as CookLogRow] })).toBe(false);
   });
 });

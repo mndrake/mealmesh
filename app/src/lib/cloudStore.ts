@@ -5,14 +5,16 @@ import type { AppState } from "./store";
 import {
   planData,
   savedPlanToRow,
+  cookEventToRow,
   stateFromRows,
   householdIsEmpty,
   type DurableState,
   type PlanRow,
   type FavoriteRow,
   type CheckoffRow,
+  type CookLogRow,
 } from "./cloudMap";
-import type { Plan } from "./types";
+import type { Plan, CookEvent } from "./types";
 
 export interface HydrateResult {
   state: DurableState;
@@ -26,17 +28,24 @@ export async function hydrate(
   householdId: string,
   emptyPlan: () => Plan
 ): Promise<HydrateResult> {
-  const [plansRes, favRes] = await Promise.all([
+  const [plansRes, favRes, cookRes] = await Promise.all([
     client.from("plans").select("*").eq("household_id", householdId),
     client.from("favorites").select("household_id,recipe_id").eq("household_id", householdId),
+    client
+      .from("cook_log")
+      .select("id,recipe_id,cooked_on,rating,make_again,notes,plan_id")
+      .eq("household_id", householdId)
+      .order("cooked_on", { ascending: false }),
   ]);
   if (plansRes.error) throw plansRes.error;
   if (favRes.error) throw favRes.error;
+  if (cookRes.error) throw cookRes.error;
 
   const planRows = (plansRes.data ?? []) as PlanRow[];
   const activePlanRow = planRows.find((r) => r.is_active) ?? null;
   const savedPlanRows = planRows.filter((r) => !r.is_active);
   const favoriteRows = (favRes.data ?? []) as FavoriteRow[];
+  const cookLogRows = (cookRes.data ?? []) as CookLogRow[];
 
   let checkoffRows: CheckoffRow[] = [];
   if (activePlanRow) {
@@ -49,10 +58,26 @@ export async function hydrate(
   }
 
   return {
-    state: stateFromRows({ activePlanRow, savedPlanRows, favoriteRows, checkoffRows, emptyPlan }),
+    state: stateFromRows({ activePlanRow, savedPlanRows, favoriteRows, checkoffRows, cookLogRows, emptyPlan }),
     activePlanId: activePlanRow?.id ?? null,
-    isEmpty: householdIsEmpty({ activePlanRow, savedPlanRows, favoriteRows }),
+    isEmpty: householdIsEmpty({ activePlanRow, savedPlanRows, favoriteRows, cookLogRows }),
   };
+}
+
+/** Insert one cook event for the household. */
+export async function insertCookEvent(
+  client: SupabaseClient,
+  event: CookEvent,
+  householdId: string,
+  userId?: string
+): Promise<void> {
+  const { error } = await client.from("cook_log").insert(cookEventToRow(event, householdId, userId));
+  if (error) throw error;
+}
+
+export async function deleteCookEvent(client: SupabaseClient, id: string): Promise<void> {
+  const { error } = await client.from("cook_log").delete().eq("id", id);
+  if (error) throw error;
 }
 
 /** Upsert the active plan's days+locked. Inserts the active row if none exists yet;
@@ -169,6 +194,18 @@ export async function pushFullState(
   if (state.checked.length) {
     const rows = state.checked.map((item_name) => ({ plan_id: planId, item_name }));
     const { error } = await client.from("shopping_checkoffs").insert(rows);
+    if (error) throw error;
+  }
+
+  // Cook log: replace wholesale (fresh UUIDs; local ids may not be UUIDs). plan_id is
+  // dropped since saved/active plan ids are remapped on import.
+  const { error: delCook } = await client.from("cook_log").delete().eq("household_id", householdId);
+  if (delCook) throw delCook;
+  if (state.cookLog.length) {
+    const rows = state.cookLog.map((e) =>
+      cookEventToRow({ ...e, id: crypto.randomUUID(), planId: null }, householdId)
+    );
+    const { error } = await client.from("cook_log").insert(rows);
     if (error) throw error;
   }
   return planId;

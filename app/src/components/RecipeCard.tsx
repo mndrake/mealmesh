@@ -1,5 +1,6 @@
 import type { Recipe } from "../lib/types";
 import { DIET_TAGS } from "../lib/filters";
+import { historyLabel, type RecipeHistory } from "../lib/history";
 
 interface Props {
   recipe: Recipe;
@@ -7,6 +8,7 @@ interface Props {
   onOpen: (r: Recipe) => void;
   onToggleFavorite: (id: string) => void;
   onAddToPlan?: (r: Recipe) => void;
+  history?: RecipeHistory;
 }
 
 function dietChips(r: Recipe): string[] {
@@ -19,8 +21,10 @@ export function RecipeCard({
   onOpen,
   onToggleFavorite,
   onAddToPlan,
+  history,
 }: Props) {
   const n = recipe.nutrition_per_serving;
+  const made = historyLabel(history);
   return (
     <article
       className="card"
@@ -64,6 +68,7 @@ export function RecipeCard({
             </span>
           ))}
         </div>
+        {made && <div className="made-line">🍳 {made}</div>}
         {onAddToPlan && (
           <button className="btn small secondary" onClick={() => onAddToPlan(recipe)}>
             + Add to plan

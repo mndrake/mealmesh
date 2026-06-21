@@ -1,6 +1,6 @@
 // Pure mapping between the app's AppState and Supabase row shapes. No network here —
 // cloudStore.ts does the I/O, store.ts orchestrates. Kept pure so it is unit-testable.
-import type { Plan } from "./types";
+import type { Plan, CookEvent } from "./types";
 import type { AppState, SavedPlan } from "./store";
 
 /** The durable, persisted subset of AppState (no ephemeral UI flags). */
@@ -33,6 +33,19 @@ export interface FavoriteRow {
 export interface CheckoffRow {
   plan_id: string;
   item_name: string;
+}
+
+export interface CookLogRow {
+  id: string;
+  household_id: string;
+  recipe_id: string;
+  cooked_on: string;
+  cooked_by?: string | null;
+  rating: number | null;
+  make_again: boolean | null;
+  notes: string | null;
+  plan_id: string | null;
+  created_at?: string;
 }
 
 // ---- AppState -> row payloads (for writes) ----
@@ -78,12 +91,40 @@ export function checkedFromRows(rows: CheckoffRow[]): string[] {
   return rows.map((r) => r.item_name);
 }
 
-/** Assemble a full AppState from the four row sets returned by hydrate. */
+export function cookEventFromRow(r: CookLogRow): CookEvent {
+  return {
+    id: r.id,
+    recipeId: r.recipe_id,
+    cookedOn: r.cooked_on,
+    rating: r.rating ?? null,
+    makeAgain: r.make_again ?? null,
+    notes: r.notes ?? null,
+    planId: r.plan_id ?? null,
+  };
+}
+
+/** Insert payload for a cook event (id/created_at are server-defaulted). */
+export function cookEventToRow(e: CookEvent, householdId: string, userId?: string) {
+  return {
+    id: e.id,
+    household_id: householdId,
+    recipe_id: e.recipeId,
+    cooked_on: e.cookedOn,
+    cooked_by: userId ?? null,
+    rating: e.rating,
+    make_again: e.makeAgain,
+    notes: e.notes,
+    plan_id: e.planId,
+  };
+}
+
+/** Assemble a full AppState from the row sets returned by hydrate. */
 export function stateFromRows(opts: {
   activePlanRow: PlanRow | null;
   savedPlanRows: PlanRow[];
   favoriteRows: FavoriteRow[];
   checkoffRows: CheckoffRow[];
+  cookLogRows: CookLogRow[];
   emptyPlan: () => Plan;
 }): DurableState {
   const active = opts.activePlanRow
@@ -95,6 +136,7 @@ export function stateFromRows(opts: {
     savedPlans: opts.savedPlanRows.map(savedPlanFromRow),
     favorites: favoritesFromRows(opts.favoriteRows),
     checked: checkedFromRows(opts.checkoffRows),
+    cookLog: opts.cookLogRows.map(cookEventFromRow),
   };
 }
 
@@ -103,8 +145,12 @@ export function householdIsEmpty(opts: {
   activePlanRow: PlanRow | null;
   savedPlanRows: PlanRow[];
   favoriteRows: FavoriteRow[];
+  cookLogRows?: CookLogRow[];
 }): boolean {
   return (
-    !opts.activePlanRow && opts.savedPlanRows.length === 0 && opts.favoriteRows.length === 0
+    !opts.activePlanRow &&
+    opts.savedPlanRows.length === 0 &&
+    opts.favoriteRows.length === 0 &&
+    (opts.cookLogRows?.length ?? 0) === 0
   );
 }

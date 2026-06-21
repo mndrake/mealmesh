@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import type { Recipe, Ingredient, Section } from "../lib/types";
 import { SECTION_ORDER, SECTION_LABELS } from "../lib/shopping";
+import { historyLabel, type RecipeHistory } from "../lib/history";
 
 function fmtQty(i: Ingredient): string {
   const parts: string[] = [];
@@ -36,6 +37,8 @@ interface Props {
   onClose: () => void;
   onToggleFavorite: (id: string) => void;
   onAddToPlan?: (r: Recipe) => void;
+  history?: RecipeHistory;
+  onMarkCooked?: (r: Recipe) => void;
 }
 
 export function RecipeDetailModal({
@@ -44,6 +47,8 @@ export function RecipeDetailModal({
   onClose,
   onToggleFavorite,
   onAddToPlan,
+  history,
+  onMarkCooked,
 }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -78,6 +83,17 @@ export function RecipeDetailModal({
             <span className="chip">{recipe.prep_style.replace("_", " ")}</span>
             <span className="chip">serves {recipe.servings}</span>
           </div>
+
+          {(historyLabel(history) || onMarkCooked) && (
+            <div className="row" style={{ gap: 10, marginTop: 10, alignItems: "center" }}>
+              {historyLabel(history) && <span className="made-line">🍳 {historyLabel(history)}</span>}
+              {onMarkCooked && (
+                <button className="btn small secondary" onClick={() => onMarkCooked(recipe)}>
+                  ✓ Mark as made
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="row" style={{ marginTop: 12, gap: 8 }}>
             <strong>Nutrition per serving</strong>

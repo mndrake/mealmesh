@@ -4,8 +4,10 @@ import { rawRecipes, recipesById } from "../lib/recipes";
 import { buildPlan, regeneratePlan } from "../lib/planner";
 import { dayTotals, weekTotals } from "../lib/nutrition";
 import { useStore, actions } from "../lib/store";
+import { summarize, historyLabel, type RecipeHistory } from "../lib/history";
 import { RecipeDetailModal } from "./RecipeDetailModal";
 import { RecipePickerModal } from "./RecipePickerModal";
+import { MarkCookedModal } from "./MarkCookedModal";
 import { exportPlanJson } from "../lib/exporter";
 
 type Slot = "breakfast" | "lunch" | "dinner" | "snack";
@@ -19,10 +21,13 @@ export function PlannerView() {
   const favorites = useStore((s) => s.favorites);
   const locked = useStore((s) => s.locked);
   const lockedSet = useMemo(() => new Set(locked), [locked]);
+  const cookLog = useStore((s) => s.cookLog);
+  const cookSummary = useMemo(() => summarize(cookLog), [cookLog]);
   const [require, setRequire] = useState<string[]>([]);
   const [easyBreakfast, setEasyBreakfast] = useState(true);
   const [officeLunch, setOfficeLunch] = useState(true);
   const [detail, setDetail] = useState<Recipe | null>(null);
+  const [cooking, setCooking] = useState<Recipe | null>(null);
   const [picker, setPicker] = useState<{ di: number; slot: Slot } | null>(null);
   const [dragOver, setDragOver] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -191,9 +196,11 @@ export function PlannerView() {
                 estimated={dt.estimated}
                 dragOver={dragOver}
                 lockedSet={lockedSet}
+                cookSummary={cookSummary}
                 onDragOverSlot={setDragOver}
                 onDrop={handleDrop}
                 onOpenDetail={setDetail}
+                onMarkCooked={setCooking}
                 onAdd={(slot) => setPicker({ di, slot })}
                 onClear={(slot) => {
                   setSlot(di, slot, null);
@@ -212,8 +219,12 @@ export function PlannerView() {
           isFavorite={favorites.includes(detail.id)}
           onClose={() => setDetail(null)}
           onToggleFavorite={actions.toggleFavorite}
+          history={cookSummary.get(detail.id)}
+          onMarkCooked={(r) => setCooking(r)}
         />
       )}
+
+      {cooking && <MarkCookedModal recipe={cooking} onClose={() => setCooking(null)} />}
 
       {picker && (
         <RecipePickerModal
@@ -278,9 +289,11 @@ interface RowProps {
   estimated: boolean;
   dragOver: string | null;
   lockedSet: Set<string>;
+  cookSummary: Map<string, RecipeHistory>;
   onDragOverSlot: (k: string | null) => void;
   onDrop: (di: number, slot: Slot, e: React.DragEvent) => void;
   onOpenDetail: (r: Recipe) => void;
+  onMarkCooked: (r: Recipe) => void;
   onAdd: (slot: Slot) => void;
   onClear: (slot: Slot) => void;
   onToggleLock: (slot: Slot) => void;
@@ -293,9 +306,11 @@ function Row({
   estimated,
   dragOver,
   lockedSet,
+  cookSummary,
   onDragOverSlot,
   onDrop,
   onOpenDetail,
+  onMarkCooked,
   onAdd,
   onClear,
   onToggleLock,
@@ -314,6 +329,7 @@ function Row({
         const isStr = typeof ref === "string";
         const isLocked = lockedSet.has(key);
         const recipe = ref && !isStr ? recipesById.get((ref as MealRef).id) : undefined;
+        const made = recipe ? historyLabel(cookSummary.get(recipe.id)) : "";
         const lockBtn = (
           <button
             className={`lock-btn ${isLocked ? "on" : ""}`}
@@ -374,8 +390,18 @@ function Row({
                     <span className="leftover-tag"> leftover</span>
                   ) : null}
                 </span>
+                {made && <span className="meal-made">🍳 {made}</span>}
                 <div className="slot-actions">
                   {lockBtn}
+                  {recipe && !(ref as MealRef).leftover && (
+                    <button
+                      className="add-btn"
+                      title="Mark as made"
+                      onClick={() => onMarkCooked(recipe)}
+                    >
+                      ✓ made
+                    </button>
+                  )}
                   <button className="add-btn" onClick={() => onAdd(slot)}>
                     swap
                   </button>

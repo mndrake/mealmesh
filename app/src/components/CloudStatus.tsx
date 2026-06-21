@@ -1,11 +1,30 @@
-// Small, non-intrusive cloud-sync UI (M2): a one-time "import your local data" prompt and
-// a transient sync-error banner. Reads ephemeral flags from the store; no-ops in local mode.
-import { useStore, resolveImport, retrySync } from "../lib/store";
+// Small, non-intrusive cloud-sync UI (M2; offline added M4): a one-time "import your local
+// data" prompt, an offline notice, a transient sync-error banner, and a loading note.
+// Reads ephemeral flags from the store; no-ops in local mode.
+import { useEffect, useState } from "react";
+import { useStore, resolveImport, retrySync, isCloud } from "../lib/store";
+
+/** Track browser connectivity (SSR-safe: assumes online when navigator is absent). */
+function useOnline(): boolean {
+  const [online, setOnline] = useState(() => (typeof navigator === "undefined" ? true : navigator.onLine));
+  useEffect(() => {
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    return () => {
+      window.removeEventListener("online", on);
+      window.removeEventListener("offline", off);
+    };
+  }, []);
+  return online;
+}
 
 export function CloudStatus() {
   const importAvailable = useStore((s) => s.importAvailable);
   const syncError = useStore((s) => s.syncError);
   const loading = useStore((s) => s.loading);
+  const online = useOnline();
 
   if (importAvailable) {
     return (
@@ -22,6 +41,15 @@ export function CloudStatus() {
             Keep cloud (discard local)
           </button>
         </div>
+      </div>
+    );
+  }
+
+  // Offline takes priority over the sync-error banner (the error is just a symptom of it).
+  if (isCloud() && !online) {
+    return (
+      <div className="cloud-banner muted-banner">
+        You're offline — changes are saved on this device and will sync when you reconnect.
       </div>
     );
   }

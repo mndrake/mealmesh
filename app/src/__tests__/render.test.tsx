@@ -6,6 +6,7 @@ import App from "../App";
 import { BrowseView } from "../components/BrowseView";
 import { PlannerView } from "../components/PlannerView";
 import { ShoppingView } from "../components/ShoppingView";
+import { HistoryView } from "../components/HistoryView";
 
 describe("render smoke", () => {
   it("renders the app shell", () => {
@@ -24,5 +25,9 @@ describe("render smoke", () => {
   it("renders the (empty) planner and shopping views", () => {
     expect(renderToString(<PlannerView />)).toContain("Weekly planner");
     expect(renderToString(<ShoppingView />)).toContain("plan is empty");
+  });
+
+  it("renders the (empty) history view", () => {
+    expect(renderToString(<HistoryView />)).toContain("No cooking history yet");
   });
 });

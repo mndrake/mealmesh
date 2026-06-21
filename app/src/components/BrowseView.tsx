@@ -8,9 +8,11 @@ import {
   type Filters,
 } from "../lib/filters";
 import { useStore, actions } from "../lib/store";
+import { summarize } from "../lib/history";
 import { FilterPanel } from "./FilterPanel";
 import { RecipeCard } from "./RecipeCard";
 import { RecipeDetailModal } from "./RecipeDetailModal";
+import { MarkCookedModal } from "./MarkCookedModal";
 
 interface Props {
   onAddToPlan: (r: Recipe) => void;
@@ -19,8 +21,11 @@ interface Props {
 export function BrowseView({ onAddToPlan }: Props) {
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [selected, setSelected] = useState<Recipe | null>(null);
+  const [cooking, setCooking] = useState<Recipe | null>(null);
   const favorites = useStore((s) => s.favorites);
   const favSet = useMemo(() => new Set(favorites), [favorites]);
+  const cookLog = useStore((s) => s.cookLog);
+  const cookSummary = useMemo(() => summarize(cookLog), [cookLog]);
   const cuisines = useMemo(() => cuisineIndex(recipes), []);
 
   const results = useMemo(
@@ -56,6 +61,7 @@ export function BrowseView({ onAddToPlan }: Props) {
               onOpen={setSelected}
               onToggleFavorite={actions.toggleFavorite}
               onAddToPlan={onAddToPlan}
+              history={cookSummary.get(r.id)}
             />
           ))}
         </div>
@@ -71,8 +77,12 @@ export function BrowseView({ onAddToPlan }: Props) {
             onAddToPlan(r);
             setSelected(null);
           }}
+          history={cookSummary.get(selected.id)}
+          onMarkCooked={(r) => setCooking(r)}
         />
       )}
+
+      {cooking && <MarkCookedModal recipe={cooking} onClose={() => setCooking(null)} />}
     </div>
   );
 }

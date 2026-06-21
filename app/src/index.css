@@ -859,3 +859,122 @@ a {
   margin: 4px 0 0;
   padding-left: 18px;
 }
+
+/* ---- Cooked tracking (M3) ---- */
+.made-line,
+.meal-made {
+  font-size: 0.74rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+.meal-made {
+  display: block;
+  margin-top: 2px;
+}
+.made-line {
+  margin-top: 6px;
+}
+
+/* Mark-as-made modal fields */
+.cook-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 12px;
+  font-size: 0.84rem;
+}
+.cook-field > span {
+  font-weight: 600;
+}
+.cook-field input[type="date"],
+.cook-field textarea {
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  font: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+.star-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.star {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.35rem;
+  line-height: 1;
+  padding: 0 1px;
+  color: #e0a82e;
+}
+
+/* History view */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.history-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.history-row:last-child {
+  border-bottom: none;
+}
+.history-date {
+  flex: 0 0 84px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.history-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+.history-title {
+  font-weight: 600;
+  cursor: pointer;
+}
+.history-title:hover {
+  color: var(--accent);
+}
+.history-fb {
+  font-size: 0.82rem;
+  color: #e0a82e;
+}
+.history-note {
+  flex-basis: 100%;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* App-level error boundary fallback (M4) */
+.error-fallback {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.error-card {
+  max-width: 420px;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  background: var(--surface);
+}
+.error-card h2 {
+  margin-top: 0;
+}

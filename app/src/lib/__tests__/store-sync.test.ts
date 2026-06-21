@@ -17,6 +17,7 @@ function makeClient(resolve: Resolver) {
       upsert: (v: unknown) => ((op.type = "upsert"), (op.value = v), b),
       delete: () => ((op.type = "delete"), b),
       eq: (k: string, v: unknown) => ((op.filters[k] = v), b),
+      order: () => b,
       limit: () => b,
       maybeSingle: () => ((op.single = "maybe"), b),
       single: () => ((op.single = "one"), b),
@@ -95,6 +96,18 @@ describe("store cloud sync", () => {
 
     await tick(120); // write rejects -> syncError -> scheduleSync re-hydrates empty
     expect(getState().favorites).toEqual([]); // reverted to server truth
+  });
+
+  it("markCooked applies optimistically and inserts a cook_log row", async () => {
+    const { client, calls } = makeClient(emptyResolver);
+    await connect(client, "hh-1", "user-1");
+
+    const id = actions.markCooked({ recipeId: "r1", cookedOn: "2026-06-21", rating: 5, makeAgain: true });
+    expect(getState().cookLog[0]).toMatchObject({ id, recipeId: "r1", rating: 5, makeAgain: true });
+
+    await tick();
+    expect(calls.find((c) => c.table === "cook_log" && c.type === "insert")).toBeTruthy();
+    expect(getState().syncError).toBe(false);
   });
 
   it("offers a one-time import when the cloud is empty but local data exists", async () => {

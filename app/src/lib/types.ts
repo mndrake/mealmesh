@@ -96,3 +96,16 @@ export interface PlanDay {
 }
 
 export type Plan = PlanDay[];
+
+// ---- Cooked tracking (M3) ----
+
+/** One "I made this" event with optional quick feedback. Mirrors a cook_log row. */
+export interface CookEvent {
+  id: string;
+  recipeId: string;
+  cookedOn: string; // 'YYYY-MM-DD'
+  rating: number | null; // 1..5
+  makeAgain: boolean | null; // thumbs up/down
+  notes: string | null;
+  planId: string | null;
+}

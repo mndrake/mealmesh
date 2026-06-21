@@ -6,12 +6,13 @@ import { cookedMeals } from "./lib/planner";
 import { BrowseView } from "./components/BrowseView";
 import { PlannerView } from "./components/PlannerView";
 import { ShoppingView } from "./components/ShoppingView";
+import { HistoryView } from "./components/HistoryView";
 import { AddToPlanModal } from "./components/AddToPlanModal";
 import { CloudStatus } from "./components/CloudStatus";
 import { exportAllState } from "./lib/exporter";
 import { useAuth } from "./lib/auth";
 
-type Tab = "browse" | "plan" | "shopping";
+type Tab = "browse" | "plan" | "shopping" | "history";
 type Slot = "breakfast" | "lunch" | "dinner" | "snack";
 
 export default function App() {
@@ -27,6 +28,7 @@ export default function App() {
   const [addTarget, setAddTarget] = useState<Recipe | null>(null);
   const plan = useStore((s) => s.activePlan);
   const favoritesCount = useStore((s) => s.favorites.length);
+  const cookedCount = useStore((s) => s.cookLog.length);
   const { email, signOut } = useAuth();
 
   // Clean the ?kroger= param from the URL (and surface a connect error). No setState here.
@@ -80,6 +82,13 @@ export default function App() {
             >
               Shopping
             </button>
+            <button
+              className={tab === "history" ? "active" : ""}
+              onClick={() => setTab("history")}
+            >
+              History
+              {cookedCount > 0 && <span className="badge">{cookedCount}</span>}
+            </button>
           </nav>
           <div className="spacer" />
           <div className="row" style={{ gap: 6 }}>
@@ -122,6 +131,7 @@ export default function App() {
         {tab === "browse" && <BrowseView onAddToPlan={setAddTarget} />}
         {tab === "plan" && <PlannerView />}
         {tab === "shopping" && <ShoppingView openSend={krogerConnected} />}
+        {tab === "history" && <HistoryView />}
       </main>
 
       {addTarget && (

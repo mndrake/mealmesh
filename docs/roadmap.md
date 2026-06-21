@@ -72,8 +72,15 @@ loading states), `supabase/migrations/`.
 
 ---
 
-## M3 — Cooked tracking & feedback (M)
+## M3 — Cooked tracking & feedback (M) — ✅ DONE
 **Goal:** Record which recipes were made with simple feedback; surface reuse. **Requirement 3.**
+
+**Shipped:** `0005_cook_log.sql` (RLS + index + Realtime); `cook_log` integrated into the
+store behind the stable `useStore`/`actions` seam (`markCooked`, `deleteCookEvent`, hydrate +
+optimistic + reconcile + Realtime + local cache + import/export). Pure `history.ts`
+("made N× · last …", recents, formatting) with unit tests. **Mark-as-made** modal
+(date/thumbs/1–5/notes) from the planner and recipe detail; "🍳 Made N×" on recipe cards,
+detail, and planner slots; a **History** tab listing recent cooks with delete.
 
 **Scope / tasks**
 - Migration `0003_cook_log.sql`: `cook_log` table (+ RLS, index).
@@ -93,8 +100,17 @@ loading states), `supabase/migrations/`.
 
 ---
 
-## M4 — Hardening & polish (M)
+## M4 — Hardening & polish (M) — ✅ DONE
 **Goal:** Production-ready security, resilience, and docs.
+
+**Shipped:** `netlify.toml` SPA redirect + security headers + HSTS + CSP scoped to the
+Supabase origin (REST + `wss:` Realtime) were already in place; added an app-level
+**ErrorBoundary** (friendly fallback instead of a white screen), **offline messaging** in
+`CloudStatus` (online/offline aware; edits saved locally and synced on reconnect), and
+tests for history derivations, cook-log mapping, and the `markCooked` store path; smoke test
+covers the History view. The store already does optimistic-write + reconcile-on-error with a
+manual retry. (Remaining nice-to-haves: automatic exponential backoff on writes and a full
+`security.md` pre-launch sign-off.)
 
 **Scope / tasks**
 - `app/netlify.toml`: SPA redirect + security headers + HSTS (see [`security.md`](./security.md)).
@@ -109,7 +125,7 @@ loading states), `supabase/migrations/`.
 
 ---
 
-## M5 — Send shopping list to Mariano's / Kroger (PULLED FORWARD — current priority)
+## M5 — Send shopping list to Mariano's / Kroger (PULLED FORWARD) — ✅ DONE
 **Goal:** one-tap **"build my Mariano's cart"** from the weekly shopping list.
 Full design in [`kroger-integration.md`](./kroger-integration.md).
 

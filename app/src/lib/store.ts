@@ -9,7 +9,7 @@
 import { useSyncExternalStore } from "react";
 import type { SupabaseClient, RealtimeChannel } from "@supabase/supabase-js";
 import { DAYS } from "./planner";
-import type { Plan, PlanDay } from "./types";
+import type { Plan, PlanDay, CookEvent } from "./types";
 import {
   hydrate,
   writeActivePlan,
@@ -18,6 +18,8 @@ import {
   setFavorite,
   setCheckoff,
   clearCheckoffs,
+  insertCookEvent,
+  deleteCookEvent as cloudDeleteCookEvent,
   pushFullState,
 } from "./cloudStore";
 
@@ -36,6 +38,7 @@ export interface AppState {
   favorites: string[]; // recipe ids
   checked: string[]; // shopping list item names checked off
   locked: string[]; // "<dayIndex>:<slot>" keys pinned against regenerate
+  cookLog: CookEvent[]; // "I made this" history (newest-first)
   // ---- ephemeral (not persisted to localStorage) ----
   loading: boolean; // hydrating from the cloud
   syncError: boolean; // last cloud write failed to reconcile
@@ -51,11 +54,11 @@ export function emptyPlan(): Plan {
 const EPHEMERAL = { loading: false, syncError: false, importAvailable: false };
 
 function defaultState(): AppState {
-  return { activePlan: emptyPlan(), savedPlans: [], favorites: [], checked: [], locked: [], ...EPHEMERAL };
+  return { activePlan: emptyPlan(), savedPlans: [], favorites: [], checked: [], locked: [], cookLog: [], ...EPHEMERAL };
 }
 
 // Durable subset that round-trips through localStorage (cache + offline view).
-type Durable = Pick<AppState, "activePlan" | "savedPlans" | "favorites" | "checked" | "locked">;
+type Durable = Pick<AppState, "activePlan" | "savedPlans" | "favorites" | "checked" | "locked" | "cookLog">;
 function durableOf(s: AppState): Durable {
   return {
     activePlan: s.activePlan,
@@ -63,6 +66,7 @@ function durableOf(s: AppState): Durable {
     favorites: s.favorites,
     checked: s.checked,
     locked: s.locked,
+    cookLog: s.cookLog,
   };
 }
 
@@ -82,6 +86,7 @@ function hasData(s: Durable): boolean {
     s.savedPlans.length > 0 ||
     s.favorites.length > 0 ||
     s.checked.length > 0 ||
+    s.cookLog.length > 0 ||
     s.activePlan.some((d) => d.breakfast || d.lunch || d.dinner || d.snack)
   );
 }
@@ -205,6 +210,7 @@ function subscribeRealtime() {
     .on("postgres_changes", { event: "*", schema: "public", table: "favorites", filter: `household_id=eq.${h}` }, onRemoteChange)
     // checkoffs can't be filtered by household here; RLS already scopes events to ours.
     .on("postgres_changes", { event: "*", schema: "public", table: "shopping_checkoffs" }, onRemoteChange)
+    .on("postgres_changes", { event: "*", schema: "public", table: "cook_log", filter: `household_id=eq.${h}` }, onRemoteChange)
     .subscribe();
 }
 
@@ -339,6 +345,27 @@ export const actions = {
     });
   },
 
+  /** Record an "I made this" event (optimistic; newest-first). Returns the new id. */
+  markCooked(entry: { recipeId: string; cookedOn: string; rating?: number | null; makeAgain?: boolean | null; notes?: string | null }) {
+    const event: CookEvent = {
+      id: crypto.randomUUID(),
+      recipeId: entry.recipeId,
+      cookedOn: entry.cookedOn,
+      rating: entry.rating ?? null,
+      makeAgain: entry.makeAgain ?? null,
+      notes: entry.notes?.trim() ? entry.notes.trim() : null,
+      planId: cloud?.activePlanId ?? null,
+    };
+    set({ cookLog: [event, ...state.cookLog] });
+    push((c) => insertCookEvent(c.client, event, c.householdId, c.userId));
+    return event.id;
+  },
+
+  deleteCookEvent(id: string) {
+    set({ cookLog: state.cookLog.filter((e) => e.id !== id) });
+    push((c) => cloudDeleteCookEvent(c.client, id));
+  },
+
   savePlanAs(name: string) {
     const sp: SavedPlan = { id: crypto.randomUUID(), name, createdAt: Date.now(), plan: state.activePlan };
     set({ savedPlans: [...state.savedPlans, sp] });
@@ -365,6 +392,7 @@ export const actions = {
       favorites: next.favorites ?? [],
       checked: next.checked ?? [],
       locked: next.locked ?? [],
+      cookLog: next.cookLog ?? [],
     });
     push(async (c) => {
       const planId = await pushFullState(c.client, c.householdId, c.activePlanId, state);
