@@ -394,7 +394,9 @@ export const actions = {
   saveItemLocations(entries: ItemLocation[]) {
     if (!entries.length) return;
     const byName = new Map(state.itemLocations.map((l) => [l.name, l]));
-    for (const e of entries) byName.set(e.name, e);
+    // Field-merge so an entry that omits a field (e.g. a price-only refresh with no quantity)
+    // preserves the existing value rather than clobbering it.
+    for (const e of entries) byName.set(e.name, { ...byName.get(e.name), ...e });
     set({ itemLocations: [...byName.values()] });
     push((c) => upsertItemLocations(c.client, entries, c.householdId, c.userId));
   },

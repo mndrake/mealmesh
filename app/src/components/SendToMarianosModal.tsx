@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Section } from "../lib/types";
 import { type ShoppingList, SECTION_LABELS } from "../lib/shopping";
 import { sectionMismatch } from "../lib/krogerSections";
-import { actions } from "../lib/store";
+import { actions, getState } from "../lib/store";
 import { krogerClient, type ReviewRow, type KrogerStore, type SentItem, type ProductMatch } from "../lib/krogerClient";
 
 type Step = "loading" | "needs-auth" | "store" | "review" | "sending" | "done" | "error";
@@ -60,19 +60,44 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
     setStep("error");
   }
 
+  /** Persist the current product/price/aisle/quantity mapping back to the shopping list so
+   *  the in-store checklist reflects any swaps or quantity edits made here. */
+  function persistMapping() {
+    const now = Date.now();
+    const locs = rows
+      .filter((r) => r.matched)
+      .map((r) => ({
+        name: r.listName,
+        aisle: r.matched!.aisle,
+        aisleNumber: r.matched!.aisleNumber,
+        department: r.matched!.department,
+        price: r.matched!.price,
+        product: r.matched!.description,
+        quantity: r.quantity,
+        fetchedAt: now,
+      }));
+    if (locs.length) actions.saveItemLocations(locs);
+  }
+
+  function handleClose() {
+    persistMapping();
+    onClose();
+  }
+
   async function startReview(sent: SentItem[] = sentItems) {
     setStep("loading");
     try {
       const { rows } = await krogerClient.match(items);
       // Default already-sent or unavailable matches OFF so we don't duplicate the cart or
-      // add things that can't be fulfilled — the user can still re-check them.
+      // add things that can't be fulfilled — the user can still re-check them. Seed each row's
+      // package quantity from what was saved previously (this is the place qty is edited).
       const sentUpcs = new Set(sent.map((x) => x.upc));
+      const savedQty = new Map(getState().itemLocations.map((l) => [l.name, l.quantity]));
       setRows(
-        rows.map((r) =>
-          r.matched && (sentUpcs.has(r.matched.upc) || !r.matched.available)
-            ? { ...r, include: false }
-            : r
-        )
+        rows.map((r) => {
+          const off = r.matched && (sentUpcs.has(r.matched.upc) || !r.matched.available);
+          return { ...r, quantity: savedQty.get(r.listName) ?? r.quantity, include: off ? false : r.include };
+        })
       );
       // Persist store locations back to the shopping list (by item name) so it can be
       // organized by aisle and show location info while shopping.
@@ -231,13 +256,13 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
   const toRemove = sentItems.filter((s) => !currentUpcs.has(s.upc));
 
   return (
-    <div className="overlay" onClick={onClose}>
+    <div className="overlay" onClick={handleClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 760 }}>
-        <button className="close" onClick={onClose} aria-label="Close">
+        <button className="close" onClick={handleClose} aria-label="Close">
           ×
         </button>
         <div className="content">
-          <h2 style={{ marginTop: 0 }}>🛒 Send to Mariano's</h2>
+          <h2 style={{ marginTop: 0 }}>🛒 Review products &amp; prices</h2>
 
           {step === "loading" && <p className="muted">Loading…</p>}
           {step === "error" && <p className="login-error">Something went wrong: {error}</p>}
@@ -383,8 +408,8 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
                 <button className="btn" onClick={send} disabled={!includedCount}>
                   Send {includedCount} to cart
                 </button>
-                <button className="btn ghost" onClick={onClose}>
-                  Cancel
+                <button className="btn ghost" onClick={handleClose}>
+                  Done
                 </button>
               </div>
             </>

@@ -598,23 +598,56 @@ a {
 }
 .shop-item {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   gap: 9px;
-  padding: 5px 0;
+  padding: 7px 0;
   border-bottom: 1px solid var(--border);
 }
 .shop-item:last-child {
   border-bottom: none;
 }
+.shop-item input[type="checkbox"] {
+  margin-top: 3px;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+.shop-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+.shop-main > label {
+  cursor: pointer;
+}
 .shop-item.checked label {
   text-decoration: line-through;
   color: var(--muted);
 }
-.shop-item .q {
-  margin-left: auto;
+/* secondary line: aisle · qty · price */
+.shop-sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  font-size: 0.78rem;
   color: var(--muted);
-  font-size: 0.85rem;
+}
+.shop-sub .q {
   font-variant-numeric: tabular-nums;
+}
+/* In the two-line layout the aisle sits inline-left; only price floats right. */
+.shop-sub .shop-loc {
+  margin: 0;
+}
+.shop-sub .shop-price {
+  margin-left: auto;
+  font-weight: 600;
+  color: var(--ink, inherit);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 .staples {
   background: var(--warn-soft);
@@ -1223,39 +1256,4 @@ a {
   align-items: baseline;
   font-size: 0.9rem;
   padding: 6px 0 2px;
-}
-.shop-price {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-left: auto;
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.shop-price .stepper {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-weight: 400;
-}
-.shop-price .stepper button {
-  width: 20px;
-  height: 20px;
-  line-height: 1;
-  padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  background: var(--surface);
-  cursor: pointer;
-}
-.shop-price .stepper button:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-.shop-price .pk {
-  min-width: 22px;
-  text-align: center;
-  font-size: 0.8rem;
-  color: var(--muted, #666);
 }
