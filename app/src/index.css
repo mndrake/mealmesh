@@ -826,6 +826,9 @@ a {
   color: var(--accent);
   white-space: nowrap;
 }
+.shop-loc.stale {
+  color: var(--warn);
+}
 /* When a location is shown it takes the auto margin, so keep qty from also pushing right. */
 .shop-item .shop-loc + .q {
   margin-left: 0;

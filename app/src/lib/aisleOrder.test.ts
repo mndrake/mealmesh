@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { groupByAisle, locationText } from "./aisleOrder";
+import { groupByAisle, locationText, isStale } from "./aisleOrder";
 import type { ItemLocation } from "./types";
 import type { ShoppingList } from "./shopping";
 
@@ -51,5 +51,20 @@ describe("groupByAisle", () => {
     expect(locationText(loc("x", "Produce", 3, "Aisle 3"))).toBe("Aisle 3");
     expect(locationText(loc("x", "Produce", null))).toBe("Produce");
     expect(locationText(null)).toBe("");
+  });
+});
+
+describe("isStale", () => {
+  const now = Date.UTC(2026, 5, 21);
+  const withFetch = (ms: number) => ({ ...loc("x", "Produce", 3), fetchedAt: ms });
+
+  it("flags locations older than the threshold", () => {
+    expect(isStale(withFetch(now - 40 * 86_400_000), now, 30)).toBe(true);
+    expect(isStale(withFetch(now - 10 * 86_400_000), now, 30)).toBe(false);
+  });
+
+  it("never flags unknown (0) fetch time or missing location", () => {
+    expect(isStale(withFetch(0), now, 30)).toBe(false);
+    expect(isStale(null, now, 30)).toBe(false);
   });
 });

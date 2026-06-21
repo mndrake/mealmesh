@@ -118,6 +118,11 @@ best-effort and keyed by UPC, since we never see the authoritative cart.
   department ordered by aisle number, with un-located items falling back to their normal
   section. The toggle is disabled until a match has populated locations. Checkoff ids stay
   `"<section>:<name>"` so checked state is stable across both views.
+- **Freshness + refresh:** each location stores `fetched_at` (migration 0007); the list shows
+  "as of <date>" and a per-item tooltip. Locations older than `STALE_DAYS` (30) are flagged
+  with a "⚠" + warn color (`isStale` in `aisleOrder.ts`). A **"↻ Refresh aisles (N stale)"**
+  button re-runs the match for the current list and re-saves locations with a fresh timestamp;
+  if not yet connected / no store chosen, it falls back to the guided Send flow.
 
 ## UI
 "🛒 Send to Mariano's" button in `ShoppingView` (next to Export/Print) → modal:

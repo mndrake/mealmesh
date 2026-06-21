@@ -59,3 +59,12 @@ export function locationText(loc: ItemLocation | null | undefined): string {
   if (!loc) return "";
   return loc.aisle || loc.department || "";
 }
+
+const DAY_MS = 86_400_000;
+
+/** True when a location was fetched longer than `days` ago (store layouts drift).
+ *  Items with no known fetch time (0) or no location aren't considered stale. */
+export function isStale(loc: ItemLocation | null | undefined, now: number = Date.now(), days = 30): boolean {
+  if (!loc || !loc.fetchedAt) return false;
+  return now - loc.fetchedAt > days * DAY_MS;
+}

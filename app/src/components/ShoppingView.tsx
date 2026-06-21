@@ -4,13 +4,15 @@ import { recipesById } from "../lib/recipes";
 import { cookedMeals } from "../lib/planner";
 import { buildList, SECTION_LABELS } from "../lib/shopping";
 import { normalizeForShopping } from "../lib/normalize";
-import { groupByAisle, locationText } from "../lib/aisleOrder";
+import { groupByAisle, locationText, isStale } from "../lib/aisleOrder";
 import { formatCookedOn, todayIso } from "../lib/history";
 import { useStore, actions } from "../lib/store";
-
-const fmtDate = (ms: number) => formatCookedOn(todayIso(new Date(ms)));
+import { krogerClient } from "../lib/krogerClient";
 import { exportShoppingText } from "../lib/exporter";
 import { SendToMarianosModal } from "./SendToMarianosModal";
+
+const STALE_DAYS = 30;
+const fmtDate = (ms: number) => formatCookedOn(todayIso(new Date(ms)));
 
 export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
   const plan = useStore((s) => s.activePlan);
@@ -21,6 +23,7 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
   // Opens immediately when returning from the Kroger OAuth redirect (openSend).
   const [showKroger, setShowKroger] = useState(openSend);
   const [byAisle, setByAisle] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const { list, mealCount } = useMemo(() => {
     const meals = cookedMeals(plan, recipesById);
@@ -46,6 +49,40 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
     () => (byAisle && hasLocations ? groupByAisle(list, locMap) : null),
     [byAisle, hasLocations, list, locMap]
   );
+  // Located items whose aisle info is older than the staleness threshold.
+  const staleCount = useMemo(
+    () =>
+      list.sections.reduce(
+        (n, s) => n + s.items.filter(([name]) => isStale(locMap.get(name), Date.now(), STALE_DAYS)).length,
+        0
+      ),
+    [list, locMap]
+  );
+
+  /** Re-fetch aisle/location info for the current list from Mariano's. Silent when already
+   *  connected with a store; otherwise falls back to the guided Send flow which sets those up. */
+  async function refreshAisles() {
+    const items = list.sections.flatMap((s) => s.items).map(([name, displayQty]) => ({ name, displayQty }));
+    setRefreshing(true);
+    try {
+      const { rows } = await krogerClient.match(items);
+      const now = Date.now();
+      const locs = rows
+        .filter((r) => r.matched && (r.matched.department || r.matched.aisle))
+        .map((r) => ({
+          name: r.listName,
+          aisle: r.matched!.aisle,
+          aisleNumber: r.matched!.aisleNumber,
+          department: r.matched!.department,
+          fetchedAt: now,
+        }));
+      if (locs.length) actions.saveItemLocations(locs);
+    } catch {
+      setShowKroger(true); // not connected / no store yet — the modal handles setup
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   if (mealCount === 0) {
     return (
@@ -63,13 +100,18 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
     const isChecked = checkedSet.has(id);
     const loc = locMap.get(name);
     const where = locationText(loc);
+    const stale = isStale(loc, Date.now(), STALE_DAYS);
     return (
       <div className={`shop-item ${isChecked ? "checked" : ""}`}>
         <input type="checkbox" id={id} checked={isChecked} onChange={() => actions.toggleChecked(id)} />
         <label htmlFor={id}>{name}</label>
         {where && (
-          <span className="shop-loc" title={loc?.fetchedAt ? `Aisle info fetched ${fmtDate(loc.fetchedAt)}` : undefined}>
+          <span
+            className={`shop-loc ${stale ? "stale" : ""}`}
+            title={loc?.fetchedAt ? `Aisle info fetched ${fmtDate(loc.fetchedAt)}${stale ? " — may be stale" : ""}` : undefined}
+          >
             📍 {where}
+            {stale ? " ⚠" : ""}
           </span>
         )}
         {qty && <span className="q">{qty}</span>}
@@ -97,6 +139,16 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
         >
           🧭 Aisle order
         </button>
+        {hasLocations && (
+          <button
+            className="btn secondary small"
+            onClick={refreshAisles}
+            disabled={refreshing}
+            title="Re-fetch aisle / location info from Mariano's"
+          >
+            {refreshing ? "↻ Refreshing…" : `↻ Refresh aisles${staleCount ? ` (${staleCount} stale)` : ""}`}
+          </button>
+        )}
         <button className="btn secondary small" onClick={() => exportShoppingText(list)}>
           Export
         </button>
