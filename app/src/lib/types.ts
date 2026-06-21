@@ -99,6 +99,15 @@ export type Plan = PlanDay[];
 
 // ---- Cooked tracking (M3) ----
 
+/** Where a shopping-list item lives in the (Kroger) store — cached per household and shown
+ *  when shopping. Keyed by the item's display name. Populated from the Products match. */
+export interface ItemLocation {
+  name: string;
+  aisle: string | null; // "Aisle 35"
+  aisleNumber: number | null; // 35 — for store-walk ordering
+  department: string | null; // "Produce" — the Kroger section
+}
+
 /** One "I made this" event with optional quick feedback. Mirrors a cook_log row. */
 export interface CookEvent {
   id: string;

@@ -1,6 +1,6 @@
 // Pure mapping between the app's AppState and Supabase row shapes. No network here —
 // cloudStore.ts does the I/O, store.ts orchestrates. Kept pure so it is unit-testable.
-import type { Plan, CookEvent } from "./types";
+import type { Plan, CookEvent, ItemLocation } from "./types";
 import type { AppState, SavedPlan } from "./store";
 
 /** The durable, persisted subset of AppState (no ephemeral UI flags). */
@@ -46,6 +46,14 @@ export interface CookLogRow {
   notes: string | null;
   plan_id: string | null;
   created_at?: string;
+}
+
+export interface ItemLocationRow {
+  household_id: string;
+  item_name: string;
+  aisle: string | null;
+  aisle_number: number | null;
+  department: string | null;
 }
 
 // ---- AppState -> row payloads (for writes) ----
@@ -103,6 +111,27 @@ export function cookEventFromRow(r: CookLogRow): CookEvent {
   };
 }
 
+export function itemLocationFromRow(r: ItemLocationRow): ItemLocation {
+  return {
+    name: r.item_name,
+    aisle: r.aisle ?? null,
+    aisleNumber: r.aisle_number ?? null,
+    department: r.department ?? null,
+  };
+}
+
+/** Upsert payload for an item location. */
+export function itemLocationToRow(l: ItemLocation, householdId: string, userId?: string) {
+  return {
+    household_id: householdId,
+    item_name: l.name,
+    aisle: l.aisle,
+    aisle_number: l.aisleNumber,
+    department: l.department,
+    updated_by: userId ?? null,
+  };
+}
+
 /** Insert payload for a cook event (id/created_at are server-defaulted). */
 export function cookEventToRow(e: CookEvent, householdId: string, userId?: string) {
   return {
@@ -125,6 +154,7 @@ export function stateFromRows(opts: {
   favoriteRows: FavoriteRow[];
   checkoffRows: CheckoffRow[];
   cookLogRows: CookLogRow[];
+  itemLocationRows: ItemLocationRow[];
   emptyPlan: () => Plan;
 }): DurableState {
   const active = opts.activePlanRow
@@ -137,6 +167,7 @@ export function stateFromRows(opts: {
     favorites: favoritesFromRows(opts.favoriteRows),
     checked: checkedFromRows(opts.checkoffRows),
     cookLog: opts.cookLogRows.map(cookEventFromRow),
+    itemLocations: opts.itemLocationRows.map(itemLocationFromRow),
   };
 }
 

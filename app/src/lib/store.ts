@@ -9,7 +9,7 @@
 import { useSyncExternalStore } from "react";
 import type { SupabaseClient, RealtimeChannel } from "@supabase/supabase-js";
 import { DAYS } from "./planner";
-import type { Plan, PlanDay, CookEvent } from "./types";
+import type { Plan, PlanDay, CookEvent, ItemLocation } from "./types";
 import {
   hydrate,
   writeActivePlan,
@@ -20,6 +20,7 @@ import {
   clearCheckoffs,
   insertCookEvent,
   deleteCookEvent as cloudDeleteCookEvent,
+  upsertItemLocations,
   pushFullState,
 } from "./cloudStore";
 
@@ -39,6 +40,7 @@ export interface AppState {
   checked: string[]; // shopping list item names checked off
   locked: string[]; // "<dayIndex>:<slot>" keys pinned against regenerate
   cookLog: CookEvent[]; // "I made this" history (newest-first)
+  itemLocations: ItemLocation[]; // store aisle/department cache (by item name)
   // ---- ephemeral (not persisted to localStorage) ----
   loading: boolean; // hydrating from the cloud
   syncError: boolean; // last cloud write failed to reconcile
@@ -54,11 +56,11 @@ export function emptyPlan(): Plan {
 const EPHEMERAL = { loading: false, syncError: false, importAvailable: false };
 
 function defaultState(): AppState {
-  return { activePlan: emptyPlan(), savedPlans: [], favorites: [], checked: [], locked: [], cookLog: [], ...EPHEMERAL };
+  return { activePlan: emptyPlan(), savedPlans: [], favorites: [], checked: [], locked: [], cookLog: [], itemLocations: [], ...EPHEMERAL };
 }
 
 // Durable subset that round-trips through localStorage (cache + offline view).
-type Durable = Pick<AppState, "activePlan" | "savedPlans" | "favorites" | "checked" | "locked" | "cookLog">;
+type Durable = Pick<AppState, "activePlan" | "savedPlans" | "favorites" | "checked" | "locked" | "cookLog" | "itemLocations">;
 function durableOf(s: AppState): Durable {
   return {
     activePlan: s.activePlan,
@@ -67,6 +69,7 @@ function durableOf(s: AppState): Durable {
     checked: s.checked,
     locked: s.locked,
     cookLog: s.cookLog,
+    itemLocations: s.itemLocations,
   };
 }
 
@@ -211,6 +214,7 @@ function subscribeRealtime() {
     // checkoffs can't be filtered by household here; RLS already scopes events to ours.
     .on("postgres_changes", { event: "*", schema: "public", table: "shopping_checkoffs" }, onRemoteChange)
     .on("postgres_changes", { event: "*", schema: "public", table: "cook_log", filter: `household_id=eq.${h}` }, onRemoteChange)
+    .on("postgres_changes", { event: "*", schema: "public", table: "item_locations", filter: `household_id=eq.${h}` }, onRemoteChange)
     .subscribe();
 }
 
@@ -366,6 +370,15 @@ export const actions = {
     push((c) => cloudDeleteCookEvent(c.client, id));
   },
 
+  /** Cache store locations for items (by name), e.g. from a Kroger match. Upserts by name. */
+  saveItemLocations(entries: ItemLocation[]) {
+    if (!entries.length) return;
+    const byName = new Map(state.itemLocations.map((l) => [l.name, l]));
+    for (const e of entries) byName.set(e.name, e);
+    set({ itemLocations: [...byName.values()] });
+    push((c) => upsertItemLocations(c.client, entries, c.householdId, c.userId));
+  },
+
   savePlanAs(name: string) {
     const sp: SavedPlan = { id: crypto.randomUUID(), name, createdAt: Date.now(), plan: state.activePlan };
     set({ savedPlans: [...state.savedPlans, sp] });
@@ -393,6 +406,7 @@ export const actions = {
       checked: next.checked ?? [],
       locked: next.locked ?? [],
       cookLog: next.cookLog ?? [],
+      itemLocations: next.itemLocations ?? [],
     });
     push(async (c) => {
       const planId = await pushFullState(c.client, c.householdId, c.activePlanId, state);

@@ -10,6 +10,7 @@ export interface ProductMatch {
   price: number | null;
   available: boolean;
   aisle: string | null; // e.g. "Aisle 35" (often absent)
+  aisleNumber: number | null; // 35 — for store-walk ordering
   department: string | null; // e.g. "Produce"
 }
 export interface ReviewRow {

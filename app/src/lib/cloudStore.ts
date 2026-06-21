@@ -6,6 +6,7 @@ import {
   planData,
   savedPlanToRow,
   cookEventToRow,
+  itemLocationToRow,
   stateFromRows,
   householdIsEmpty,
   type DurableState,
@@ -13,8 +14,9 @@ import {
   type FavoriteRow,
   type CheckoffRow,
   type CookLogRow,
+  type ItemLocationRow,
 } from "./cloudMap";
-import type { Plan, CookEvent } from "./types";
+import type { Plan, CookEvent, ItemLocation } from "./types";
 
 export interface HydrateResult {
   state: DurableState;
@@ -28,7 +30,7 @@ export async function hydrate(
   householdId: string,
   emptyPlan: () => Plan
 ): Promise<HydrateResult> {
-  const [plansRes, favRes, cookRes] = await Promise.all([
+  const [plansRes, favRes, cookRes, locRes] = await Promise.all([
     client.from("plans").select("*").eq("household_id", householdId),
     client.from("favorites").select("household_id,recipe_id").eq("household_id", householdId),
     client
@@ -36,16 +38,22 @@ export async function hydrate(
       .select("id,recipe_id,cooked_on,rating,make_again,notes,plan_id")
       .eq("household_id", householdId)
       .order("cooked_on", { ascending: false }),
+    client
+      .from("item_locations")
+      .select("item_name,aisle,aisle_number,department")
+      .eq("household_id", householdId),
   ]);
   if (plansRes.error) throw plansRes.error;
   if (favRes.error) throw favRes.error;
   if (cookRes.error) throw cookRes.error;
+  if (locRes.error) throw locRes.error;
 
   const planRows = (plansRes.data ?? []) as PlanRow[];
   const activePlanRow = planRows.find((r) => r.is_active) ?? null;
   const savedPlanRows = planRows.filter((r) => !r.is_active);
   const favoriteRows = (favRes.data ?? []) as FavoriteRow[];
   const cookLogRows = (cookRes.data ?? []) as CookLogRow[];
+  const itemLocationRows = (locRes.data ?? []) as ItemLocationRow[];
 
   let checkoffRows: CheckoffRow[] = [];
   if (activePlanRow) {
@@ -58,10 +66,23 @@ export async function hydrate(
   }
 
   return {
-    state: stateFromRows({ activePlanRow, savedPlanRows, favoriteRows, checkoffRows, cookLogRows, emptyPlan }),
+    state: stateFromRows({ activePlanRow, savedPlanRows, favoriteRows, checkoffRows, cookLogRows, itemLocationRows, emptyPlan }),
     activePlanId: activePlanRow?.id ?? null,
     isEmpty: householdIsEmpty({ activePlanRow, savedPlanRows, favoriteRows, cookLogRows }),
   };
+}
+
+/** Upsert item locations (household-scoped cache; keyed by item name). */
+export async function upsertItemLocations(
+  client: SupabaseClient,
+  locations: ItemLocation[],
+  householdId: string,
+  userId?: string
+): Promise<void> {
+  if (!locations.length) return;
+  const rows = locations.map((l) => itemLocationToRow(l, householdId, userId));
+  const { error } = await client.from("item_locations").upsert(rows, { onConflict: "household_id,item_name" });
+  if (error) throw error;
 }
 
 /** Insert one cook event for the household. */
@@ -206,6 +227,15 @@ export async function pushFullState(
       cookEventToRow({ ...e, id: crypto.randomUUID(), planId: null }, householdId)
     );
     const { error } = await client.from("cook_log").insert(rows);
+    if (error) throw error;
+  }
+
+  // Item locations: replace.
+  const { error: delLoc } = await client.from("item_locations").delete().eq("household_id", householdId);
+  if (delLoc) throw delLoc;
+  if (state.itemLocations.length) {
+    const rows = state.itemLocations.map((l) => itemLocationToRow(l, householdId));
+    const { error } = await client.from("item_locations").insert(rows);
     if (error) throw error;
   }
   return planId;

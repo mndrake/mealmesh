@@ -111,6 +111,13 @@ best-effort and keyed by UPC, since we never see the authoritative cart.
   map to `null`). When the mapped section confidently differs from the section the list grouped
   an item under, the review shows a "⚠ Kroger: <section>" flag (with the list's section in the
   tooltip). Display-only — it never re-sections the list or blocks sending.
+- **Persisted locations + aisle order:** matches are cached per household in
+  `item_locations` (migration 0006; keyed by item name, synced through the store like
+  favorites/cook-log). The shopping list shows a "📍 Aisle N / department" per item where
+  known, and a **"🧭 Aisle order"** toggle (`aisleOrder.ts`) regroups the list by Kroger
+  department ordered by aisle number, with un-located items falling back to their normal
+  section. The toggle is disabled until a match has populated locations. Checkoff ids stay
+  `"<section>:<name>"` so checked state is stable across both views.
 
 ## UI
 "🛒 Send to Mariano's" button in `ShoppingView` (next to Export/Print) → modal:

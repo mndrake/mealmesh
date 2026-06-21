@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
+import type { Section } from "../lib/types";
 import { recipesById } from "../lib/recipes";
 import { cookedMeals } from "../lib/planner";
 import { buildList, SECTION_LABELS } from "../lib/shopping";
 import { normalizeForShopping } from "../lib/normalize";
+import { groupByAisle, locationText } from "../lib/aisleOrder";
 import { useStore, actions } from "../lib/store";
 import { exportShoppingText } from "../lib/exporter";
 import { SendToMarianosModal } from "./SendToMarianosModal";
@@ -10,9 +12,12 @@ import { SendToMarianosModal } from "./SendToMarianosModal";
 export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
   const plan = useStore((s) => s.activePlan);
   const checked = useStore((s) => s.checked);
+  const itemLocations = useStore((s) => s.itemLocations);
   const checkedSet = useMemo(() => new Set(checked), [checked]);
+  const locMap = useMemo(() => new Map(itemLocations.map((l) => [l.name, l])), [itemLocations]);
   // Opens immediately when returning from the Kroger OAuth redirect (openSend).
   const [showKroger, setShowKroger] = useState(openSend);
+  const [byAisle, setByAisle] = useState(false);
 
   const { list, mealCount } = useMemo(() => {
     const meals = cookedMeals(plan, recipesById);
@@ -20,6 +25,15 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
   }, [plan]);
 
   const itemCount = list.sections.reduce((n, s) => n + s.items.length, 0);
+  // Only offer aisle order when some current item actually has location data.
+  const hasLocations = useMemo(
+    () => list.sections.some((s) => s.items.some(([name]) => locMap.get(name)?.department || locMap.get(name)?.aisle)),
+    [list, locMap]
+  );
+  const aisleGroups = useMemo(
+    () => (byAisle && hasLocations ? groupByAisle(list, locMap) : null),
+    [byAisle, hasLocations, list, locMap]
+  );
 
   if (mealCount === 0) {
     return (
@@ -32,6 +46,21 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
     );
   }
 
+  function Item({ name, qty, section }: { name: string; qty?: string; section: Section | "staple" }) {
+    const id = `${section}:${name}`;
+    const isChecked = checkedSet.has(id);
+    const loc = locMap.get(name);
+    const where = locationText(loc);
+    return (
+      <div className={`shop-item ${isChecked ? "checked" : ""}`}>
+        <input type="checkbox" id={id} checked={isChecked} onChange={() => actions.toggleChecked(id)} />
+        <label htmlFor={id}>{name}</label>
+        {where && <span className="shop-loc">📍 {where}</span>}
+        {qty && <span className="q">{qty}</span>}
+      </div>
+    );
+  }
+
   return (
     <div className="container">
       <div className="row" style={{ marginBottom: 14 }}>
@@ -40,6 +69,18 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
           {itemCount} items · {mealCount} meals
         </span>
         <div className="spacer" />
+        <button
+          className={`btn secondary small ${byAisle ? "on" : ""}`}
+          onClick={() => setByAisle((v) => !v)}
+          disabled={!hasLocations}
+          title={
+            hasLocations
+              ? "Organize by store aisle (from Kroger)"
+              : "Send your list to Mariano's first to fetch aisle info"
+          }
+        >
+          🧭 Aisle order
+        </button>
         <button className="btn secondary small" onClick={() => exportShoppingText(list)}>
           Export
         </button>
@@ -55,58 +96,41 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
       </div>
 
       <p className="muted" style={{ marginTop: 0, fontSize: "0.82rem" }}>
-        Quantities are merged across the week and grouped by store section. Ingredient
-        names and aisles are normalized — chopped/sliced veg are rolled up into whole
-        counts, and mislabeled items are re-sectioned. Pantry staples are listed
-        separately to check before shopping.
+        {aisleGroups
+          ? "Organized by store aisle from your last Mariano's match. Items without aisle data are grouped by section at the end; aisle coverage from Kroger is partial."
+          : "Quantities are merged across the week and grouped by store section. Ingredient names and aisles are normalized. Pantry staples are listed separately to check before shopping."}
       </p>
 
       <div className="shop-cols">
-        {list.sections.map(({ section, items }) => (
-          <div className="shop-section" key={section}>
-            <h3>
-              {SECTION_LABELS[section].label}
-              {SECTION_LABELS[section].hint && (
-                <span className="section-hint">{SECTION_LABELS[section].hint}</span>
-              )}
-            </h3>
-            {items.map(([name, qty]) => {
-              const id = `${section}:${name}`;
-              const isChecked = checkedSet.has(id);
-              return (
-                <div className={`shop-item ${isChecked ? "checked" : ""}`} key={name}>
-                  <input
-                    type="checkbox"
-                    id={id}
-                    checked={isChecked}
-                    onChange={() => actions.toggleChecked(id)}
-                  />
-                  <label htmlFor={id}>{name}</label>
-                  <span className="q">{qty}</span>
-                </div>
-              );
-            })}
-          </div>
-        ))}
+        {aisleGroups
+          ? aisleGroups.map((g) => (
+              <div className="shop-section" key={g.key}>
+                <h3>{g.label}</h3>
+                {g.items.map((it) => (
+                  <Item key={it.name} name={it.name} qty={it.qty} section={it.section} />
+                ))}
+              </div>
+            ))
+          : list.sections.map(({ section, items }) => (
+              <div className="shop-section" key={section}>
+                <h3>
+                  {SECTION_LABELS[section].label}
+                  {SECTION_LABELS[section].hint && (
+                    <span className="section-hint">{SECTION_LABELS[section].hint}</span>
+                  )}
+                </h3>
+                {items.map(([name, qty]) => (
+                  <Item key={name} name={name} qty={qty} section={section} />
+                ))}
+              </div>
+            ))}
 
         {list.staples.length > 0 && (
           <div className="shop-section staples">
             <h3>Check pantry (staples)</h3>
-            {list.staples.map((name) => {
-              const id = `staple:${name}`;
-              const isChecked = checkedSet.has(id);
-              return (
-                <div className={`shop-item ${isChecked ? "checked" : ""}`} key={name}>
-                  <input
-                    type="checkbox"
-                    id={id}
-                    checked={isChecked}
-                    onChange={() => actions.toggleChecked(id)}
-                  />
-                  <label htmlFor={id}>{name}</label>
-                </div>
-              );
-            })}
+            {list.staples.map((name) => (
+              <Item key={name} name={name} section="staple" />
+            ))}
           </div>
         )}
       </div>

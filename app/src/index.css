@@ -818,6 +818,18 @@ a {
 .kr-aisle.warn {
   color: var(--warn);
 }
+/* Shopping-list per-item store location */
+.shop-loc {
+  margin-left: auto;
+  margin-right: 8px;
+  font-size: 0.72rem;
+  color: var(--accent);
+  white-space: nowrap;
+}
+/* When a location is shown it takes the auto margin, so keep qty from also pushing right. */
+.shop-item .shop-loc + .q {
+  margin-left: 0;
+}
 /* Inline text button (e.g. "Reset after checkout") styled like a link. */
 .linklike {
   background: none;

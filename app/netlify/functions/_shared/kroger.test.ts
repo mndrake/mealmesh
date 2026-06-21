@@ -86,7 +86,7 @@ describe("kroger pure helpers", () => {
       "red onion",
       "1 each"
     );
-    expect(row.matched).toMatchObject({ upc: "0001", description: "Red Onion", price: 0.99, available: true, aisle: "Aisle 35", department: "Produce" });
+    expect(row.matched).toMatchObject({ upc: "0001", description: "Red Onion", price: 0.99, available: true, aisle: "Aisle 35", aisleNumber: 35, department: "Produce" });
     expect(row.alternates).toHaveLength(1);
     expect(row.alternates[0]).toMatchObject({ upc: "0002", price: 1.49, aisle: null, department: null }); // promo preferred; no aisle data
     expect(row.quantity).toBe(1);
@@ -99,7 +99,7 @@ describe("kroger pure helpers", () => {
       "milk",
       "1 each"
     );
-    expect(row.matched).toMatchObject({ aisle: "Aisle 12", department: null });
+    expect(row.matched).toMatchObject({ aisle: "Aisle 12", aisleNumber: 12, department: null });
   });
 
   it("review row with no matches is excluded by default", () => {

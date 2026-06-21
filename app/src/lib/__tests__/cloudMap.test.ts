@@ -70,6 +70,7 @@ describe("cloudMap", () => {
       favoriteRows: [{ household_id: "h", recipe_id: "x" }],
       checkoffRows: [{ plan_id: "p1", item_name: "Produce:onion" }],
       cookLogRows: [{ id: "c1", household_id: "h", recipe_id: "r", cooked_on: "2026-06-02", rating: null, make_again: null, notes: null, plan_id: "p1" }],
+      itemLocationRows: [{ household_id: "h", item_name: "onion", aisle: "Aisle 35", aisle_number: 35, department: "Produce" }],
       emptyPlan,
     });
     expect(state.activePlan).toEqual(samplePlan);
@@ -78,12 +79,14 @@ describe("cloudMap", () => {
     expect(state.favorites).toEqual(["x"]);
     expect(state.checked).toEqual(["Produce:onion"]);
     expect(state.cookLog).toEqual([{ id: "c1", recipeId: "r", cookedOn: "2026-06-02", rating: null, makeAgain: null, notes: null, planId: "p1" }]);
+    expect(state.itemLocations).toEqual([{ name: "onion", aisle: "Aisle 35", aisleNumber: 35, department: "Produce" }]);
   });
 
   it("uses an empty plan when there is no active plan row", () => {
-    const state = stateFromRows({ activePlanRow: null, savedPlanRows: [], favoriteRows: [], checkoffRows: [], cookLogRows: [], emptyPlan });
+    const state = stateFromRows({ activePlanRow: null, savedPlanRows: [], favoriteRows: [], checkoffRows: [], cookLogRows: [], itemLocationRows: [], emptyPlan });
     expect(state.activePlan).toEqual(emptyPlan());
     expect(state.cookLog).toEqual([]);
+    expect(state.itemLocations).toEqual([]);
   });
 
   it("detects an empty household for the one-time import", () => {

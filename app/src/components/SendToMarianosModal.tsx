@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { Section } from "../lib/types";
 import { type ShoppingList, SECTION_LABELS } from "../lib/shopping";
 import { sectionMismatch } from "../lib/krogerSections";
+import { actions } from "../lib/store";
 import { krogerClient, type ReviewRow, type KrogerStore, type SentItem } from "../lib/krogerClient";
 
 type Step = "loading" | "needs-auth" | "store" | "review" | "sending" | "done" | "error";
@@ -72,6 +73,17 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
             : r
         )
       );
+      // Persist store locations back to the shopping list (by item name) so it can be
+      // organized by aisle and show location info while shopping.
+      const locs = rows
+        .filter((r) => r.matched && (r.matched.department || r.matched.aisle))
+        .map((r) => ({
+          name: r.listName,
+          aisle: r.matched!.aisle,
+          aisleNumber: r.matched!.aisleNumber,
+          department: r.matched!.department,
+        }));
+      if (locs.length) actions.saveItemLocations(locs);
       setStep("review");
     } catch (e) {
       if (e instanceof Error && e.message === "no_store") setStep("store");

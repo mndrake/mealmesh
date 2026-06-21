@@ -77,6 +77,7 @@ export interface ProductMatch {
   price: number | null;
   available: boolean;
   aisle: string | null; // e.g. "Aisle 35" (often absent — coverage is partial)
+  aisleNumber: number | null; // 35 — for store-walk ordering
   department: string | null; // e.g. "Produce" (from categories[0])
 }
 
@@ -157,6 +158,7 @@ function toMatch(p: any): ProductMatch | null {
   const f = item?.fulfillment ?? {};
   const al = p.aisleLocations?.[0];
   const aisle = al?.description ? String(al.description) : al?.number ? `Aisle ${al.number}` : null;
+  const aisleNum = al?.number != null && al.number !== "" ? Number(al.number) : NaN;
   const department = Array.isArray(p.categories) && p.categories.length ? String(p.categories[0]) : null;
   return {
     upc: String(p.upc),
@@ -165,6 +167,7 @@ function toMatch(p: any): ProductMatch | null {
     price: typeof price === "number" ? price : null,
     available: Boolean(f.instore || f.curbside || f.delivery || f.shiptohome),
     aisle,
+    aisleNumber: Number.isFinite(aisleNum) ? aisleNum : null,
     department,
   };
 }
