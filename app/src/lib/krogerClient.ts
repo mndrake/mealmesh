@@ -49,11 +49,23 @@ async function authHeaders(): Promise<Record<string, string>> {
   return { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) };
 }
 
-async function call<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`/api/kroger/${path}`, {
-    ...init,
-    headers: { ...(await authHeaders()), ...(init?.headers ?? {}) },
-  });
+async function call<T>(path: string, init?: RequestInit, timeoutMs = 30000): Promise<T> {
+  // Abort a hung request so the UI surfaces an error instead of spinning forever.
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  let res: Response;
+  try {
+    res = await fetch(`/api/kroger/${path}`, {
+      ...init,
+      signal: ctrl.signal,
+      headers: { ...(await authHeaders()), ...(init?.headers ?? {}) },
+    });
+  } catch (e) {
+    if (ctrl.signal.aborted) throw new Error("Request timed out — please try again.", { cause: e });
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
   const text = await res.text();
   let body: Record<string, unknown>;
   try {

@@ -33,8 +33,11 @@ export function SendToMarianosModal({ list, onClose, anchor = null }: { list: Sh
     list.sections.flatMap((s) => s.items.map(([name]) => [name, s.section] as [string, Section]))
   );
   // Items to match (with their expected aisle). Staples not marked "need" are already excluded
-  // from list.sections upstream.
+  // from list.sections upstream. When opened from an item's "change" link (anchor), we only
+  // match that one item — editing one product shouldn't re-match the whole list (slow).
   const items = list.sections.flatMap((s) => s.items.map(([name, displayQty]) => ({ name, displayQty, section: s.section })));
+  const reviewItems = anchor ? items.filter((it) => it.name === anchor) : items;
+  const editingOne = Boolean(anchor);
   const anchorRef = useRef<HTMLDivElement | null>(null);
 
   /** Location hint for a matched row: aisle + a flag when Kroger's department disagrees
@@ -95,7 +98,7 @@ export function SendToMarianosModal({ list, onClose, anchor = null }: { list: Sh
   async function startReview(sent: SentItem[] = sentItems) {
     setStep("loading");
     try {
-      const { rows } = await krogerClient.match(items);
+      const { rows } = await krogerClient.match(reviewItems);
       // Default already-sent or unavailable matches OFF so we don't duplicate the cart or
       // add things that can't be fulfilled — the user can still re-check them. Seed each row's
       // package quantity from what was saved previously (this is the place qty is edited).
@@ -273,7 +276,9 @@ export function SendToMarianosModal({ list, onClose, anchor = null }: { list: Sh
   // are already in the cart, and which previously-sent items are no longer needed.
   const sentUpcs = new Set(sentItems.map((s) => s.upc));
   const currentUpcs = new Set(rows.filter((r) => r.matched).map((r) => r.matched!.upc));
-  const toRemove = sentItems.filter((s) => !currentUpcs.has(s.upc));
+  // When editing a single item, don't reconcile against the whole cart (every other item
+  // would look like it needs removing).
+  const toRemove = editingOne ? [] : sentItems.filter((s) => !currentUpcs.has(s.upc));
 
   return (
     <div className="overlay" onClick={handleClose}>
@@ -282,7 +287,7 @@ export function SendToMarianosModal({ list, onClose, anchor = null }: { list: Sh
           ×
         </button>
         <div className="content">
-          <h2 style={{ marginTop: 0 }}>🛒 Review products &amp; prices</h2>
+          <h2 style={{ marginTop: 0 }}>{editingOne ? `🛒 Change product: ${anchor}` : "🛒 Review products & prices"}</h2>
 
           {step === "loading" && <p className="muted">Loading…</p>}
           {step === "error" && <p className="login-error">Something went wrong: {error}</p>}
@@ -331,20 +336,23 @@ export function SendToMarianosModal({ list, onClose, anchor = null }: { list: Sh
           {step === "review" && (
             <>
               <p className="muted">
-                {storeName} · {includedCount} item{includedCount === 1 ? "" : "s"} to add
-                {skipped ? ` · ${skipped} with no match` : ""}
+                {editingOne
+                  ? `${storeName} · pick the product to map, then Save`
+                  : `${storeName} · ${includedCount} item${includedCount === 1 ? "" : "s"} to add${skipped ? ` · ${skipped} with no match` : ""}`}
               </p>
-              <div className="row" style={{ gap: 6, marginBottom: 10 }}>
-                {["PICKUP", "DELIVERY"].map((m) => (
-                  <button
-                    key={m}
-                    className={`toggle ${modality === m ? "on" : ""}`}
-                    onClick={() => setModality(m)}
-                  >
-                    {m.toLowerCase()}
-                  </button>
-                ))}
-              </div>
+              {!editingOne && (
+                <div className="row" style={{ gap: 6, marginBottom: 10 }}>
+                  {["PICKUP", "DELIVERY"].map((m) => (
+                    <button
+                      key={m}
+                      className={`toggle ${modality === m ? "on" : ""}`}
+                      onClick={() => setModality(m)}
+                    >
+                      {m.toLowerCase()}
+                    </button>
+                  ))}
+                </div>
+              )}
               <div className="kroger-review">
                 {rows.map((r, i) => (
                   <div
@@ -414,12 +422,14 @@ export function SendToMarianosModal({ list, onClose, anchor = null }: { list: Sh
                   </ul>
                 </div>
               )}
-              <p className="muted" style={{ fontSize: "0.76rem", marginBottom: 8 }}>
-                Items are <strong>added</strong> to your existing Mariano's cart (sending again
-                makes duplicates). Your cart's store/fulfillment is whatever's set in your
-                Mariano's account — this picker only chooses where prices &amp; matches come from.
-              </p>
-              {sentItems.length > 0 && (
+              {!editingOne && (
+                <p className="muted" style={{ fontSize: "0.76rem", marginBottom: 8 }}>
+                  Items are <strong>added</strong> to your existing Mariano's cart (sending again
+                  makes duplicates). Your cart's store/fulfillment is whatever's set in your
+                  Mariano's account — this picker only chooses where prices &amp; matches come from.
+                </p>
+              )}
+              {!editingOne && sentItems.length > 0 && (
                 <p className="muted" style={{ fontSize: "0.76rem", marginBottom: 8 }}>
                   MealMesh has {sentItems.length} item{sentItems.length === 1 ? "" : "s"} on record
                   as already sent.{" "}
@@ -429,11 +439,17 @@ export function SendToMarianosModal({ list, onClose, anchor = null }: { list: Sh
                 </p>
               )}
               <div className="row" style={{ marginTop: 4 }}>
-                <button className="btn" onClick={send} disabled={!includedCount}>
-                  Send {includedCount} to cart
-                </button>
-                <button className="btn ghost" onClick={handleClose}>
-                  Done
+                {editingOne ? (
+                  <button className="btn" onClick={handleClose}>
+                    Save
+                  </button>
+                ) : (
+                  <button className="btn" onClick={send} disabled={!includedCount}>
+                    Send {includedCount} to cart
+                  </button>
+                )}
+                <button className="btn ghost" onClick={editingOne ? onClose : handleClose}>
+                  {editingOne ? "Cancel" : "Done"}
                 </button>
               </div>
             </>
