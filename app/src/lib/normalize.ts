@@ -42,6 +42,44 @@ const cupTo = (to: string, factor = 1) => ({ from: "cup", to, factor });
 const CANNED: Section = "Canned Goods (Soups, vegetables, and pasta sauces, etc.)";
 
 const OVERRIDES: Record<string, ItemOverride> = {
+  // ── US naming (British → US), so display + Kroger search use US product names.
+  // Renamed to the canonical US name already used elsewhere in this table where one
+  // exists (e.g. rocket → arugula) so duplicate lines merge. ──────────────────
+  rocket: { item: "arugula", section: "Produce" },
+  aubergine: { item: "eggplant", section: "Produce" },
+  aubergines: { item: "eggplant", section: "Produce" },
+  courgette: { item: "zucchini", section: "Produce" },
+  courgettes: { item: "zucchini", section: "Produce" },
+  coriander: { item: "fresh cilantro", section: "Produce" },
+  "coriander leaves": { item: "fresh cilantro", section: "Produce" },
+  "spring onions": { item: "green onions", section: "Produce" },
+  "spring onion": { item: "green onions", section: "Produce" },
+  beetroot: { item: "beets", section: "Produce" },
+  swede: { item: "rutabaga", section: "Produce" },
+  chilli: { item: "chili pepper", section: "Produce" },
+  "red chilli": { item: "red chili pepper", section: "Produce" },
+  "green chilli": { item: "green chili pepper", section: "Produce" },
+  "birds-eye chillies": { item: "bird's eye chili", section: "Produce" },
+  "dried chillies": { item: "dried chiles", section: "Condiments & Spices" },
+  "chilli powder": { item: "chili powder", section: "Condiments & Spices" },
+  "red chilli powder": { item: "red chili powder", section: "Condiments & Spices" },
+  "chilli flakes": { item: "chili flakes", section: "Condiments & Spices" },
+  "red chilli flakes": { item: "red chili flakes", section: "Condiments & Spices" },
+  "chilli sauce": { item: "chili sauce", section: "Condiments & Spices" },
+  "double cream": { item: "heavy cream", section: "Dairy & Eggs" },
+  "single cream": { item: "light cream", section: "Dairy & Eggs" },
+  "caster sugar": { item: "superfine sugar", section: "Pantry & Dry Goods" },
+  "icing sugar": { item: "powdered sugar", section: "Pantry & Dry Goods" },
+  "plain flour": { item: "all-purpose flour", section: "Pantry & Dry Goods" },
+  "self-raising flour": { item: "self-rising flour", section: "Pantry & Dry Goods" },
+  cornflour: { item: "cornstarch", section: "Pantry & Dry Goods" },
+  "minced beef": { item: "ground beef", section: "Meat & Poultry" },
+  "lean minced steak": { item: "lean ground beef", section: "Meat & Poultry" },
+  "lamb mince": { item: "ground lamb", section: "Meat & Poultry" },
+  "minced pork": { item: "ground pork", section: "Meat & Poultry" },
+  prawns: { item: "shrimp", section: "Meat & Poultry" },
+  prawn: { item: "shrimp", section: "Meat & Poultry" },
+
   // ── Mislabeled names (fixed in display + shopping) ──────────────────────────
   starch: { item: "cornstarch", section: "Pantry & Dry Goods" },
   "tinned tomatos": { item: "canned tomatoes", section: CANNED },
@@ -92,7 +130,8 @@ const OVERRIDES: Record<string, ItemOverride> = {
 
   // ── Wrong section: items mislabeled as Bakery ───────────────────────────────
   "everything bagel seasoning": { section: "Condiments & Spices" },
-  "broken tortilla chips": { section: "Pantry & Dry Goods" },
+  // "broken" describes prep — you buy whole tortilla chips and break them.
+  "broken tortilla chips": { buyItem: "tortilla chips", section: "Pantry & Dry Goods" },
 
   // ── Frozen aisle (no Frozen section existed; frozen items sat in Produce/Pantry)
   "banana, frozen": { section: "Frozen" },
@@ -211,19 +250,13 @@ const OVERRIDES: Record<string, ItemOverride> = {
   "granulated garlic": { section: "Condiments & Spices" },
   "garlic-and-herb seasoning": { section: "Condiments & Spices" },
   "onion salt": { section: "Condiments & Spices" },
-  "chilli powder": { section: "Condiments & Spices" },
-  "red chilli powder": { section: "Condiments & Spices" },
-  "chilli flakes": { section: "Condiments & Spices" },
-  "red chilli flakes": { section: "Condiments & Spices" },
   "red pepper flakes": { section: "Condiments & Spices" },
-  "dried chillies": { section: "Condiments & Spices" },
   sumac: { section: "Condiments & Spices" },
   "pul biber": { section: "Condiments & Spices" },
   sazon: { section: "Condiments & Spices" },
   "pumpkin spice to taste": { section: "Condiments & Spices" },
   "whole black peppercorns": { section: "Condiments & Spices" },
   // jarred sauces/pastes mislabeled as Produce
-  "chilli sauce": { section: "Condiments & Spices" },
   "garlic sauce": { section: "Condiments & Spices" },
   gochujang: { section: "Condiments & Spices" },
   "louisiana hot sauce": { section: "Condiments & Spices" },
@@ -280,8 +313,6 @@ const OVERRIDES: Record<string, ItemOverride> = {
   basil: { section: "Produce" },
   "basil leaves": { section: "Produce" },
   "fresh basil leaves": { section: "Produce" },
-  coriander: { section: "Produce" },
-  "coriander leaves": { section: "Produce" },
   "fresh cilantro": { section: "Produce" },
   parsley: { section: "Produce" },
   "fresh thyme": { section: "Produce" },
@@ -333,7 +364,6 @@ const OVERRIDES: Record<string, ItemOverride> = {
   scallion: { buyItem: "green onions", section: "Produce" },
   scallions: { buyItem: "green onions", section: "Produce" },
   "green onion": { buyItem: "green onions", section: "Produce" },
-  "spring onions": { buyItem: "green onions", section: "Produce" },
   "fresh scallions": { buyItem: "green onions", section: "Produce" },
   carrot: { buyItem: "carrots" },
   potato: { buyItem: "potatoes" },
@@ -342,7 +372,6 @@ const OVERRIDES: Record<string, ItemOverride> = {
   apples: { buyItem: "apple" },
   eggs: { buyItem: "egg" },
   zucchinis: { buyItem: "zucchini" },
-  courgettes: { buyItem: "zucchini" },
   "english cucumbers": { buyItem: "english cucumber" },
 
   // Ambiguous-bean call: bare "green beans" is fresh far more often than canned here.
