@@ -259,7 +259,7 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
                       <>
                         <select value={r.matched.upc} onChange={(e) => swap(i, e.target.value)}>
                           {[r.matched, ...r.alternates].map((m) => (
-                            <option key={m.upc} value={m.upc}>
+                            <option key={m.upc} value={m.upc} disabled={!m.available}>
                               {m.description}
                               {m.price != null ? ` — $${m.price.toFixed(2)}` : ""}
                               {m.available ? "" : " — unavailable"}
