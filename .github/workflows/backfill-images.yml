@@ -1,0 +1,88 @@
+name: Backfill recipe images
+
+# One-off / on-demand: give already-imported recipes an image (they were imported before the
+# image feature, so their imageUrl is null). Re-uses the runtime importer's resolution —
+# source page JSON-LD/og:image, else an AI web search — and re-hosts to the recipe-images
+# Storage bucket. Manual trigger only; defaults to a safe dry run.
+#
+# Run AFTER migration 0012 (the recipe-images bucket) is applied.
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   SUPABASE_SERVICE_ROLE_KEY  — service role key (bypasses RLS; server-side only)
+#   SUPABASE_PROJECT_ID        — project ref (already used by the migrate workflow); the
+#                                Supabase URL is derived from it, or set SUPABASE_URL directly.
+# Optional:
+#   ANTHROPIC_API_KEY          — enables the AI image-search fallback; without it, page images only.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (report only, no AI calls or uploads)"
+        type: boolean
+        default: true
+      household:
+        description: "Limit to one household id (optional)"
+        type: string
+        default: ""
+      limit:
+        description: "Max recipes to process (optional)"
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+# Never let two backfills overlap (they write the same rows/objects).
+concurrency:
+  group: backfill-images
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    env:
+      # Prefer an explicit SUPABASE_URL secret; otherwise derive it from the project ref.
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL || format('https://{0}.supabase.co', secrets.SUPABASE_PROJECT_ID) }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - name: Check required secrets
+        run: |
+          missing=""
+          [ -z "$SUPABASE_SERVICE_ROLE_KEY" ] && missing="$missing SUPABASE_SERVICE_ROLE_KEY"
+          [ "$SUPABASE_URL" = "https://.supabase.co" ] && missing="$missing SUPABASE_PROJECT_ID(or SUPABASE_URL)"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repo secrets:$missing — add them in Settings → Secrets and variables → Actions, then re-run."
+            exit 1
+          fi
+          [ -z "$ANTHROPIC_API_KEY" ] && echo "::notice::ANTHROPIC_API_KEY not set — page images only (no AI fallback)."
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Backfill
+        # Inputs are passed via env (not interpolated into the shell) to avoid injection.
+        env:
+          DRY_RUN: ${{ inputs.dry_run }}
+          HOUSEHOLD: ${{ inputs.household }}
+          LIMIT: ${{ inputs.limit }}
+        run: |
+          args=""
+          [ "$DRY_RUN" = "true" ] && args="$args --dry-run"
+          [ -n "$HOUSEHOLD" ] && args="$args --household $HOUSEHOLD"
+          [ -n "$LIMIT" ] && args="$args --limit $LIMIT"
+          echo "Running: npm run backfill:images --$args"
+          npm run backfill:images -- $args

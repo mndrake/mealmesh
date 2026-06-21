@@ -123,6 +123,14 @@ best-effort and keyed by UPC, since we never see the authoritative cart.
   with a "⚠" + warn color (`isStale` in `aisleOrder.ts`). A **"↻ Refresh aisles (N stale)"**
   button re-runs the match for the current list and re-saves locations with a fresh timestamp;
   if not yet connected / no store chosen, it falls back to the guided Send flow.
+- **Estimated cost:** the same match also returns the matched product's package `price`, now
+  persisted with the location (migration 0013 adds `price` + `product` to `item_locations`).
+  The shopping list shows a per-item price with a small `×` package-quantity stepper, a header
+  "~$X est." pill, and a cost bar (**to go / in cart / total**, split by checkoff). It's a
+  simple per-package estimate (`cost.ts`, pure + tested) — packages default to 1, adjustable
+  per item; unmatched items are excluded from the total and counted ("N not priced"). The
+  combined fetch is surfaced as **"Get / Update prices & aisles"**, and the list defaults to
+  aisle order once locations exist. Export includes per-item subtotals + an estimated total.
 
 ## UI
 "🛒 Send to Mariano's" button in `ShoppingView` (next to Export/Print) → modal:

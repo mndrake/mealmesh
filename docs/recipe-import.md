@@ -98,6 +98,29 @@ Env (all optional except as noted): `ANTHROPIC_API_KEY` (AI fallback), `KROGER_C
 `SUPABASE_SERVICE_ROLE_KEY` (only for `--push`). The git diff of the emitted JSON/report is
 the review trail. This is a developer tool — it is **not** wired into the deployed app.
 
+## Image backfill (maintainer tool)
+
+`npm run backfill:images` (`app/scripts/backfill-images.ts`) gives existing imported recipes
+an image — they were created before the image feature, so their `imageUrl` is null. For each
+`user_recipes` row without an image it re-uses the same resolution as the runtime importer
+(source page's JSON-LD/og:image → AI web search), downloads + re-hosts to the `recipe-images`
+bucket, and updates the row's `data`.
+
+```
+npm run backfill:images -- --dry-run                 # report what would happen (no AI/upload)
+npm run backfill:images -- --household <uuid>        # scope to one household
+npm run backfill:images -- --limit 50                # cap how many to process
+```
+
+Env: `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` (required), `ANTHROPIC_API_KEY` (AI
+fallback). **Run after migration 0012 is applied** (the bucket must exist). Idempotent —
+recipes that already have an image are skipped, so it's safe to re-run.
+
+It can also run as a **GitHub Action** — `.github/workflows/backfill-images.yml`
+(`workflow_dispatch`, defaults to a dry run) — using the `SUPABASE_SERVICE_ROLE_KEY` /
+`SUPABASE_PROJECT_ID` (and optional `ANTHROPIC_API_KEY`) repo secrets, so you don't need the
+service-role key on your machine. Updated rows propagate to open app sessions via Realtime.
+
 ## Not (yet) built
 
 - Import **by image** (Claude vision) and **by template/paste** — the shared table + review

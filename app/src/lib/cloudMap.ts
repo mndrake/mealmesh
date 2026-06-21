@@ -54,6 +54,8 @@ export interface ItemLocationRow {
   aisle: string | null;
   aisle_number: number | null;
   department: string | null;
+  price?: number | null;
+  product?: string | null;
   fetched_at?: string | null;
 }
 
@@ -126,6 +128,8 @@ export function itemLocationFromRow(r: ItemLocationRow): ItemLocation {
     aisle: r.aisle ?? null,
     aisleNumber: r.aisle_number ?? null,
     department: r.department ?? null,
+    price: typeof r.price === "number" ? r.price : null,
+    product: r.product ?? null,
     fetchedAt: r.fetched_at ? Date.parse(r.fetched_at) : 0,
   };
 }
@@ -138,6 +142,8 @@ export function itemLocationToRow(l: ItemLocation, householdId: string, userId?:
     aisle: l.aisle,
     aisle_number: l.aisleNumber,
     department: l.department,
+    price: l.price,
+    product: l.product,
     fetched_at: l.fetchedAt ? new Date(l.fetchedAt).toISOString() : null,
     updated_by: userId ?? null,
   };

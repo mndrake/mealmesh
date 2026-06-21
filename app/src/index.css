@@ -1210,3 +1210,52 @@ a {
   border-radius: 8px;
   border: 1px solid var(--border);
 }
+
+/* Shopping list: cost estimate */
+.count-pill.cost {
+  background: var(--accent, #2e7d32);
+  color: #fff;
+}
+.cost-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 0.9rem;
+  padding: 6px 0 2px;
+}
+.shop-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.shop-price .stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 400;
+}
+.shop-price .stepper button {
+  width: 20px;
+  height: 20px;
+  line-height: 1;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface);
+  cursor: pointer;
+}
+.shop-price .stepper button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.shop-price .pk {
+  min-width: 22px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--muted, #666);
+}

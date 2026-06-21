@@ -78,12 +78,14 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
       // organized by aisle and show location info while shopping.
       const now = Date.now();
       const locs = rows
-        .filter((r) => r.matched && (r.matched.department || r.matched.aisle))
+        .filter((r) => r.matched)
         .map((r) => ({
           name: r.listName,
           aisle: r.matched!.aisle,
           aisleNumber: r.matched!.aisleNumber,
           department: r.matched!.department,
+          price: r.matched!.price,
+          product: r.matched!.description,
           fetchedAt: now,
         }));
       if (locs.length) actions.saveItemLocations(locs);
@@ -171,11 +173,9 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
     setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, matched: m, alternates: res[0].alternates, include: true } : r)));
     setResearch(null);
     void krogerClient.saveAlias(row.listName, t).catch(() => {});
-    if (m.department || m.aisle) {
-      actions.saveItemLocations([
-        { name: row.listName, aisle: m.aisle, aisleNumber: m.aisleNumber, department: m.department, fetchedAt: Date.now() },
-      ]);
-    }
+    actions.saveItemLocations([
+      { name: row.listName, aisle: m.aisle, aisleNumber: m.aisleNumber, department: m.department, price: m.price, product: m.description, fetchedAt: Date.now() },
+    ]);
     return true;
   }
 
