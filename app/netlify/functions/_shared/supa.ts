@@ -83,11 +83,16 @@ export interface KrogerConnection {
 }
 
 export async function getConnection(householdId: string): Promise<KrogerConnection | null> {
-  const { data } = await service()
-    .from("kroger_connection")
-    .select("location_id,store_name,modality,access_token,refresh_token,expires_at,sent_items")
-    .eq("household_id", householdId)
-    .maybeSingle();
+  const db = service();
+  const base = "location_id,store_name,modality,access_token,refresh_token,expires_at";
+  const q = (cols: string) =>
+    db.from("kroger_connection").select(cols).eq("household_id", householdId).maybeSingle();
+  let { data, error } = await q(`${base},sent_items`);
+  if (error) {
+    // sent_items may not exist yet (migration 0004 not applied) — degrade to no history
+    // rather than breaking the connection-status check.
+    ({ data } = await q(base));
+  }
   return (data as KrogerConnection | null) ?? null;
 }
 
