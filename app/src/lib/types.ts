@@ -105,6 +105,9 @@ export interface ItemLocation {
   name: string;
   aisle: string | null; // "Aisle 35"
   aisleNumber: number | null; // 35 — for store-walk ordering
+  bay?: string | null; // bay within the aisle (for Store mode; often absent)
+  shelf?: string | null; // shelf number (often absent)
+  side?: string | null; // aisle side e.g. "L"/"R" (often absent)
   department: string | null; // "Produce" — the Kroger section
   price: number | null; // per-package price at the chosen store (for cost estimates)
   product: string | null; // matched product description (what the price is for)

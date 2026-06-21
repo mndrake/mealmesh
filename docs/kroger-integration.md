@@ -147,6 +147,23 @@ best-effort and keyed by UPC, since we never see the authoritative cart.
   ShoppingView **promotes** that staple into its real section — so it's matched, priced,
   aisle-sorted, sendable to the cart, and checkable like any other item. A **"?" Help** modal
   (`HelpModal`) explains the whole workflow.
+- **Smart match (section-aware re-rank):** the match used to take the first *available* product
+  regardless of category, which produced wrong matches (shallots → a Deli product). `toReviewRow`
+  now scores candidates and prefers one whose Kroger department maps to the item's expected
+  shopping section (passed as `section` in the match request) — so a Produce shallot beats a Deli
+  one. Ties keep Kroger's relevance order. `scoreMatch` + `krogerDepartmentToSection` in
+  `_shared/kroger.ts`.
+- **AI advisor ("✨ Fix matches"):** for items whose match still contradicts the expected aisle,
+  `POST /api/kroger/advise` (`kroger-advise.ts` + `_shared/kroger-advisor.ts`) asks Claude (one
+  batched call) to pick the right product among the candidates, or suggest a better search term
+  (which it re-searches + remembers as an alias). Best-effort: falls back to the heuristic match.
+- **See / change the mapped product:** each list item shows the matched Kroger product
+  (`ItemLocation.product`) with a **"change"** link that opens the Review modal scrolled to that
+  item (`anchor` prop). Unmatched items show **"— · find product"**.
+- **Store mode + shelf/bin:** the match now also captures `bay`/`shelf`/`side` from Kroger's
+  `aisleLocations` (migration 0015 adds the columns; coverage is partial). A third view —
+  **🏬 Store** (`groupByAisleWalk`) — orders items by aisle → bay → shelf (the walking path) and
+  shows the product, quantity to buy, and shelf/bin per item. Views: **List / 🧭 Aisle / 🏬 Store**.
 
 ## UI
 "🛒 Send to Mariano's" button in `ShoppingView` (next to Export/Print) → modal:

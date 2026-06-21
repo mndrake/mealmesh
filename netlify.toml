@@ -53,6 +53,10 @@
   to = "/.netlify/functions/kroger-match"
   status = 200
 [[redirects]]
+  from = "/api/kroger/advise"
+  to = "/.netlify/functions/kroger-advise"
+  status = 200
+[[redirects]]
   from = "/api/kroger/cart"
   to = "/.netlify/functions/kroger-cart"
   status = 200

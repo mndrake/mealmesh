@@ -1305,3 +1305,59 @@ a {
   margin: 6px 0;
   line-height: 1.45;
 }
+
+/* Shopping: view segmented control */
+.seg {
+  display: inline-flex;
+  gap: 0;
+}
+.seg .btn {
+  border-radius: 0;
+  border-right-width: 0;
+}
+.seg .btn:first-child {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+.seg .btn:last-child {
+  border-right-width: 1px;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+.seg .btn.on {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* Shopping: mapped product line ("🛒 <product> — change") */
+.shop-product {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.78rem;
+  margin-top: 1px;
+}
+.shop-product .prod {
+  color: var(--accent-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 78%;
+}
+.shop-product .prod.muted {
+  color: var(--muted);
+}
+.shop-shelf {
+  font-size: 0.72rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Review modal: row focused via an item's "change" link */
+.kroger-row.anchor {
+  background: var(--accent-soft);
+  border-radius: 8px;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

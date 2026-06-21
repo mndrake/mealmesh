@@ -139,6 +139,28 @@ describe("kroger pure helpers", () => {
     expect(row.matched).toMatchObject({ upc: "U1", available: false });
     expect(row.alternates.map((a) => a.upc)).toEqual(["U2"]);
   });
+
+  it("prefers a same-section product over a wrong-department one (shallots → Produce, not Deli)", () => {
+    const data = [
+      { upc: "D1", productId: "d1", description: "Shallot Vinaigrette", categories: ["Deli"], items: [{ fulfillment: { instore: true } }] },
+      { upc: "P1", productId: "p1", description: "Shallots", categories: ["Produce"], items: [{ fulfillment: { instore: true } }] },
+    ];
+    // Without the expected section, the first available (Deli) wins (legacy behavior).
+    expect(toReviewRow({ data }, "shallots", "2 each").matched).toMatchObject({ upc: "D1" });
+    // With the expected section, the Produce shallot is preferred.
+    const row = toReviewRow({ data }, "shallots", "2 each", "Produce");
+    expect(row.matched).toMatchObject({ upc: "P1", department: "Produce" });
+    expect(row.alternates.map((a) => a.upc)).toEqual(["D1"]);
+  });
+
+  it("captures bay/shelf/side from aisleLocations for the store-walk view", () => {
+    const row = toReviewRow(
+      { data: [{ upc: "S1", description: "Salt", aisleLocations: [{ number: "9", bayNumber: "3", shelfNumber: "2", side: "L" }], items: [{ fulfillment: { instore: true } }] }] },
+      "salt",
+      "1 each"
+    );
+    expect(row.matched).toMatchObject({ aisleNumber: 9, bay: "3", shelf: "2", side: "L" });
+  });
 });
 
 describe("kroger send-history helpers", () => {

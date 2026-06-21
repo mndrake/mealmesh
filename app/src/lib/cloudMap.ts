@@ -55,6 +55,9 @@ export interface ItemLocationRow {
   item_name: string;
   aisle: string | null;
   aisle_number: number | null;
+  bay?: string | null;
+  shelf?: string | null;
+  side?: string | null;
   department: string | null;
   price?: number | null;
   product?: string | null;
@@ -130,6 +133,9 @@ export function itemLocationFromRow(r: ItemLocationRow): ItemLocation {
     name: r.item_name,
     aisle: r.aisle ?? null,
     aisleNumber: r.aisle_number ?? null,
+    bay: r.bay ?? null,
+    shelf: r.shelf ?? null,
+    side: r.side ?? null,
     department: r.department ?? null,
     price: typeof r.price === "number" ? r.price : null,
     product: r.product ?? null,
@@ -146,6 +152,9 @@ export function itemLocationToRow(l: ItemLocation, householdId: string, userId?:
     item_name: l.name,
     aisle: l.aisle,
     aisle_number: l.aisleNumber,
+    bay: l.bay ?? null,
+    shelf: l.shelf ?? null,
+    side: l.side ?? null,
     department: l.department,
     price: l.price,
     product: l.product,

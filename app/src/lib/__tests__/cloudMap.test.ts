@@ -69,7 +69,7 @@ describe("cloudMap", () => {
     const iso = "2026-06-21T00:00:00.000Z";
     const row = { household_id: "h", item_name: "onion", aisle: "Aisle 35", aisle_number: 35, department: "Produce", price: 1.29, product: "Yellow Onion", fetched_at: iso };
     const loc = itemLocationFromRow(row);
-    expect(loc).toEqual({ name: "onion", aisle: "Aisle 35", aisleNumber: 35, department: "Produce", price: 1.29, product: "Yellow Onion", fetchedAt: Date.parse(iso) });
+    expect(loc).toEqual({ name: "onion", aisle: "Aisle 35", aisleNumber: 35, bay: null, shelf: null, side: null, department: "Produce", price: 1.29, product: "Yellow Onion", fetchedAt: Date.parse(iso) });
     expect(itemLocationToRow(loc, "h")).toMatchObject({ household_id: "h", item_name: "onion", aisle_number: 35, department: "Produce", fetched_at: iso });
   });
 
@@ -90,7 +90,7 @@ describe("cloudMap", () => {
     expect(state.favorites).toEqual(["x"]);
     expect(state.checked).toEqual(["Produce:onion"]);
     expect(state.cookLog).toEqual([{ id: "c1", recipeId: "r", cookedOn: "2026-06-02", rating: null, makeAgain: null, notes: null, planId: "p1" }]);
-    expect(state.itemLocations).toEqual([{ name: "onion", aisle: "Aisle 35", aisleNumber: 35, department: "Produce", price: null, product: null, fetchedAt: Date.parse("2026-06-21T00:00:00.000Z") }]);
+    expect(state.itemLocations).toEqual([{ name: "onion", aisle: "Aisle 35", aisleNumber: 35, bay: null, shelf: null, side: null, department: "Produce", price: null, product: null, fetchedAt: Date.parse("2026-06-21T00:00:00.000Z") }]);
     // user recipe: id comes from the row, not the embedded data
     expect(state.userRecipes).toEqual([{ id: "u-1", title: "Imported", servings: 2 }]);
   });

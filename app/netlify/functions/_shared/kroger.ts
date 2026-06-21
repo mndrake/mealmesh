@@ -78,8 +78,35 @@ export interface ProductMatch {
   available: boolean;
   aisle: string | null; // e.g. "Aisle 35" (often absent — coverage is partial)
   aisleNumber: number | null; // 35 — for store-walk ordering
+  bay: string | null; // bay number within the aisle (often absent)
+  shelf: string | null; // shelf number (often absent)
+  side: string | null; // aisle side, e.g. "L"/"R" (often absent)
   department: string | null; // e.g. "Produce" (from categories[0])
   image: string | null; // small product image URL (often absent)
+}
+
+/** Map a Kroger department to one of our shopping sections, conservatively (mirror of
+ *  src/lib/krogerSections.ts — kept here so the function has no app-src dependency). Only
+ *  confident mappings; unknown departments return null and never force a re-rank. */
+export function krogerDepartmentToSection(department: string | null | undefined): string | null {
+  if (!department) return null;
+  const d = department.toLowerCase();
+  if (d.includes("produce")) return "Produce";
+  if (d.includes("seafood") || d.includes("meat") || d.includes("poultry")) return "Meat & Poultry";
+  if (d.includes("dairy") || d.includes("egg")) return "Dairy & Eggs";
+  if (d.includes("frozen")) return "Frozen";
+  if (d.includes("bakery") || d.includes("bread")) return "Bakery";
+  return null;
+}
+
+/** Rank a candidate for the "best match": available products win, and a product whose Kroger
+ *  department contradicts the expected aisle (e.g. shallots matched to Deli when the list says
+ *  Produce) is penalized so a same-section alternate is preferred. */
+export function scoreMatch(p: ProductMatch, expectedSection?: string | null): number {
+  let s = p.available ? 100 : 0;
+  const dept = krogerDepartmentToSection(p.department);
+  if (expectedSection && dept) s += dept === expectedSection ? 40 : -60;
+  return s;
 }
 
 export interface ReviewRow {
@@ -198,6 +225,7 @@ function toMatch(p: any): ProductMatch | null {
   const al = p.aisleLocations?.[0];
   const aisle = al?.description ? String(al.description) : al?.number ? `Aisle ${al.number}` : null;
   const aisleNum = al?.number != null && al.number !== "" ? Number(al.number) : NaN;
+  const str = (v: unknown) => (v != null && v !== "" ? String(v) : null);
   const department = Array.isArray(p.categories) && p.categories.length ? String(p.categories[0]) : null;
   return {
     upc: String(p.upc),
@@ -207,20 +235,31 @@ function toMatch(p: any): ProductMatch | null {
     available: availableOf(item),
     aisle,
     aisleNumber: Number.isFinite(aisleNum) ? aisleNum : null,
+    bay: str(al?.bayNumber),
+    shelf: str(al?.shelfNumber),
+    side: str(al?.side),
     department,
     image: pickImage(p.images),
   };
 }
 
-/** Map a Products search response to a review row (top match + alternates). */
-export function toReviewRow(resp: any, listName: string, displayQty: string): ReviewRow {
+/** Map a Products search response to a review row (top match + alternates). Picks the
+ *  highest-scoring candidate (available + same expected section) so wrong-department matches
+ *  like shallots→Deli are avoided when a same-section alternate exists. Ties keep Kroger's
+ *  order (relevance). */
+export function toReviewRow(resp: any, listName: string, displayQty: string, expectedSection?: string | null): ReviewRow {
   const products = (resp?.data ?? []).map(toMatch).filter(Boolean) as ProductMatch[];
-  // Default to the first *available* product so we don't pre-select something that can't be
-  // fulfilled when an in-stock alternate exists; fall back to the top result if none are.
-  const found = products.findIndex((p) => p.available);
-  const i = found >= 0 ? found : 0;
-  const matched = products[i] ?? null;
-  const alternates = products.filter((_, idx) => idx !== i);
+  let best = -1;
+  let bestScore = -Infinity;
+  products.forEach((p, idx) => {
+    const sc = scoreMatch(p, expectedSection);
+    if (sc > bestScore) {
+      bestScore = sc;
+      best = idx;
+    }
+  });
+  const matched = best >= 0 ? products[best] : null;
+  const alternates = products.filter((_, idx) => idx !== best);
   return {
     listName,
     displayQty,

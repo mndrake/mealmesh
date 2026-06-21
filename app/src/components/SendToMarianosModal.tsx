@@ -10,7 +10,7 @@ import { krogerClient, type ReviewRow, type KrogerStore, type SentItem, type Pro
 
 type Step = "loading" | "needs-auth" | "store" | "review" | "sending" | "done" | "error";
 
-export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onClose: () => void }) {
+export function SendToMarianosModal({ list, onClose, anchor = null }: { list: ShoppingList; onClose: () => void; anchor?: string | null }) {
   const [step, setStep] = useState<Step>("loading");
   const [error, setError] = useState<string | null>(null);
   const [storeName, setStoreName] = useState<string | null>(null);
@@ -26,11 +26,16 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
   // our own sends) — used to flag duplicates and items to remove.
   const [sentItems, setSentItems] = useState<SentItem[]>([]);
 
-  // Non-staple shopping items to match (staples are "check pantry", not bought here).
-  const items = list.sections.flatMap((s) => s.items).map(([name, displayQty]) => ({ name, displayQty }));
-  // The list section each item is grouped under, to cross-check against Kroger's department.
-  const sectionByName = new Map<string, Section>();
-  for (const s of list.sections) for (const [name] of s.items) sectionByName.set(name, s.section);
+  // The list section each item is grouped under, to cross-check against Kroger's department
+  // and to bias matching toward same-section products (shallots → Produce, not Deli). Built
+  // immutably (no mutation during render) so the compiler keeps callbacks pure.
+  const sectionByName = new Map<string, Section>(
+    list.sections.flatMap((s) => s.items.map(([name]) => [name, s.section] as [string, Section]))
+  );
+  // Items to match (with their expected aisle). Staples not marked "need" are already excluded
+  // from list.sections upstream.
+  const items = list.sections.flatMap((s) => s.items.map(([name, displayQty]) => ({ name, displayQty, section: s.section })));
+  const anchorRef = useRef<HTMLDivElement | null>(null);
 
   /** Location hint for a matched row: aisle + a flag when Kroger's department disagrees
    *  with the section the list grouped the item under. */
@@ -70,6 +75,9 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
         name: r.listName,
         aisle: r.matched!.aisle,
         aisleNumber: r.matched!.aisleNumber,
+        bay: r.matched!.bay,
+        shelf: r.matched!.shelf,
+        side: r.matched!.side,
         department: r.matched!.department,
         price: r.matched!.price,
         product: r.matched!.description,
@@ -108,6 +116,9 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
           name: r.listName,
           aisle: r.matched!.aisle,
           aisleNumber: r.matched!.aisleNumber,
+          bay: r.matched!.bay,
+          shelf: r.matched!.shelf,
+          side: r.matched!.side,
           department: r.matched!.department,
           price: r.matched!.price,
           product: r.matched!.description,
@@ -135,6 +146,13 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
       .catch(fail);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // When opened via an item's "change" link, scroll that row into view in the review step.
+  useEffect(() => {
+    if (step === "review" && anchor && anchorRef.current) {
+      anchorRef.current.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
+  }, [step, anchor, rows.length]);
 
   async function resetSent() {
     try {
@@ -192,14 +210,16 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
     const t = term.trim();
     if (!t) return false;
     const row = rows[i];
+    // Section bias is omitted here on purpose — re-search uses the explicit term the user typed.
     const { rows: res } = await krogerClient.match([{ name: t, displayQty: row.displayQty }], true);
     const m = res[0]?.matched;
     if (!m) return false;
     setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, matched: m, alternates: res[0].alternates, include: true } : r)));
     setResearch(null);
     void krogerClient.saveAlias(row.listName, t).catch(() => {});
+    const now = Date.now();
     actions.saveItemLocations([
-      { name: row.listName, aisle: m.aisle, aisleNumber: m.aisleNumber, department: m.department, price: m.price, product: m.description, fetchedAt: Date.now() },
+      { name: row.listName, aisle: m.aisle, aisleNumber: m.aisleNumber, bay: m.bay, shelf: m.shelf, side: m.side, department: m.department, price: m.price, product: m.description, fetchedAt: now },
     ]);
     return true;
   }
@@ -327,7 +347,11 @@ export function SendToMarianosModal({ list, onClose }: { list: ShoppingList; onC
               </div>
               <div className="kroger-review">
                 {rows.map((r, i) => (
-                  <div key={i} className={`kroger-row ${!r.matched ? "nomatch" : ""}`}>
+                  <div
+                    key={i}
+                    ref={anchor === r.listName ? anchorRef : undefined}
+                    className={`kroger-row ${!r.matched ? "nomatch" : ""} ${anchor === r.listName ? "anchor" : ""}`}
+                  >
                     <input
                       type="checkbox"
                       checked={r.include && !!r.matched}
