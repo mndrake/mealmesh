@@ -2,8 +2,9 @@ import { useMemo, useState } from "react";
 import type { Recipe, PlanDay, MealRef, Category } from "../lib/types";
 import { rawRecipes } from "../lib/recipes";
 import { useAllRecipesById } from "../lib/allRecipes";
-import { buildPlan, regeneratePlan } from "../lib/planner";
+import { buildPlan, regeneratePlan, cookedMeals } from "../lib/planner";
 import { dayTotals, weekTotals } from "../lib/nutrition";
+import { planEase } from "../lib/ease";
 import { useStore, actions } from "../lib/store";
 import { summarize, historyLabel, type RecipeHistory } from "../lib/history";
 import { RecipeDetailModal } from "./RecipeDetailModal";
@@ -29,6 +30,7 @@ export function PlannerView() {
   const [require, setRequire] = useState<string[]>([]);
   const [easyBreakfast, setEasyBreakfast] = useState(true);
   const [officeLunch, setOfficeLunch] = useState(true);
+  const [minimizeIng, setMinimizeIng] = useState(false);
   const [detail, setDetail] = useState<Recipe | null>(null);
   const [cooking, setCooking] = useState<Recipe | null>(null);
   const [picker, setPicker] = useState<{ di: number; slot: Slot } | null>(null);
@@ -38,12 +40,17 @@ export function PlannerView() {
 
   const planEmpty = plan.every((d) => !d.breakfast && !d.lunch && !d.dinner && !d.snack);
   const week = useMemo(() => weekTotals(plan, recipesById), [plan, recipesById]);
+  const ease = useMemo(
+    () => planEase(cookedMeals(plan, recipesById)),
+    [plan, recipesById]
+  );
 
   const planOpts = {
     requireTags: require,
     excludeTags: [],
     easyWeekdayBreakfast: easyBreakfast,
     officeWeekdayLunch: officeLunch,
+    minimizeIngredients: minimizeIng,
   };
 
   function suggest() {
@@ -147,6 +154,13 @@ export function PlannerView() {
         >
           💼 Packable lunches
         </button>
+        <button
+          className={`toggle ${minimizeIng ? "on" : ""}`}
+          onClick={() => setMinimizeIng((v) => !v)}
+          title="Build the week from a small, reused ingredient palette — fewer distinct things to buy, cheaper and easier to maintain"
+        >
+          🧺 Fewer ingredients
+        </button>
         <span className="muted" style={{ fontSize: "0.74rem" }}>
           (applies to auto-suggest &amp; regenerate; weekends stay unrestricted)
         </span>
@@ -180,6 +194,12 @@ export function PlannerView() {
           <b>{week.total.fat_g}g</b>
           <span>fat</span>
         </div>
+        {ease.paletteSize > 0 && (
+          <div className="stat" title="Distinct ingredients to buy this week — fewer is cheaper and easier to maintain">
+            <b>{ease.paletteSize}</b>
+            <span>ingredients</span>
+          </div>
+        )}
         {week.estimated && <span className="est">includes est.</span>}
         <div className="spacer" />
         <PlanToolbar savedCount={savedPlans.length} plan={plan} onOpenMenus={() => setShowMenus(true)} />
