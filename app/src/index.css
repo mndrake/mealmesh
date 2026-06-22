@@ -649,6 +649,38 @@ a {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+/* Editable buy-count stepper on a shopping item. */
+.shop-qty {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.shop-qty .qbtn {
+  width: 20px;
+  height: 20px;
+  line-height: 1;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink, inherit);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0;
+}
+.shop-qty .qbtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.shop-qty .qnum {
+  width: 34px;
+  text-align: center;
+  padding: 1px 2px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
+}
 .staples {
   background: var(--warn-soft);
   border: 1px solid #f1d9b5;

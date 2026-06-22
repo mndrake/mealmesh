@@ -99,11 +99,43 @@ export function krogerDepartmentToSection(department: string | null | undefined)
   return null;
 }
 
-/** Rank a candidate for the "best match": available products win, and a product whose Kroger
+/** Departments that are never a recipe ingredient — personal care, baby, pharmacy/health,
+ *  pet, cleaning/household, paper, etc. Used to demote false matches that share a name with a
+ *  grocery item (e.g. "corn starch" → baby powder, "baking soda" → a cleaning product). */
+export function isNonFoodDepartment(department: string | null | undefined): boolean {
+  if (!department) return false;
+  const d = department.toLowerCase();
+  return [
+    "baby",
+    "beauty",
+    "cosmetic",
+    "personal care",
+    "health",
+    "pharmacy",
+    "wellness",
+    "vitamin",
+    "pet",
+    "cleaning",
+    "laundry",
+    "household",
+    "paper",
+    "hardware",
+    "office",
+    "toy",
+    "apparel",
+    "clothing",
+    "garden",
+    "automotive",
+  ].some((k) => d.includes(k));
+}
+
+/** Rank a candidate for the "best match": available products win, a clearly non-food product
+ *  (cornstarch → baby powder) is demoted below any real food, and a product whose Kroger
  *  department contradicts the expected aisle (e.g. shallots matched to Deli when the list says
  *  Produce) is penalized so a same-section alternate is preferred. */
 export function scoreMatch(p: ProductMatch, expectedSection?: string | null): number {
   let s = p.available ? 100 : 0;
+  if (isNonFoodDepartment(p.department)) s -= 300; // never an ingredient — keep below food, even unavailable food
   const dept = krogerDepartmentToSection(p.department);
   if (expectedSection && dept) s += dept === expectedSection ? 40 : -60;
   return s;
