@@ -1,6 +1,7 @@
-// Reorganize the shopping list for a store walk using cached Kroger locations:
-// items with a known department are grouped by it and ordered by aisle number; everything
-// else falls back to its normal list section. Pure + testable; ShoppingView renders it.
+// Reorganize the shopping list for a store walk using cached Kroger locations.
+// groupByAisle groups by the item's physical aisle (the same "aisle, else department" label
+// each row shows) so an item physically in Produce groups under Produce even if Kroger's
+// product *category* says otherwise. Pure + testable; ShoppingView renders it.
 import type { Section, ItemLocation } from "./types";
 import type { ShoppingList } from "./shopping";
 
@@ -20,15 +21,18 @@ export interface AisleGroup {
 const aisleOf = (i: AisleItem) => i.location?.aisleNumber ?? Number.POSITIVE_INFINITY;
 
 export function groupByAisle(list: ShoppingList, locations: Map<string, ItemLocation>): AisleGroup[] {
-  const located = new Map<string, AisleItem[]>(); // Kroger department -> items
-  const other: AisleItem[] = []; // no Kroger department (not matched / no data)
+  const located = new Map<string, AisleItem[]>(); // physical aisle (or dept fallback) -> items
+  const other: AisleItem[] = []; // no location at all (not matched / no data)
 
   for (const { section, items } of list.sections) {
     for (const [name, qty] of items) {
       const loc = locations.get(name) ?? null;
       const item: AisleItem = { name, qty, section, location: loc };
-      if (loc?.department) {
-        (located.get(loc.department) ?? located.set(loc.department, []).get(loc.department)!).push(item);
+      // Group by the same physical-location label the row displays (aisle, else department),
+      // so grouping and the per-item location chip never disagree.
+      const where = locationText(loc);
+      if (where) {
+        (located.get(where) ?? located.set(where, []).get(where)!).push(item);
       } else {
         other.push(item);
       }
@@ -37,12 +41,12 @@ export function groupByAisle(list: ShoppingList, locations: Map<string, ItemLoca
 
   const minAisle = (items: AisleItem[]) => items.reduce((m, i) => Math.min(m, aisleOf(i)), Number.POSITIVE_INFINITY);
 
-  // Pure Kroger grouping: by department, ordered by lowest aisle number. Items Kroger didn't
-  // place go in a single "Other" bucket (no fallback to our recipe-derived sections).
+  // Grouped by physical aisle/location, ordered by lowest aisle number. Items Kroger didn't
+  // place go in a single "Other" bucket.
   const locatedGroups = [...located.entries()]
-    .map(([dept, items]) => ({
-      key: `dept:${dept}`,
-      label: dept,
+    .map(([label, items]) => ({
+      key: `aisle:${label}`,
+      label,
       sort: minAisle(items),
       items: [...items].sort((a, b) => aisleOf(a) - aisleOf(b) || a.name.localeCompare(b.name)),
     }))
