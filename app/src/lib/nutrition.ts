@@ -37,12 +37,15 @@ function round(n: Nutrition): Nutrition {
 }
 
 /** Sum a single day's meals. Canned snack strings (no recipe) contribute nothing.
- *  Returns the total and whether any contributing recipe used estimated nutrition. */
+ *  Returns the total, the day's net carbs (sum of each recipe's floored net carbs,
+ *  which the diabetic per-day budget is measured against), and whether any
+ *  contributing recipe used estimated nutrition. */
 export function dayTotals(
   day: PlanDay,
   byId: Map<string, Recipe>
-): { total: Nutrition; estimated: boolean } {
+): { total: Nutrition; netCarbs: number; estimated: boolean } {
   let total = ZERO;
+  let net = 0;
   let estimated = false;
   for (const slot of ["breakfast", "lunch", "dinner", "snack"] as const) {
     const ref = day[slot];
@@ -50,21 +53,24 @@ export function dayTotals(
     const r = byId.get(ref.id);
     if (!r) continue;
     total = add(total, r.nutrition_per_serving);
+    net += netCarbs(r.nutrition_per_serving);
     if (r.nutrition_estimated) estimated = true;
   }
-  return { total: round(total), estimated };
+  return { total: round(total), netCarbs: Math.round(net), estimated };
 }
 
 export function weekTotals(
   plan: Plan,
   byId: Map<string, Recipe>
-): { total: Nutrition; estimated: boolean } {
+): { total: Nutrition; netCarbs: number; estimated: boolean } {
   let total = ZERO;
+  let net = 0;
   let estimated = false;
   for (const day of plan) {
     const dt = dayTotals(day, byId);
     total = add(total, dt.total);
+    net += dt.netCarbs;
     estimated = estimated || dt.estimated;
   }
-  return { total: round(total), estimated };
+  return { total: round(total), netCarbs: net, estimated };
 }

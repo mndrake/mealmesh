@@ -169,6 +169,10 @@ export function PlannerView() {
           <span>carb</span>
         </div>
         <div className="stat">
+          <b>{week.netCarbs}g</b>
+          <span>net carb</span>
+        </div>
+        <div className="stat">
           <b>{week.total.protein_g}g</b>
           <span>protein</span>
         </div>
