@@ -89,8 +89,10 @@ export const krogerClient = {
     call<{ ok: boolean }>("location", { method: "POST", body: JSON.stringify({ locationId, storeName }) }),
   // force=true bypasses the server cache (used by manual search / refresh). `section` (the
   // list's grocery aisle) lets the server prefer same-section products (shallots→Produce).
-  match: (items: { name: string; displayQty: string; section?: string }[], force = false) =>
-    call<{ rows: ReviewRow[] }>("match", { method: "POST", body: JSON.stringify({ items, force }) }),
+  // noAlias=true searches the raw ingredient name, ignoring any saved alias — used by the
+  // single-item "change" editor so the picker shows the full product list to choose from.
+  match: (items: { name: string; displayQty: string; section?: string }[], force = false, noAlias = false) =>
+    call<{ rows: ReviewRow[] }>("match", { method: "POST", body: JSON.stringify({ items, force, noAlias }) }),
   // AI advisor: re-pick the best product for items whose match looks wrong (Claude chooses
   // among candidates / suggests a better search term). Returns corrected review rows.
   advise: (items: { name: string; displayQty: string; section?: string }[]) =>
