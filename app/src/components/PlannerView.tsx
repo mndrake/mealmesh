@@ -12,7 +12,7 @@ import { RecipeDetailModal } from "./RecipeDetailModal";
 import { RecipePickerModal } from "./RecipePickerModal";
 import { MarkCookedModal } from "./MarkCookedModal";
 import { SavedMenusModal } from "./SavedMenusModal";
-import { exportPlanJson } from "../lib/exporter";
+import { exportPlanJson, exportPlanMarkdown } from "../lib/exporter";
 
 type Slot = "breakfast" | "lunch" | "dinner" | "snack";
 const SLOTS: Slot[] = ["breakfast", "lunch", "dinner", "snack"];
@@ -321,6 +321,13 @@ function PlanToolbar({
         title="Save, load, rename, or delete weekly menus"
       >
         📚 Saved menus ({savedCount})
+      </button>
+      <button
+        className="btn secondary small"
+        onClick={() => exportPlanMarkdown(plan)}
+        title="Download a printable plan: weekend prep, daily menu with net carbs, and shopping list"
+      >
+        📄 Plan doc
       </button>
       <button className="btn secondary small" onClick={() => exportPlanJson(plan)}>
         Export
