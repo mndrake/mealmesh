@@ -80,6 +80,15 @@ export function FilterPanel({ filters, cuisines, onChange, onReset }: Props) {
           />
         </div>
         <div className="field">
+          <label>Max net carbs (g)</label>
+          <input
+            type="number"
+            min={0}
+            value={filters.maxNetCarbs ?? ""}
+            onChange={(e) => set({ maxNetCarbs: num(e.target.value) })}
+          />
+        </div>
+        <div className="field">
           <label>Max calories</label>
           <input
             type="number"

@@ -3,6 +3,19 @@ import type { Plan, PlanDay, Nutrition, Recipe } from "./types";
 
 export const ZERO: Nutrition = { kcal: 0, carb_g: 0, fiber_g: 0, protein_g: 0, fat_g: 0 };
 
+/** Net carbs = total carbs minus fiber, floored at 0. The figure diabetic meal
+ *  planning is usually budgeted against (fiber isn't blood-sugar-impacting), and
+ *  what the planner's per-meal/per-day carb targets are measured in. Derived on the
+ *  fly so the stored `Nutrition` shape (and its parity fixtures) stays unchanged. */
+export function netCarbs(n: Nutrition): number {
+  return Math.max(0, n.carb_g - n.fiber_g);
+}
+
+/** Net carbs for a recipe, per serving. */
+export function recipeNetCarbs(r: Recipe): number {
+  return netCarbs(r.nutrition_per_serving);
+}
+
 function add(a: Nutrition, b: Nutrition): Nutrition {
   return {
     kcal: a.kcal + b.kcal,

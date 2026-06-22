@@ -1,6 +1,7 @@
 // Search + filtering for the recipe browser, plus cuisine derivation that merges
 // the `cuisine` field with cuisine-valued tags (per the chosen design).
 import type { Recipe, Category, PrepStyle } from "./types";
+import { netCarbs } from "./nutrition";
 
 export const DIET_TAGS = [
   "diabetic-friendly",
@@ -21,6 +22,7 @@ export interface Filters {
   cuisine: string | null; // lowercase key
   prepStyle: PrepStyle | null;
   maxCarbs: number | null;
+  maxNetCarbs: number | null; // carb_g - fiber_g, per serving
   maxKcal: number | null;
   maxTotalTime: number | null; // prep + cook minutes
   realNutritionOnly: boolean;
@@ -35,6 +37,7 @@ export function emptyFilters(): Filters {
     cuisine: null,
     prepStyle: null,
     maxCarbs: null,
+    maxNetCarbs: null,
     maxKcal: null,
     maxTotalTime: null,
     realNutritionOnly: false,
@@ -87,6 +90,7 @@ export function applyFilters(
     if (f.cuisine && !matchesCuisine(r, f.cuisine)) return false;
     if (f.prepStyle && r.prep_style !== f.prepStyle) return false;
     if (f.maxCarbs != null && r.nutrition_per_serving.carb_g > f.maxCarbs) return false;
+    if (f.maxNetCarbs != null && netCarbs(r.nutrition_per_serving) > f.maxNetCarbs) return false;
     if (f.maxKcal != null && r.nutrition_per_serving.kcal > f.maxKcal) return false;
     if (f.maxTotalTime != null && totalTime(r) > f.maxTotalTime) return false;
     if (f.realNutritionOnly && r.nutrition_estimated) return false;
