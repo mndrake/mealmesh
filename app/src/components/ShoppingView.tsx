@@ -323,7 +323,7 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
         {view === "store"
           ? `Walking order: by aisle, then shelf/bay. Each item shows the matched product + how many to buy${lastFetched ? ` (as of ${fmtDate(lastFetched)})` : ""}. Shelf/bin show when Kroger has them. Tap “change” to swap a product.`
           : aisleGroups
-            ? `Organized by Kroger department, ordered by aisle${lastFetched ? ` (as of ${fmtDate(lastFetched)})` : ""}. Items Kroger didn't match are in "Other" at the end.`
+            ? `Organized by store aisle${lastFetched ? ` (as of ${fmtDate(lastFetched)})` : ""}. Items Kroger didn't match are in "Other" at the end.`
             : hasPrices
               ? `Per-package price estimate${lastFetched ? `, as of ${fmtDate(lastFetched)}` : ""}. Use “Fix matches” if a product looks wrong, or “change” on any item.`
               : `Quantities are merged across the week and grouped by store section. Use “Get prices & aisles” to add cost + aisle order. Pantry staples are listed at the end — tap “Need to buy” on anything you're low on.`}

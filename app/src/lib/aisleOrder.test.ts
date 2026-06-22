@@ -23,30 +23,43 @@ const list: ShoppingList = {
 };
 
 describe("groupByAisle", () => {
-  it("groups located items by Kroger department (ordered by aisle); unmatched go to one Other bucket", () => {
+  it("groups by physical aisle (aisle description, else department); unmatched go to one Other bucket", () => {
     const locations = new Map<string, ItemLocation>([
-      ["onion", loc("onion", "Produce", 1, "Aisle 1")],
-      ["milk", loc("milk", "Dairy", 12, "Aisle 12")],
-      // spinach + rice have no location → single "Other" group (no fallback to our sections)
+      ["onion", loc("onion", "Produce", 1, "Produce")], // aisle description "Produce"
+      ["milk", loc("milk", "Dairy", 12, "Aisle 12")], // numbered aisle
+      ["rice", loc("rice", "Pantry", null, null)], // no aisle → department fallback
+      // spinach has no location → "Other"
     ]);
     const groups = groupByAisle(list, locations);
-    expect(groups.map((g) => g.key)).toEqual(["dept:Produce", "dept:Dairy", "other"]);
-    expect(groups[0].items.map((i) => i.name)).toEqual(["onion"]);
-    expect(groups[2].label).toBe("Other (not matched at Kroger)");
-    expect(groups[2].items.map((i) => i.name)).toEqual(["rice", "spinach"]); // sorted by name
-    // checkoff id stays tied to the original section even in the Other bucket
-    expect(groups[2].items.find((i) => i.name === "spinach")?.section).toBe("Produce");
+    const label = (n: string) => groups.find((g) => g.items.some((i) => i.name === n))?.label;
+    expect(label("onion")).toBe("Produce");
+    expect(label("milk")).toBe("Aisle 12");
+    expect(label("rice")).toBe("Pantry"); // department fallback when no aisle
+    const other = groups.find((g) => g.key === "other");
+    expect(other?.label).toBe("Other (not matched at Kroger)");
+    expect(other?.items.map((i) => i.name)).toEqual(["spinach"]);
+    // checkoff id stays tied to the original section
+    expect(other?.items[0].section).toBe("Produce");
   });
 
-  it("orders departments by their lowest aisle number", () => {
+  it("groups a physically-in-produce item under its aisle even when Kroger's category differs", () => {
+    // The reported bug: a fresh pepper whose aisle says Produce but category says International.
     const locations = new Map<string, ItemLocation>([
-      ["onion", loc("onion", "Produce", 30)],
-      ["milk", loc("milk", "Dairy", 5)],
-      ["rice", loc("rice", "Pantry", 15)],
+      ["onion", loc("onion", "International", 8, "Produce")], // dept International, aisle "Produce"
     ]);
     const groups = groupByAisle(list, locations);
-    expect(groups.map((g) => g.label)).toEqual(["Dairy", "Pantry", "Produce", "Other (not matched at Kroger)"]);
-    expect(groups[3].key).toBe("other"); // spinach (no location)
+    expect(groups.find((g) => g.items.some((i) => i.name === "onion"))?.label).toBe("Produce");
+  });
+
+  it("orders aisles by their lowest aisle number", () => {
+    const locations = new Map<string, ItemLocation>([
+      ["onion", loc("onion", "Produce", 30, "Aisle 30")],
+      ["milk", loc("milk", "Dairy", 5, "Aisle 5")],
+      ["rice", loc("rice", "Pantry", 15, "Aisle 15")],
+    ]);
+    const groups = groupByAisle(list, locations);
+    expect(groups.filter((g) => g.key !== "other").map((g) => g.label)).toEqual(["Aisle 5", "Aisle 15", "Aisle 30"]);
+    expect(groups.at(-1)?.key).toBe("other"); // spinach (no location)
   });
 
   it("locationText prefers aisle, then department", () => {
