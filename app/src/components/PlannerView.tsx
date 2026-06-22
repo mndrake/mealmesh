@@ -5,6 +5,7 @@ import { useAllRecipesById } from "../lib/allRecipes";
 import { buildPlan, regeneratePlan, cookedMeals } from "../lib/planner";
 import { dayTotals, weekTotals } from "../lib/nutrition";
 import { planEase } from "../lib/ease";
+import { prepPlan } from "../lib/prep";
 import { useStore, actions } from "../lib/store";
 import { summarize, historyLabel, type RecipeHistory } from "../lib/history";
 import { RecipeDetailModal } from "./RecipeDetailModal";
@@ -44,6 +45,7 @@ export function PlannerView() {
     () => planEase(cookedMeals(plan, recipesById)),
     [plan, recipesById]
   );
+  const prep = useMemo(() => prepPlan(plan, recipesById), [plan, recipesById]);
 
   const planOpts = {
     requireTags: require,
@@ -204,6 +206,25 @@ export function PlannerView() {
         <div className="spacer" />
         <PlanToolbar savedCount={savedPlans.length} plan={plan} onOpenMenus={() => setShowMenus(true)} />
       </div>
+
+      {prep.prepAhead.length > 0 && (
+        <div className="filters" style={{ display: "grid", gap: 6 }}>
+          <strong>🧊 Weekend prep — make once, eat all week</strong>
+          <ul style={{ margin: 0, paddingLeft: 18 }}>
+            {prep.prepAhead.map((p) => (
+              <li key={p.recipeId}>
+                <b>{p.title}</b> — batch-cook once, covers {p.days}{" "}
+                {p.slots.join(" & ")} {p.days === 1 ? "day" : "days"}
+              </li>
+            ))}
+          </ul>
+          {prep.fresh.length > 0 && (
+            <span className="muted" style={{ fontSize: "0.78rem" }}>
+              Cooked fresh on the day: {prep.fresh.map((f) => f.title).join(", ")}
+            </span>
+          )}
+        </div>
+      )}
 
       {planEmpty && (
         <div className="empty-state plan-empty">
