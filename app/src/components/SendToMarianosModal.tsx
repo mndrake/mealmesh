@@ -1,7 +1,7 @@
 // "Send to Mariano's" flow: connect (OAuth) -> pick store -> review matched products
 // (swap/remove/qty) -> choose pickup/delivery -> send to cart -> open cart. We only add
 // items; the user reviews and checks out on Mariano's.
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Section, Recipe } from "../lib/types";
 import { type ShoppingList, SECTION_LABELS, type ItemSource } from "../lib/shopping";
 import { sectionMismatch } from "../lib/krogerSections";
@@ -623,7 +623,34 @@ function ProductPicker({
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  // The menu is position:fixed (placed from the trigger's rect) so it escapes the modal's
+  // overflow:hidden and the review list's scroll clip — otherwise only a couple of options show.
+  const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
   const current = options.find((o) => o.upc === value) ?? options[0];
+
+  useLayoutEffect(() => {
+    if (!open || !btnRef.current) return;
+    const place = () => {
+      const r = btnRef.current!.getBoundingClientRect();
+      const m = 8; // viewport margin
+      const below = window.innerHeight - r.bottom - m;
+      const above = r.top - m;
+      const up = below < 260 && above > below; // flip up when there's more room above
+      const width = Math.min(Math.max(r.width, 300), window.innerWidth - 2 * m);
+      const left = Math.max(m, Math.min(r.left, window.innerWidth - width - m));
+      setMenuStyle({
+        position: "fixed",
+        left,
+        width,
+        maxHeight: Math.max(160, Math.floor(up ? above : below)),
+        ...(up ? { bottom: window.innerHeight - r.top + 2 } : { top: r.bottom + 2 }),
+      });
+    };
+    place();
+    window.addEventListener("resize", place);
+    return () => window.removeEventListener("resize", place);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -631,17 +658,26 @@ function ProductPicker({
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    // Close on scroll: a fixed menu would otherwise drift away from its trigger. Ignore scrolls
+    // inside the menu itself (scrolling the option list shouldn't dismiss it).
+    const onScroll = (e: Event) => {
+      if (ref.current && e.target instanceof Node && ref.current.contains(e.target)) return;
+      setOpen(false);
+    };
     document.addEventListener("mousedown", onDoc);
     document.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", onScroll, true);
     return () => {
       document.removeEventListener("mousedown", onDoc);
       document.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", onScroll, true);
     };
   }, [open]);
 
   return (
     <div className="kr-picker" ref={ref}>
       <button
+        ref={btnRef}
         type="button"
         className="kr-picker-btn"
         aria-haspopup="listbox"
@@ -653,7 +689,7 @@ function ProductPicker({
         <span className="kr-picker-caret" aria-hidden="true">▾</span>
       </button>
       {open && (
-        <ul className="kr-picker-menu" role="listbox">
+        <ul className="kr-picker-menu" role="listbox" style={menuStyle}>
           {options.map((m) => (
             <li key={m.upc} role="option" aria-selected={m.upc === value}>
               <button
