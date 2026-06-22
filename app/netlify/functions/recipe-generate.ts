@@ -32,7 +32,9 @@ export default async (req: Request): Promise<Response> => {
   const role = ROLES.includes(body.role as Category) ? (body.role as Category) : "dinner";
   const c: GenConstraints = {
     role,
-    count: clamp(body.count, 1, 8, 4),
+    // Hard per-call cap: a single Claude call must stay small to fit the function timeout.
+    // The client batches larger requests into several of these.
+    count: clamp(body.count, 1, 3, 3),
     maxIngredients: clamp(body.maxIngredients, 1, 15, 6),
     maxNetCarbs: clamp(body.maxNetCarbs, 0, 200, 15),
     servings: clamp(body.servings, 1, 12, 2),

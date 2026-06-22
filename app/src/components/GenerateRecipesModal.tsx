@@ -28,23 +28,34 @@ export function GenerateRecipesModal({ onClose }: { onClose: () => void }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  // Generate in small batches (each its own fast server call) so a single request never
+  // exceeds the function timeout, and show recipes as they arrive. Partial results are kept
+  // if a later batch fails.
+  const BATCH = 3;
+
   async function run() {
     setBusy(true);
     setError(null);
+    setResults([]);
+    setSaved(new Set());
+    const base = {
+      role,
+      maxIngredients,
+      maxNetCarbs,
+      servings: 2,
+      palette: palette.split(",").map((s) => s.trim()).filter(Boolean),
+      noFish,
+    };
+    const acc: GeneratedRecipeResult[] = [];
     try {
-      const r = await generateRecipes({
-        role,
-        count,
-        maxIngredients,
-        maxNetCarbs,
-        servings: 2,
-        palette: palette.split(",").map((s) => s.trim()).filter(Boolean),
-        noFish,
-      });
-      setResults(r);
-      setSaved(new Set());
+      for (let remaining = count; remaining > 0; remaining -= BATCH) {
+        const batch = await generateRecipes({ ...base, count: Math.min(BATCH, remaining) });
+        acc.push(...batch);
+        setResults([...acc]);
+      }
     } catch (e) {
       setError(friendlyError((e as Error).message));
+      if (acc.length) setResults([...acc]); // keep what we got
     } finally {
       setBusy(false);
     }
