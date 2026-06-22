@@ -6,6 +6,7 @@ import App from "../App";
 import { BrowseView } from "../components/BrowseView";
 import { PlannerView } from "../components/PlannerView";
 import { MonthlyPlanView } from "../components/MonthlyPlanView";
+import { GenerateRecipesModal } from "../components/GenerateRecipesModal";
 import { ShoppingView } from "../components/ShoppingView";
 import { HistoryView } from "../components/HistoryView";
 
@@ -39,5 +40,12 @@ describe("render smoke", () => {
     expect(html).toContain("Weeks 2 &amp; 4");
     expect(html).toContain("Weekend prep");
     expect(html).toContain("ingredients to buy this week");
+  });
+
+  it("renders the generate-recipes modal form", () => {
+    const html = renderToString(<GenerateRecipesModal onClose={() => {}} />);
+    expect(html).toContain("Generate recipes");
+    expect(html).toContain("Max net carbs");
+    expect(html).toContain("No fish");
   });
 });
