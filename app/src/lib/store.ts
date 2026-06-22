@@ -48,6 +48,8 @@ export interface AppState {
   locked: string[]; // "<dayIndex>:<slot>" keys pinned against regenerate
   cookLog: CookEvent[]; // "I made this" history (newest-first)
   itemLocations: ItemLocation[]; // store aisle/department cache (by item name)
+  amountOverrides: Record<string, string>; // shopping item name → user-corrected amount text
+  merges: Record<string, string>; // shopping item name → canonical name (manual combine; identity = opt out)
   userRecipes: Recipe[]; // imported recipes (merged with the bundled set for display)
   // ---- ephemeral (not persisted to localStorage) ----
   loading: boolean; // hydrating from the cloud
@@ -64,11 +66,11 @@ export function emptyPlan(): Plan {
 const EPHEMERAL = { loading: false, syncError: false, importAvailable: false };
 
 function defaultState(): AppState {
-  return { activePlan: emptyPlan(), savedPlans: [], favorites: [], checked: [], stapleNeeds: [], locked: [], cookLog: [], itemLocations: [], userRecipes: [], ...EPHEMERAL };
+  return { activePlan: emptyPlan(), savedPlans: [], favorites: [], checked: [], stapleNeeds: [], locked: [], cookLog: [], itemLocations: [], amountOverrides: {}, merges: {}, userRecipes: [], ...EPHEMERAL };
 }
 
 // Durable subset that round-trips through localStorage (cache + offline view).
-type Durable = Pick<AppState, "activePlan" | "savedPlans" | "favorites" | "checked" | "stapleNeeds" | "locked" | "cookLog" | "itemLocations" | "userRecipes">;
+type Durable = Pick<AppState, "activePlan" | "savedPlans" | "favorites" | "checked" | "stapleNeeds" | "locked" | "cookLog" | "itemLocations" | "amountOverrides" | "merges" | "userRecipes">;
 function durableOf(s: AppState): Durable {
   return {
     activePlan: s.activePlan,
@@ -79,6 +81,8 @@ function durableOf(s: AppState): Durable {
     locked: s.locked,
     cookLog: s.cookLog,
     itemLocations: s.itemLocations,
+    amountOverrides: s.amountOverrides,
+    merges: s.merges,
     userRecipes: s.userRecipes,
   };
 }
@@ -298,22 +302,38 @@ export async function resolveImport(accept: boolean) {
 // ---------------------------------------------------------------------------
 // Actions — optimistic in-memory update (unchanged behavior) + cloud write-through
 // ---------------------------------------------------------------------------
+
+/** writeActivePlan opts built from current state — keeps the per-plan blob fields (locked,
+ *  staples, amount overrides, merges) in one place so every plan write carries them. */
+function planOpts(c: CloudCtx, planId: string | null = c.activePlanId) {
+  return {
+    householdId: c.householdId,
+    planId,
+    activePlan: state.activePlan,
+    locked: state.locked,
+    stapleNeeds: state.stapleNeeds,
+    amountOverrides: state.amountOverrides,
+    merges: state.merges,
+    userId: c.userId,
+  };
+}
+
 export const actions = {
   setActivePlan(plan: Plan) {
     set({ activePlan: plan });
-    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, stapleNeeds: state.stapleNeeds, userId: c.userId }));
+    push((c) => writeActivePlan(c.client, planOpts(c)));
   },
 
   setSlot(dayIndex: number, slot: keyof Omit<PlanDay, "day">, value: PlanDay[typeof slot]) {
     const activePlan = state.activePlan.map((d, i) => (i === dayIndex ? { ...d, [slot]: value } : d));
     set({ activePlan });
-    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, stapleNeeds: state.stapleNeeds, userId: c.userId }));
+    push((c) => writeActivePlan(c.client, planOpts(c)));
   },
 
   clearPlan() {
     set({ activePlan: emptyPlan(), locked: [], checked: [], stapleNeeds: [] });
     push(async (c) => {
-      const planId = await writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, stapleNeeds: state.stapleNeeds, userId: c.userId });
+      const planId = await writeActivePlan(c.client, planOpts(c));
       await clearCheckoffs(c.client, planId);
       return planId;
     });
@@ -322,18 +342,18 @@ export const actions = {
   toggleLock(key: string) {
     const locked = state.locked.includes(key) ? state.locked.filter((k) => k !== key) : [...state.locked, key];
     set({ locked });
-    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, stapleNeeds: state.stapleNeeds, userId: c.userId }));
+    push((c) => writeActivePlan(c.client, planOpts(c)));
   },
 
   unlock(key: string) {
     if (!state.locked.includes(key)) return;
     set({ locked: state.locked.filter((k) => k !== key) });
-    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, stapleNeeds: state.stapleNeeds, userId: c.userId }));
+    push((c) => writeActivePlan(c.client, planOpts(c)));
   },
 
   clearLocks() {
     set({ locked: [] });
-    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, stapleNeeds: state.stapleNeeds, userId: c.userId }));
+    push((c) => writeActivePlan(c.client, planOpts(c)));
   },
 
   toggleFavorite(id: string) {
@@ -347,7 +367,7 @@ export const actions = {
     set({ checked: on ? [...state.checked, name] : state.checked.filter((x) => x !== name) });
     push(async (c) => {
       if (!c.activePlanId) {
-        c.activePlanId = await writeActivePlan(c.client, { householdId: c.householdId, planId: null, activePlan: state.activePlan, locked: state.locked, stapleNeeds: state.stapleNeeds, userId: c.userId });
+        c.activePlanId = await writeActivePlan(c.client, planOpts(c, null));
       }
       await setCheckoff(c.client, c.activePlanId, name, on);
     });
@@ -366,7 +386,7 @@ export const actions = {
   toggleStapleNeed(name: string) {
     const on = !state.stapleNeeds.includes(name);
     set({ stapleNeeds: on ? [...state.stapleNeeds, name] : state.stapleNeeds.filter((x) => x !== name) });
-    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, stapleNeeds: state.stapleNeeds, userId: c.userId }));
+    push((c) => writeActivePlan(c.client, planOpts(c)));
   },
 
   /** Record an "I made this" event (optimistic; newest-first). Returns the new id. */
@@ -412,6 +432,36 @@ export const actions = {
     push((c) => upsertItemLocations(c.client, entries, c.householdId, c.userId));
   },
 
+  /** Override an item's merged amount text on the shopping list (empty clears the override). */
+  setAmountOverride(name: string, text: string | null) {
+    const t = (text ?? "").trim();
+    const amountOverrides = { ...state.amountOverrides };
+    if (t) amountOverrides[name] = t;
+    else delete amountOverrides[name];
+    set({ amountOverrides });
+    push((c) => writeActivePlan(c.client, planOpts(c)));
+  },
+
+  /** Combine a shopping item into another (its quantities fold into `into`'s line). */
+  mergeItems(name: string, into: string) {
+    if (!name || !into || name === into) return;
+    const merges = { ...state.merges, [name]: into };
+    // Keep the chain flat: anything that pointed at `name` now points at `into`.
+    for (const k of Object.keys(merges)) if (merges[k] === name) merges[k] = into;
+    set({ merges });
+    push((c) => writeActivePlan(c.client, planOpts(c)));
+  },
+
+  /** Split previously-combined items back out. Each name is pinned to itself, which also
+   *  cancels any built-in synonym (e.g. keep "whole milk" separate from "milk"). */
+  unmergeItems(names: string[]) {
+    if (!names.length) return;
+    const merges = { ...state.merges };
+    for (const n of names) merges[n] = n; // identity = explicit "keep separate"
+    set({ merges });
+    push((c) => writeActivePlan(c.client, planOpts(c)));
+  },
+
   /** Add an imported recipe (optimistic; appears immediately in Browse). */
   addUserRecipe(recipe: Recipe) {
     set({ userRecipes: [recipe, ...state.userRecipes] });
@@ -441,7 +491,7 @@ export const actions = {
     const sp = state.savedPlans.find((p) => p.id === id);
     if (!sp) return;
     set({ activePlan: sp.plan, locked: [] });
-    push((c) => writeActivePlan(c.client, { householdId: c.householdId, planId: c.activePlanId, activePlan: state.activePlan, locked: state.locked, stapleNeeds: state.stapleNeeds, userId: c.userId }));
+    push((c) => writeActivePlan(c.client, planOpts(c)));
   },
 
   deletePlan(id: string) {
@@ -474,6 +524,8 @@ export const actions = {
       locked: next.locked ?? [],
       cookLog: next.cookLog ?? [],
       itemLocations: next.itemLocations ?? [],
+      amountOverrides: next.amountOverrides ?? {},
+      merges: next.merges ?? {},
       userRecipes: next.userRecipes ?? [],
     });
     push(async (c) => {

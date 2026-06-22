@@ -29,13 +29,13 @@ const samplePlan: Plan = [
 describe("cloudMap", () => {
   it("wraps active plan + locked into the data JSONB and back", () => {
     const data = planData(samplePlan, ["0:dinner"]);
-    expect(data).toEqual({ days: samplePlan, locked: ["0:dinner"], stapleNeeds: [] });
+    expect(data).toEqual({ days: samplePlan, locked: ["0:dinner"], stapleNeeds: [], amountOverrides: {}, merges: {} });
     const row = { data } as PlanRow;
-    expect(activePlanFromRow(row)).toEqual({ activePlan: samplePlan, locked: ["0:dinner"], stapleNeeds: [] });
+    expect(activePlanFromRow(row)).toEqual({ activePlan: samplePlan, locked: ["0:dinner"], stapleNeeds: [], amountOverrides: {}, merges: {} });
   });
 
   it("tolerates a missing/empty data blob", () => {
-    expect(activePlanFromRow({ data: undefined } as unknown as PlanRow)).toEqual({ activePlan: [], locked: [], stapleNeeds: [] });
+    expect(activePlanFromRow({ data: undefined } as unknown as PlanRow)).toEqual({ activePlan: [], locked: [], stapleNeeds: [], amountOverrides: {}, merges: {} });
   });
 
   it("maps a saved plan to a row and back (saved plans drop locks)", () => {

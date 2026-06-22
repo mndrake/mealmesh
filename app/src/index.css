@@ -1390,6 +1390,60 @@ a {
   color: var(--muted);
   white-space: nowrap;
 }
+/* Editable merged-amount on a shopping item. */
+.q.qedit {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 1px dashed var(--border);
+}
+.q.qedit.ovr {
+  color: var(--accent-ink, inherit);
+  font-weight: 600;
+}
+.amt-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.amt-edit .amt-input {
+  width: 110px;
+  padding: 1px 5px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.78rem;
+}
+/* Combine / separate controls under a shopping item. */
+.shop-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  font-size: 0.74rem;
+  color: var(--muted);
+  margin-top: 1px;
+}
+.shop-actions .combine-btn {
+  font-size: inherit;
+  color: var(--muted);
+}
+.shop-actions .merged-hint {
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+}
+.shop-actions .combine-select {
+  padding: 1px 4px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.76rem;
+  max-width: 180px;
+}
 /* "from <recipe>" links under a shopping item, so you can open the recipe and buy the right kind. */
 .shop-from {
   display: flex;

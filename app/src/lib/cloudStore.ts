@@ -153,9 +153,9 @@ export async function deleteUserRecipe(client: SupabaseClient, id: string): Prom
  *  returns the active plan id. */
 export async function writeActivePlan(
   client: SupabaseClient,
-  opts: { householdId: string; planId: string | null; activePlan: Plan; locked: string[]; stapleNeeds?: string[]; userId?: string }
+  opts: { householdId: string; planId: string | null; activePlan: Plan; locked: string[]; stapleNeeds?: string[]; amountOverrides?: Record<string, string>; merges?: Record<string, string>; userId?: string }
 ): Promise<string> {
-  const data = planData(opts.activePlan, opts.locked, opts.stapleNeeds ?? []);
+  const data = planData(opts.activePlan, opts.locked, opts.stapleNeeds ?? [], opts.amountOverrides ?? {}, opts.merges ?? {});
   if (opts.planId) {
     const { error } = await client
       .from("plans")
@@ -244,6 +244,8 @@ export async function pushFullState(
     activePlan: state.activePlan,
     locked: state.locked,
     stapleNeeds: state.stapleNeeds,
+    amountOverrides: state.amountOverrides,
+    merges: state.merges,
   });
 
   // Saved plans: replace the inactive rows wholesale.
