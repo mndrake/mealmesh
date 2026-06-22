@@ -19,7 +19,7 @@ export default async (req: Request): Promise<Response> => {
   if (!conn?.location_id) return json({ error: "no_store" }, 409); // pick a store first
   const locationId = conn.location_id;
 
-  const body = (await req.json().catch(() => ({}))) as { items?: Item[]; force?: boolean };
+  const body = (await req.json().catch(() => ({}))) as { items?: Item[]; force?: boolean; noAlias?: boolean };
   const items = Array.isArray(body.items) ? body.items : [];
   if (!items.length) return json({ rows: [] });
 
@@ -47,7 +47,7 @@ export default async (req: Request): Promise<Response> => {
     const toCache: { itemName: string; locationId: string; data: unknown }[] = [];
     await Promise.all(
       needSearch.map(async (it) => {
-        const term = aliases.get(it.name) || it.name; // remembered alternative term, if any
+        const term = body.noAlias ? it.name : aliases.get(it.name) || it.name; // remembered alternative term, if any
         const row = toReviewRow(await searchProducts(process.env, token!, term, locationId), it.name, it.displayQty ?? "", it.section ?? null);
         searched.set(it.name, row);
         toCache.push({ itemName: it.name, locationId, data: { matched: row.matched, alternates: row.alternates } });

@@ -98,10 +98,11 @@ export function SendToMarianosModal({ list, onClose, anchor = null }: { list: Sh
   async function startReview(sent: SentItem[] = sentItems) {
     setStep("loading");
     try {
-      // Editing a single item forces a fresh search (bypass the cache) so the dropdown shows
-      // current alternates and the section-aware re-rank runs — the cached entry may be a stale
-      // wrong match with no alternates. The full review uses the cache (fast).
-      const { rows } = await krogerClient.match(reviewItems, editingOne);
+      // Editing a single item forces a fresh search (bypass the cache) AND ignores any saved
+      // alias (noAlias), so the picker shows the full current product list to choose from — the
+      // cached/aliased entry can be a stale or narrowed match with no alternates. The full
+      // review uses the cache + aliases (fast, and aliases improve the bulk auto-match).
+      const { rows } = await krogerClient.match(reviewItems, editingOne, editingOne);
       // Default already-sent or unavailable matches OFF so we don't duplicate the cart or
       // add things that can't be fulfilled — the user can still re-check them. Seed each row's
       // package quantity from what was saved previously (this is the place qty is edited).
