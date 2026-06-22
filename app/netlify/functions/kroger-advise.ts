@@ -5,7 +5,7 @@
 // Returns corrected review rows + how many were fixed. Always bypasses the cache (force).
 import { getUser, householdIdFor, getConnection, getAliases, saveAlias } from "./_shared/supa";
 import { clientCredToken, searchProducts } from "./_shared/kroger-api";
-import { toReviewRow, krogerDepartmentToSection, type ReviewRow, type ProductMatch } from "./_shared/kroger";
+import { toReviewRow, krogerDepartmentToSection, isNonFoodDepartment, type ReviewRow, type ProductMatch } from "./_shared/kroger";
 import { adviseMatches, hasClaude } from "./_shared/kroger-advisor";
 import { json } from "./_shared/http";
 
@@ -37,10 +37,12 @@ export default async (req: Request): Promise<Response> => {
       })
     );
 
-    // Questionable = no match, or the matched product's department contradicts the expected aisle.
+    // Questionable = no match, a non-food match (cornstarch → baby powder), or one whose
+    // department contradicts the expected aisle.
     const questionable = items.filter((it) => {
       const row = rows.get(it.name)!;
       if (!row.matched) return true;
+      if (isNonFoodDepartment(row.matched.department)) return true;
       const dept = krogerDepartmentToSection(row.matched.department);
       return Boolean(it.section && dept && dept !== it.section);
     });

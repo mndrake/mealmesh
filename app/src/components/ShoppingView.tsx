@@ -182,6 +182,15 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
 
   const openRecipe = (id: string) => setRecipeView(recipesById.get(id) ?? null);
 
+  /** Set how many packages to buy for an item (the cart/price quantity), editable right on the
+   *  list. Reuses the synced itemLocations.quantity; creates a minimal location if none yet. */
+  function setQty(name: string, q: number) {
+    const quantity = Math.max(1, Math.floor(q) || 1);
+    const loc = locMap.get(name);
+    const base: ItemLocation = loc ?? { name, aisle: null, aisleNumber: null, department: null, price: null, product: null, fetchedAt: 0 };
+    actions.saveItemLocations([{ ...base, name, quantity }]);
+  }
+
   if (mealCount === 0) {
     return (
       <div className="container">
@@ -246,6 +255,20 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
               >
                 ★ staple
               </button>
+            )}
+            {loc?.product && (
+              <span className="shop-qty" title="How many to buy (adds up in the cart & price)">
+                <button className="qbtn" onClick={() => setQty(name, packages - 1)} disabled={packages <= 1} aria-label="Buy one fewer">−</button>
+                <input
+                  className="qnum"
+                  type="number"
+                  min={1}
+                  value={packages}
+                  aria-label={`Quantity to buy for ${name}`}
+                  onChange={(e) => setQty(name, Number(e.target.value))}
+                />
+                <button className="qbtn" onClick={() => setQty(name, packages + 1)} aria-label="Buy one more">+</button>
+              </span>
             )}
             {price != null && (
               <span className="shop-price">

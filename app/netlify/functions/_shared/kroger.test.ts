@@ -157,6 +157,26 @@ describe("kroger pure helpers", () => {
     expect(row.alternates.map((a) => a.upc)).toEqual(["D1"]);
   });
 
+  it("demotes a non-food match below a real food product (corn starch → baby powder)", () => {
+    const data = [
+      // Kroger relevance puts baby powder (contains cornstarch) first.
+      { upc: "B1", productId: "b1", description: "Pure Cornstarch Baby Powder", categories: ["Baby"], items: [{ fulfillment: { instore: true } }] },
+      { upc: "F1", productId: "f1", description: "Corn Starch", categories: ["Baking"], items: [{ fulfillment: { instore: true } }] },
+    ];
+    const row = toReviewRow({ data }, "corn starch", "2 tbsp");
+    expect(row.matched).toMatchObject({ upc: "F1", description: "Corn Starch" });
+    expect(row.alternates.map((a) => a.upc)).toEqual(["B1"]); // kept as an option
+  });
+
+  it("keeps a non-food match below even an unavailable food product", () => {
+    const data = [
+      { upc: "B1", productId: "b1", description: "Baby Powder", categories: ["Health & Beauty"], items: [{ fulfillment: { instore: true } }] },
+      { upc: "F1", productId: "f1", description: "Corn Starch", categories: ["Baking"], items: [{ fulfillment: {} }] }, // unavailable food
+    ];
+    const row = toReviewRow({ data }, "corn starch", "2 tbsp");
+    expect(row.matched).toMatchObject({ upc: "F1" });
+  });
+
   it("captures bay/shelf/side from aisleLocations for the store-walk view", () => {
     const row = toReviewRow(
       { data: [{ upc: "S1", description: "Salt", aisleLocations: [{ number: "9", bayNumber: "3", shelfNumber: "2", side: "L" }], items: [{ fulfillment: { instore: true } }] }] },
