@@ -19,8 +19,11 @@ It reuses the M6 recipe-import pipeline (see [`recipe-import.md`](./recipe-impor
     the shopping palette, marks `nutrition_estimated`, and tags it `generated`/`diabetic-friendly`.
   - `validateGenerated()` — drops/flags recipes that broke the rules (too many shoppable
     ingredients, net carbs over target, missing nutrition, contains fish when `noFish`).
-- **`anthropic.ts` → `generateRecipesWithClaude()`** — the Claude call (`claude-opus-4-8`,
-  structured output), parallel to `extractRecipeWithClaude`.
+- **`anthropic.ts` → `generateRecipesWithClaude()`** — the Claude call (structured output),
+  parallel to `extractRecipeWithClaude`. Kept fast and small to fit Netlify's ~10s
+  synchronous function timeout: a quick model (`claude-haiku-4-5`), no extended thinking, low
+  effort, and a tight token budget. A single call generates at most 3 recipes; the modal
+  requests larger counts as several small batches (showing results as they arrive).
 
 Generated recipes carry a `u-` id and land in `user_recipes`, so they appear in Browse, the
 planner picker, shopping, nutrition, and Kroger exactly like imported recipes. The **Monthly

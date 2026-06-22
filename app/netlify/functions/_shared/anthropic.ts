@@ -125,11 +125,14 @@ export async function generateRecipesWithClaude(
   if (!env.ANTHROPIC_API_KEY) throw new Error("ai_unconfigured");
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
 
+  // Kept fast and small so it returns within Netlify's ~10s synchronous function timeout:
+  // a quick model, no extended thinking, low reasoning effort, and a token budget sized to a
+  // handful of short recipes. The client requests recipes in small batches (see the modal),
+  // so a single call never has to produce many at once.
   const res = await client.messages.parse({
-    model: "claude-opus-4-8",
-    max_tokens: 8000,
-    thinking: { type: "adaptive" },
-    output_config: { format: zodOutputFormat(GeneratedBatchSchema), effort: "medium" },
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 4096,
+    output_config: { format: zodOutputFormat(GeneratedBatchSchema), effort: "low" },
     system: generationSystemPrompt(),
     messages: [{ role: "user", content: generationUserPrompt(c) }],
   });
