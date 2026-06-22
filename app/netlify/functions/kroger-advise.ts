@@ -9,7 +9,7 @@ import { toReviewRow, krogerDepartmentToSection, type ReviewRow, type ProductMat
 import { adviseMatches, hasClaude } from "./_shared/kroger-advisor";
 import { json } from "./_shared/http";
 
-type Item = { name: string; displayQty?: string; section?: string };
+type Item = { name: string; displayQty?: string; section?: string; detail?: string };
 
 export default async (req: Request): Promise<Response> => {
   const user = await getUser(req);
@@ -52,7 +52,7 @@ export default async (req: Request): Promise<Response> => {
         questionable.map((it) => {
           const row = rows.get(it.name)!;
           const cands = [row.matched, ...row.alternates].filter(Boolean) as ProductMatch[];
-          return { name: it.name, section: it.section ?? null, candidates: cands.map((c) => ({ upc: c.upc, description: c.description, department: c.department, price: c.price })) };
+          return { name: it.name, section: it.section ?? null, detail: it.detail ?? null, candidates: cands.map((c) => ({ upc: c.upc, description: c.description, department: c.department, price: c.price })) };
         })
       );
 

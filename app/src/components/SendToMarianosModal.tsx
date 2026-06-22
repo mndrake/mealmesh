@@ -1,16 +1,30 @@
 // "Send to Mariano's" flow: connect (OAuth) -> pick store -> review matched products
 // (swap/remove/qty) -> choose pickup/delivery -> send to cart -> open cart. We only add
 // items; the user reviews and checks out on Mariano's.
-import { useEffect, useRef, useState } from "react";
-import type { Section } from "../lib/types";
-import { type ShoppingList, SECTION_LABELS } from "../lib/shopping";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { Section, Recipe } from "../lib/types";
+import { type ShoppingList, SECTION_LABELS, type ItemSource } from "../lib/shopping";
 import { sectionMismatch } from "../lib/krogerSections";
-import { actions, getState } from "../lib/store";
+import { summarize } from "../lib/history";
+import { actions, getState, useStore } from "../lib/store";
 import { krogerClient, type ReviewRow, type KrogerStore, type SentItem, type ProductMatch } from "../lib/krogerClient";
+import { RecipeDetailModal } from "./RecipeDetailModal";
 
 type Step = "loading" | "needs-auth" | "store" | "review" | "sending" | "done" | "error";
 
-export function SendToMarianosModal({ list, onClose, anchor = null }: { list: ShoppingList; onClose: () => void; anchor?: string | null }) {
+export function SendToMarianosModal({
+  list,
+  onClose,
+  anchor = null,
+  sources,
+  recipesById,
+}: {
+  list: ShoppingList;
+  onClose: () => void;
+  anchor?: string | null;
+  sources: Map<string, ItemSource[]>;
+  recipesById: Map<string, Recipe>;
+}) {
   const [step, setStep] = useState<Step>("loading");
   const [error, setError] = useState<string | null>(null);
   const [storeName, setStoreName] = useState<string | null>(null);
@@ -39,6 +53,41 @@ export function SendToMarianosModal({ list, onClose, anchor = null }: { list: Sh
   const reviewItems = anchor ? items.filter((it) => it.name === anchor) : items;
   const editingOne = Boolean(anchor);
   const anchorRef = useRef<HTMLDivElement | null>(null);
+
+  // A recipe opened from an item's "for <recipe>" link, so the user can see what kind the
+  // recipe needs and pick the right product. Shown as a modal stacked over this one.
+  const [recipeView, setRecipeView] = useState<Recipe | null>(null);
+  const favorites = useStore((s) => s.favorites);
+  const cookLog = useStore((s) => s.cookLog);
+  const cookSummary = useMemo(() => summarize(cookLog), [cookLog]);
+
+  /** "for <recipe(s)>" with the recipe's own wording for the item, so the right kind is bought.
+   *  Each title opens the recipe; a single source also shows its phrasing inline. */
+  function recipeFor(name: string) {
+    const srcs = sources.get(name) ?? [];
+    if (!srcs.length) return null;
+    return (
+      <div className="kr-from">
+        for{" "}
+        {srcs.map((s, i) => (
+          <span key={s.recipeId}>
+            <button
+              className="linklike"
+              title={`${s.detail} — open recipe`}
+              onClick={() => {
+                const r = recipesById.get(s.recipeId);
+                if (r) setRecipeView(r);
+              }}
+            >
+              {s.recipeTitle}
+            </button>
+            {i < srcs.length - 1 ? ", " : ""}
+          </span>
+        ))}
+        {srcs.length === 1 && srcs[0].detail && <span> — {srcs[0].detail}</span>}
+      </div>
+    );
+  }
 
   /** Location hint for a matched row: aisle + a flag when Kroger's department disagrees
    *  with the section the list grouped the item under. */
@@ -285,6 +334,7 @@ export function SendToMarianosModal({ list, onClose, anchor = null }: { list: Sh
   const toRemove = editingOne ? [] : sentItems.filter((s) => !currentUpcs.has(s.upc));
 
   return (
+    <>
     <div className="overlay" onClick={handleClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 760 }}>
         <button className="close" onClick={handleClose} aria-label="Close">
@@ -379,6 +429,7 @@ export function SendToMarianosModal({ list, onClose, anchor = null }: { list: Sh
                         <span className="kr-badge warn">unavailable</span>
                       )}
                       {locationHint(r)}
+                      {recipeFor(r.listName)}
                     </div>
                     {r.matched && research !== i ? (
                       <>
@@ -536,6 +587,16 @@ export function SendToMarianosModal({ list, onClose, anchor = null }: { list: Sh
         </div>
       </div>
     </div>
+    {recipeView && (
+      <RecipeDetailModal
+        recipe={recipeView}
+        isFavorite={favorites.includes(recipeView.id)}
+        onToggleFavorite={actions.toggleFavorite}
+        history={cookSummary.get(recipeView.id)}
+        onClose={() => setRecipeView(null)}
+      />
+    )}
+    </>
   );
 }
 

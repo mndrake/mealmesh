@@ -40,6 +40,8 @@ architecture, data model, security, and the M0–M4 roadmap. Confirmed stack:
   `service_role` key must never be committed, logged, or put in the frontend/Netlify build.
   Keep `app/.env*` out of git.
 - Run `npm run test` and `npm run lint` before committing app changes.
+- **Pull requests:** when asked to implement a change, the default is to open a PR after
+  pushing the branch (no need to ask first). Skip the PR only if explicitly told to.
 
 ## Where things are going
 Work milestone by milestone per [`docs/roadmap.md`](docs/roadmap.md). Each milestone keeps

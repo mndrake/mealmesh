@@ -17,6 +17,7 @@ export interface AdvisorCandidate {
 export interface AdvisorItem {
   name: string; // the recipe shopping-list name
   section?: string | null; // the expected grocery aisle
+  detail?: string | null; // the recipe's wording for the item (variety/prep), e.g. "cherry tomatoes, halved"
   candidates: AdvisorCandidate[];
 }
 export interface AdvisorPick {
@@ -40,6 +41,9 @@ For each item, pick the candidate UPC a home cook actually wants:
 - Prefer the basic raw ingredient in its expected aisle over prepared/deli/bakery/seasoning-blend
   products (e.g. fresh shallots in Produce, NOT a deli shallot dish or shallot vinaigrette).
 - Match the form implied by the item name (whole vs ground, fresh vs dried, etc.).
+- When recipe_context is given, use it to choose the right kind/form the recipe needs (e.g.
+  "cherry tomatoes" → a fresh cherry tomato product, not canned; "tomato, diced" still means a
+  fresh tomato to dice, NOT canned diced tomatoes). The expected_aisle takes priority over prep words.
 - If one candidate clearly fits, return its exact upc as chosenUpc (betterTerm null).
 - If NONE of the candidates are a good match, set chosenUpc null and provide betterTerm: a short,
   plain grocery search term to try instead (e.g. "shallot").
@@ -69,6 +73,7 @@ export async function adviseMatches(env: Env, items: AdvisorItem[]): Promise<Adv
             items: items.map((it) => ({
               name: it.name,
               expected_aisle: it.section ?? null,
+              recipe_context: it.detail ?? null,
               candidates: it.candidates.map((c) => ({
                 upc: c.upc,
                 description: c.description,
