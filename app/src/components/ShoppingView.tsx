@@ -1,16 +1,17 @@
 import { useMemo, useState } from "react";
-import type { Section, ItemLocation } from "../lib/types";
+import type { Section, ItemLocation, Recipe } from "../lib/types";
 import { useAllRecipesById } from "../lib/allRecipes";
 import { cookedMeals } from "../lib/planner";
-import { buildList, SECTION_LABELS } from "../lib/shopping";
+import { buildList, buildSources, SECTION_LABELS } from "../lib/shopping";
 import { normalizeForShopping } from "../lib/normalize";
 import { groupByAisle, groupByAisleWalk, locationText, shelfText, isStale } from "../lib/aisleOrder";
 import { costLine, summarizeCost, formatMoney } from "../lib/cost";
-import { formatCookedOn, todayIso } from "../lib/history";
+import { formatCookedOn, todayIso, summarize } from "../lib/history";
 import { useStore, actions } from "../lib/store";
 import { krogerClient, type ReviewRow } from "../lib/krogerClient";
 import { exportShoppingText } from "../lib/exporter";
 import { SendToMarianosModal } from "./SendToMarianosModal";
+import { RecipeDetailModal } from "./RecipeDetailModal";
 
 const STALE_DAYS = 30;
 const fmtDate = (ms: number) => formatCookedOn(todayIso(new Date(ms)));
@@ -41,6 +42,11 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
   const checked = useStore((s) => s.checked);
   const itemLocations = useStore((s) => s.itemLocations);
   const stapleNeeds = useStore((s) => s.stapleNeeds);
+  const favorites = useStore((s) => s.favorites);
+  const cookLog = useStore((s) => s.cookLog);
+  const favSet = useMemo(() => new Set(favorites), [favorites]);
+  const cookSummary = useMemo(() => summarize(cookLog), [cookLog]);
+  const [recipeView, setRecipeView] = useState<Recipe | null>(null); // recipe opened from an item link
   const checkedSet = useMemo(() => new Set(checked), [checked]);
   const neededSet = useMemo(() => new Set(stapleNeeds), [stapleNeeds]);
   const locMap = useMemo(() => new Map(itemLocations.map((l) => [l.name, l])), [itemLocations]);
@@ -56,7 +62,7 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
   // Build the list, "promoting" staples the user marked "need to buy" into normal items so
   // they flow into sections/aisle order/cost/cart. allStaplesSet = every staple in the plan
   // (needed or not) so the UI can show the right toggle on each.
-  const { list, allStaplesSet, mealCount } = useMemo(() => {
+  const { list, allStaplesSet, mealCount, sources } = useMemo(() => {
     const meals = normalizeForShopping(cookedMeals(plan, recipesById));
     const staplesSet = new Set(buildList(meals).staples);
     const promoted = meals.map((r) => ({
@@ -65,12 +71,22 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
         i.staple && neededSet.has(i.buy_as || i.item) ? { ...i, staple: false } : i
       ),
     }));
-    return { list: buildList(promoted), allStaplesSet: staplesSet, mealCount: meals.length };
+    return { list: buildList(promoted), allStaplesSet: staplesSet, mealCount: meals.length, sources: buildSources(meals) };
   }, [plan, recipesById, neededSet]);
 
   // Items with their expected aisle, so the matcher can prefer same-section products.
   const matchItems = () =>
     list.sections.flatMap((s) => s.items.map(([name, displayQty]) => ({ name, displayQty, section: s.section })));
+
+  // The recipe(s)' own wording for an item (variety + prep), deduped across recipes — used to
+  // link an item to its recipe and to give the AI advisor context for picking the right kind.
+  const detailFor = (name: string): string | undefined => {
+    const srcs = sources.get(name);
+    if (!srcs?.length) return undefined;
+    const seen = new Set<string>();
+    for (const s of srcs) for (const d of s.detail.split("; ")) if (d) seen.add(d);
+    return seen.size ? [...seen].join("; ") : undefined;
+  };
 
   const itemCount = list.sections.reduce((n, s) => n + s.items.length, 0);
   const hasLocations = useMemo(
@@ -142,7 +158,7 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
   /** Ask the AI advisor to re-pick products for items whose match looks wrong (e.g. a Produce
    *  item matched to Deli), then persist the corrections. */
   async function fixMatches() {
-    const items = matchItems();
+    const items = matchItems().map((it) => ({ ...it, detail: detailFor(it.name) }));
     if (!items.length) return;
     setAdvising(true);
     setNotice(null);
@@ -163,6 +179,8 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
     setAnchor(name);
     setShowKroger(true);
   }
+
+  const openRecipe = (id: string) => setRecipeView(recipesById.get(id) ?? null);
 
   if (mealCount === 0) {
     return (
@@ -186,6 +204,7 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
     const price = loc?.price ?? null;
     const packages = loc?.quantity ?? 1;
     const showNoPrice = hasPrices && price == null;
+    const srcs = sources.get(name) ?? [];
     return (
       <div className={`shop-item ${isChecked ? "checked" : ""}`}>
         <input type="checkbox" id={id} checked={isChecked} onChange={() => actions.toggleChecked(id)} />
@@ -235,6 +254,24 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
               </span>
             )}
           </div>
+
+          {srcs.length > 0 && (
+            <div className="shop-from">
+              <span>for</span>
+              {srcs.map((s, i) => (
+                <span key={s.recipeId}>
+                  <button
+                    className="linklike"
+                    title={`${s.detail} — open recipe`}
+                    onClick={() => openRecipe(s.recipeId)}
+                  >
+                    {s.recipeTitle}
+                  </button>
+                  {i < srcs.length - 1 ? "," : ""}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -379,10 +416,22 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
         <SendToMarianosModal
           list={list}
           anchor={anchor}
+          sources={sources}
+          recipesById={recipesById}
           onClose={() => {
             setShowKroger(false);
             setAnchor(null);
           }}
+        />
+      )}
+
+      {recipeView && (
+        <RecipeDetailModal
+          recipe={recipeView}
+          isFavorite={favSet.has(recipeView.id)}
+          onToggleFavorite={actions.toggleFavorite}
+          history={cookSummary.get(recipeView.id)}
+          onClose={() => setRecipeView(null)}
         />
       )}
     </div>

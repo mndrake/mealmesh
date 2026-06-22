@@ -82,6 +82,49 @@ export interface ShoppingList {
   staples: string[];
 }
 
+/** Which recipe a shopping item came from, with that recipe's own wording for the ingredient
+ *  (variety + prep, e.g. "cherry tomatoes, halved"). Lets the UI link an item back to its
+ *  recipe(s) so the right kind is bought, and gives the AI advisor recipe context. */
+export interface ItemSource {
+  recipeId: string;
+  recipeTitle: string;
+  /** The recipe's original ingredient phrasing (item + note), e.g. "tomato, small, diced". */
+  detail: string;
+}
+
+/** Map each shopping item name (the same buy_as||item key buildList uses) to the recipe(s)
+ *  that call for it. Mirrors buildList's filtering (skips exclude_from_shopping) but keeps
+ *  staples too, so promoted staples are linkable. One entry per recipe; a recipe that lists an
+ *  item more than once has its phrasings joined. */
+export function buildSources(meals: Recipe[]): Map<string, ItemSource[]> {
+  // name -> recipeId -> { title, details(in order, deduped) }
+  const byName = new Map<string, Map<string, { title: string; details: string[] }>>();
+  for (const r of meals) {
+    for (const ing of r.ingredients ?? []) {
+      if (ing.exclude_from_shopping) continue;
+      const name = key(ing);
+      const detail = ing.note ? `${ing.item}, ${ing.note}` : ing.item;
+      let byRecipe = byName.get(name);
+      if (!byRecipe) byName.set(name, (byRecipe = new Map()));
+      const cur = byRecipe.get(r.id);
+      if (!cur) byRecipe.set(r.id, { title: r.title, details: [detail] });
+      else if (!cur.details.includes(detail)) cur.details.push(detail);
+    }
+  }
+  const out = new Map<string, ItemSource[]>();
+  for (const [name, byRecipe] of byName) {
+    out.set(
+      name,
+      [...byRecipe.entries()].map(([recipeId, { title, details }]) => ({
+        recipeId,
+        recipeTitle: title,
+        detail: details.join("; "),
+      }))
+    );
+  }
+  return out;
+}
+
 type Acc = {
   vol: number;
   mass: number;

@@ -938,11 +938,16 @@ a {
   z-index: 20;
   top: calc(100% + 2px);
   left: 0;
-  right: 0;
+  /* Grow wider than the trigger so long product names are readable, and taller so more
+     options show before scrolling — capped to stay inside the modal / viewport. */
+  right: auto;
+  min-width: 100%;
+  width: max-content;
+  max-width: min(440px, 88vw);
   margin: 0;
   padding: 4px;
   list-style: none;
-  max-height: 240px;
+  max-height: 60vh;
   overflow-y: auto;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -1352,6 +1357,28 @@ a {
   font-size: 0.72rem;
   color: var(--muted);
   white-space: nowrap;
+}
+/* "from <recipe>" links under a shopping item, so you can open the recipe and buy the right kind. */
+.shop-from {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  font-size: 0.74rem;
+  color: var(--muted);
+  margin-top: 1px;
+}
+.shop-from .linklike {
+  font-size: inherit;
+}
+/* Recipe context inside the Kroger review row (which recipe + its wording for this item). */
+.kr-from {
+  font-size: 0.74rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.kr-from .linklike {
+  font-size: inherit;
 }
 
 /* Review modal: row focused via an item's "change" link */

@@ -94,8 +94,9 @@ export const krogerClient = {
   match: (items: { name: string; displayQty: string; section?: string }[], force = false, noAlias = false) =>
     call<{ rows: ReviewRow[] }>("match", { method: "POST", body: JSON.stringify({ items, force, noAlias }) }),
   // AI advisor: re-pick the best product for items whose match looks wrong (Claude chooses
-  // among candidates / suggests a better search term). Returns corrected review rows.
-  advise: (items: { name: string; displayQty: string; section?: string }[]) =>
+  // among candidates / suggests a better search term). `detail` is the recipe's wording for the
+  // item (variety/prep), so the advisor can pick the right kind. Returns corrected review rows.
+  advise: (items: { name: string; displayQty: string; section?: string; detail?: string }[]) =>
     call<{ rows: ReviewRow[]; fixed: number }>("advise", { method: "POST", body: JSON.stringify({ items }) }),
   cart: (items: { upc: string; quantity: number }[], modality: string) =>
     call<{ ok: boolean; added: number; failed: { upc: string; status: number }[] }>("cart", {
