@@ -18,10 +18,36 @@ async function authHeaders(): Promise<Record<string, string>> {
 
 /** Import a recipe from a URL. Throws an Error (with a readable message) on failure. */
 export async function importRecipe(url: string): Promise<ImportResult> {
-  const res = await fetch("/api/recipes/import", {
+  return (await postJson("/api/recipes/import", { url })) as unknown as ImportResult;
+}
+
+export interface GenerateConstraints {
+  role: "breakfast" | "lunch" | "dinner" | "snack";
+  count: number;
+  maxIngredients: number;
+  maxNetCarbs: number;
+  servings: number;
+  palette: string[];
+  noFish: boolean;
+}
+
+export interface GeneratedRecipeResult {
+  recipe: Recipe;
+  /** Constraint violations the server flagged (empty = clean). */
+  issues: string[];
+}
+
+/** Generate novel ultra-simple diabetic recipes. Throws on failure. */
+export async function generateRecipes(c: GenerateConstraints): Promise<GeneratedRecipeResult[]> {
+  const body = (await postJson("/api/recipes/generate", c)) as { recipes: GeneratedRecipeResult[] };
+  return body.recipes ?? [];
+}
+
+async function postJson(path: string, payload: unknown): Promise<Record<string, unknown>> {
+  const res = await fetch(path, {
     method: "POST",
     headers: await authHeaders(),
-    body: JSON.stringify({ url }),
+    body: JSON.stringify(payload),
   });
   const text = await res.text();
   let body: Record<string, unknown>;
@@ -34,5 +60,5 @@ export async function importRecipe(url: string): Promise<ImportResult> {
     const detail = body.detail ? `: ${String(body.detail)}` : "";
     throw new Error(`${String(body.error ?? `HTTP ${res.status}`)}${detail}`);
   }
-  return body as unknown as ImportResult;
+  return body;
 }

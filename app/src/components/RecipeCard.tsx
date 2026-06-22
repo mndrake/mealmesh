@@ -1,5 +1,6 @@
 import type { Recipe } from "../lib/types";
 import { DIET_TAGS } from "../lib/filters";
+import { netCarbs } from "../lib/nutrition";
 import { historyLabel, type RecipeHistory } from "../lib/history";
 
 interface Props {
@@ -54,6 +55,9 @@ export function RecipeCard({
           </span>
           <span>
             <b>{n.carb_g}g</b> carb
+          </span>
+          <span>
+            <b>{netCarbs(n)}g</b> net
           </span>
           <span>
             <b>{n.protein_g}g</b> protein

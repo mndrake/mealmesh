@@ -14,6 +14,7 @@ import { RecipeCard } from "./RecipeCard";
 import { RecipeDetailModal } from "./RecipeDetailModal";
 import { MarkCookedModal } from "./MarkCookedModal";
 import { ImportRecipeModal } from "./ImportRecipeModal";
+import { GenerateRecipesModal } from "./GenerateRecipesModal";
 
 interface Props {
   onAddToPlan: (r: Recipe) => void;
@@ -24,6 +25,7 @@ export function BrowseView({ onAddToPlan }: Props) {
   const [selected, setSelected] = useState<Recipe | null>(null);
   const [cooking, setCooking] = useState<Recipe | null>(null);
   const [importing, setImporting] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const recipes = useAllRecipes();
   const favorites = useStore((s) => s.favorites);
   const favSet = useMemo(() => new Set(favorites), [favorites]);
@@ -51,6 +53,9 @@ export function BrowseView({ onAddToPlan }: Props) {
           {results.length} of {recipes.length}
         </span>
         <div className="spacer" />
+        <button className="btn small" onClick={() => setGenerating(true)}>
+          ✨ Generate
+        </button>
         <button className="btn small" onClick={() => setImporting(true)}>
           + Import recipe
         </button>
@@ -100,6 +105,8 @@ export function BrowseView({ onAddToPlan }: Props) {
           }}
         />
       )}
+
+      {generating && <GenerateRecipesModal onClose={() => setGenerating(false)} />}
     </div>
   );
 }

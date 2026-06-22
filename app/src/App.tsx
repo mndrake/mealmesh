@@ -5,6 +5,7 @@ import { useStore, actions } from "./lib/store";
 import { cookedMeals } from "./lib/planner";
 import { BrowseView } from "./components/BrowseView";
 import { PlannerView } from "./components/PlannerView";
+import { MonthlyPlanView } from "./components/MonthlyPlanView";
 import { ShoppingView } from "./components/ShoppingView";
 import { HistoryView } from "./components/HistoryView";
 import { AddToPlanModal } from "./components/AddToPlanModal";
@@ -13,7 +14,7 @@ import { CloudStatus } from "./components/CloudStatus";
 import { exportAllState } from "./lib/exporter";
 import { useAuth } from "./lib/auth";
 
-type Tab = "browse" | "plan" | "shopping" | "history";
+type Tab = "browse" | "plan" | "monthly" | "shopping" | "history";
 type Slot = "breakfast" | "lunch" | "dinner" | "snack";
 
 export default function App() {
@@ -80,6 +81,9 @@ export default function App() {
               Plan
               {plannedCount > 0 && <span className="badge">{plannedCount}</span>}
             </button>
+            <button className={tab === "monthly" ? "active" : ""} onClick={() => setTab("monthly")}>
+              Monthly
+            </button>
             <button
               className={tab === "shopping" ? "active" : ""}
               onClick={() => setTab("shopping")}
@@ -142,6 +146,7 @@ export default function App() {
         </div>
         {tab === "browse" && <BrowseView onAddToPlan={setAddTarget} />}
         {tab === "plan" && <PlannerView />}
+        {tab === "monthly" && <MonthlyPlanView />}
         {tab === "shopping" && <ShoppingView openSend={krogerConnected} />}
         {tab === "history" && <HistoryView />}
       </main>
