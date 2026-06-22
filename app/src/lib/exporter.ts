@@ -6,6 +6,7 @@ import { getState } from "./store";
 import { cookedMeals } from "./planner";
 import { prepPlan } from "./prep";
 import { planEase } from "./ease";
+import { scaledShoppingMeals } from "./scaling";
 import { dayTotals } from "./nutrition";
 
 function download(filename: string, text: string, type = "application/json") {
@@ -109,7 +110,8 @@ export function exportMonthlyMarkdown(monthly: import("./monthly").MonthlyPlan) 
     const meals = cookedMeals(w.plan, byId);
     const ease = planEase(meals);
     const prep = prepPlan(w.plan, byId);
-    const list = buildList(meals);
+    // Amounts scaled to the household (and each batch's full week of coverage).
+    const list = buildList(scaledShoppingMeals(w.plan, byId, monthly.householdSize));
     for (const s of list.staples) pantry.add(s);
 
     L.push(`## ${w.label} (${ease.paletteSize} ingredients to buy)`, "");

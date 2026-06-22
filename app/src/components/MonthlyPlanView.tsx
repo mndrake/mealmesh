@@ -8,6 +8,7 @@ import { prepPlan } from "../lib/prep";
 import { planEase } from "../lib/ease";
 import { dayTotals } from "../lib/nutrition";
 import { buildList, SECTION_LABELS } from "../lib/shopping";
+import { scaledShoppingMeals } from "../lib/scaling";
 import { exportMonthlyMarkdown } from "../lib/exporter";
 
 const CONSTRAINTS = ["diabetic-friendly", "vegetarian", "low-carb", "high-protein"];
@@ -47,9 +48,14 @@ export function MonthlyPlanView() {
 
   const week = monthly.weeks[activeWeek];
   const meals = useMemo(() => cookedMeals(week.plan, byId), [week, byId]);
-  const ease = useMemo(() => planEase(meals), [meals]);
+  const ease = useMemo(() => planEase(meals), [meals]); // palette size — quantity-independent
   const prep = useMemo(() => prepPlan(week.plan, byId), [week, byId]);
-  const list = useMemo(() => buildList(meals), [meals]);
+  // Shopping quantities are scaled to the household (and to each batch's full week of
+  // coverage), so the amounts reflect what to actually buy for `household` people.
+  const list = useMemo(
+    () => buildList(scaledShoppingMeals(week.plan, byId, household)),
+    [week, byId, household]
+  );
 
   const title = (id: string) => byId.get(id)?.title ?? id;
 
@@ -85,7 +91,7 @@ export function MonthlyPlanView() {
         <span
           className="muted"
           style={{ marginLeft: 8, fontSize: "0.8rem" }}
-          title="Recorded on the plan; quantities currently reflect each recipe's yield (per-person scaling is coming)"
+          title="Scales the shopping quantities below to this many people (and to each batch's full week of meals)"
         >
           People
         </span>
