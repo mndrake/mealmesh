@@ -3,6 +3,7 @@ import type { Section, ItemLocation, Recipe } from "../lib/types";
 import { useAllRecipesById } from "../lib/allRecipes";
 import { cookedMeals } from "../lib/planner";
 import { buildList, buildSources, SECTION_LABELS } from "../lib/shopping";
+import { applyMerges, mergedFrom } from "../lib/listMerge";
 import { normalizeForShopping } from "../lib/normalize";
 import { groupByAisle, groupByAisleWalk, locationText, shelfText, isStale } from "../lib/aisleOrder";
 import { costLine, summarizeCost, formatMoney } from "../lib/cost";
@@ -44,9 +45,14 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
   const stapleNeeds = useStore((s) => s.stapleNeeds);
   const favorites = useStore((s) => s.favorites);
   const cookLog = useStore((s) => s.cookLog);
+  const amountOverrides = useStore((s) => s.amountOverrides);
+  const merges = useStore((s) => s.merges);
   const favSet = useMemo(() => new Set(favorites), [favorites]);
   const cookSummary = useMemo(() => summarize(cookLog), [cookLog]);
   const [recipeView, setRecipeView] = useState<Recipe | null>(null); // recipe opened from an item link
+  const [editAmount, setEditAmount] = useState<string | null>(null); // item whose amount is being edited
+  const [amountDraft, setAmountDraft] = useState(""); // working value while editing an amount
+  const [combining, setCombining] = useState<string | null>(null); // item being combined into another
   const checkedSet = useMemo(() => new Set(checked), [checked]);
   const neededSet = useMemo(() => new Set(stapleNeeds), [stapleNeeds]);
   const locMap = useMemo(() => new Map(itemLocations.map((l) => [l.name, l])), [itemLocations]);
@@ -62,8 +68,11 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
   // Build the list, "promoting" staples the user marked "need to buy" into normal items so
   // they flow into sections/aisle order/cost/cart. allStaplesSet = every staple in the plan
   // (needed or not) so the UI can show the right toggle on each.
-  const { list, allStaplesSet, mealCount, sources } = useMemo(() => {
-    const meals = normalizeForShopping(cookedMeals(plan, recipesById));
+  const { list, allStaplesSet, mealCount, sources, mergedFromMap } = useMemo(() => {
+    const base = normalizeForShopping(cookedMeals(plan, recipesById));
+    // Fold combined items together (built-in synonyms + manual merges) before aggregating, so
+    // quantities sum under the canonical name. buildList stays untouched (parity-safe).
+    const meals = applyMerges(base, merges);
     const staplesSet = new Set(buildList(meals).staples);
     const promoted = meals.map((r) => ({
       ...r,
@@ -71,8 +80,24 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
         i.staple && neededSet.has(i.buy_as || i.item) ? { ...i, staple: false } : i
       ),
     }));
-    return { list: buildList(promoted), allStaplesSet: staplesSet, mealCount: meals.length, sources: buildSources(meals) };
-  }, [plan, recipesById, neededSet]);
+    const built = buildList(promoted);
+    // Apply per-item amount overrides to the displayed quantity (display-only; flows to the
+    // checklist, aisle grouping, export, and the Kroger review since they all read this list).
+    const withOverrides = {
+      ...built,
+      sections: built.sections.map((s) => ({
+        ...s,
+        items: s.items.map(([name, qty]) => [name, amountOverrides[name] ?? qty] as [string, string]),
+      })),
+    };
+    return {
+      list: withOverrides,
+      allStaplesSet: staplesSet,
+      mealCount: base.length,
+      sources: buildSources(meals),
+      mergedFromMap: mergedFrom(base, merges),
+    };
+  }, [plan, recipesById, neededSet, merges, amountOverrides]);
 
   // Items with their expected aisle, so the matcher can prefer same-section products.
   const matchItems = () =>
@@ -202,6 +227,9 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
     );
   }
 
+  // All current item names (across sections), for the "combine into…" picker.
+  const allNames = list.sections.flatMap((s) => s.items.map(([n]) => n));
+
   function Item({ name, qty: recipeQty, section }: { name: string; qty?: string; section: Section }) {
     const id = `${section}:${name}`;
     const isChecked = checkedSet.has(id);
@@ -214,6 +242,8 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
     const packages = loc?.quantity ?? 1;
     const showNoPrice = hasPrices && price == null;
     const srcs = sources.get(name) ?? [];
+    const overridden = name in amountOverrides;
+    const mergedKids = mergedFromMap.get(name) ?? [];
     return (
       <div className={`shop-item ${isChecked ? "checked" : ""}`}>
         <input type="checkbox" id={id} checked={isChecked} onChange={() => actions.toggleChecked(id)} />
@@ -246,7 +276,32 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
               </span>
             )}
             {shelf && <span className="shop-shelf">{shelf}</span>}
-            {recipeQty && <span className="q">{recipeQty}</span>}
+            {editAmount === name ? (
+              <span className="amt-edit">
+                <input
+                  className="amt-input"
+                  value={amountDraft}
+                  autoFocus
+                  aria-label={`Amount for ${name}`}
+                  onChange={(e) => setAmountDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") { actions.setAmountOverride(name, amountDraft); setEditAmount(null); }
+                    if (e.key === "Escape") setEditAmount(null);
+                  }}
+                />
+                <button className="linklike" onClick={() => { actions.setAmountOverride(name, amountDraft); setEditAmount(null); }}>save</button>
+                {overridden && <button className="linklike" onClick={() => { actions.setAmountOverride(name, ""); setEditAmount(null); }}>reset</button>}
+                <button className="linklike" onClick={() => setEditAmount(null)}>cancel</button>
+              </span>
+            ) : (
+              <button
+                className={`q qedit ${overridden ? "ovr" : ""}`}
+                title={overridden ? "Edited amount — tap to change" : "Tap to correct the amount"}
+                onClick={() => { setEditAmount(name); setAmountDraft(recipeQty ?? ""); }}
+              >
+                {recipeQty || "as needed"} ✎
+              </button>
+            )}
             {isStapleItem && (
               <button
                 className="staple-tag on"
@@ -295,6 +350,34 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
               ))}
             </div>
           )}
+
+          <div className="shop-actions">
+            {mergedKids.length > 0 && (
+              <span className="merged-hint" title={`Combined: ${[name, ...mergedKids].join(", ")}`}>
+                combined: {mergedKids.join(", ")}
+                <button className="linklike" onClick={() => actions.unmergeItems([name, ...mergedKids])}>separate</button>
+              </span>
+            )}
+            {combining === name ? (
+              <span className="combine-pick">
+                combine into
+                <select
+                  className="combine-select"
+                  defaultValue=""
+                  aria-label={`Combine ${name} into another item`}
+                  onChange={(e) => { if (e.target.value) { actions.mergeItems(name, e.target.value); setCombining(null); } }}
+                >
+                  <option value="" disabled>choose item…</option>
+                  {allNames.filter((n) => n !== name).map((n) => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+                <button className="linklike" onClick={() => setCombining(null)}>cancel</button>
+              </span>
+            ) : (
+              <button className="linklike combine-btn" onClick={() => setCombining(name)}>combine</button>
+            )}
+          </div>
         </div>
       </div>
     );
