@@ -6,6 +6,13 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { SECTIONS, type ParsedRecipe } from "./recipe-import";
+import {
+  GeneratedBatchSchema,
+  generationSystemPrompt,
+  generationUserPrompt,
+  type GenConstraints,
+  type GeneratedRecipe,
+} from "./recipe-generate";
 
 type Env = Record<string, string | undefined>;
 
@@ -106,6 +113,30 @@ export async function extractRecipeWithClaude(env: Env, pageText: string, url: s
   const out = res.parsed_output;
   if (!out) throw new Error("ai_parse_failed");
   return toParsed(out);
+}
+
+/** Generate a batch of novel, ultra-simple, diabetic recipes from constraints (no source
+ *  page — Claude designs them). Returns the validated recipes; the caller finalizes each
+ *  with toGeneratedDraft. Throws if the key is missing or parsing fails. */
+export async function generateRecipesWithClaude(
+  env: Env,
+  c: GenConstraints
+): Promise<GeneratedRecipe[]> {
+  if (!env.ANTHROPIC_API_KEY) throw new Error("ai_unconfigured");
+  const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+
+  const res = await client.messages.parse({
+    model: "claude-opus-4-8",
+    max_tokens: 8000,
+    thinking: { type: "adaptive" },
+    output_config: { format: zodOutputFormat(GeneratedBatchSchema), effort: "medium" },
+    system: generationSystemPrompt(),
+    messages: [{ role: "user", content: generationUserPrompt(c) }],
+  });
+
+  const out = res.parsed_output;
+  if (!out) throw new Error("ai_parse_failed");
+  return out.recipes;
 }
 
 const ImageSchema = z.object({ image_url: z.string().nullable() });

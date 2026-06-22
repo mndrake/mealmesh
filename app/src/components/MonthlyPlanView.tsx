@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { rawRecipes } from "../lib/recipes";
 import { useAllRecipesById } from "../lib/allRecipes";
+import { useStore } from "../lib/store";
 import { buildMonthlyPlan } from "../lib/monthly";
 import { cookedMeals } from "../lib/planner";
 import { prepPlan } from "../lib/prep";
@@ -13,19 +14,26 @@ const CONSTRAINTS = ["diabetic-friendly", "vegetarian", "low-carb", "high-protei
 
 export function MonthlyPlanView() {
   const byId = useAllRecipesById();
+  const userRecipes = useStore((s) => s.userRecipes);
   const [require, setRequire] = useState<string[]>([]);
   const [household, setHousehold] = useState(2);
   const [target, setTarget] = useState(100);
   const [activeWeek, setActiveWeek] = useState(0);
 
+  // Generated/imported recipes (simpler, palette-fitting) are eligible alongside the
+  // bundled set — ease mode prefers whichever adds the fewest new ingredients, so adding
+  // simple generated recipes makes the monthly plan simpler. (The parity-locked default
+  // weekly planner still builds from the bundled set only.)
+  const pool = useMemo(() => [...userRecipes, ...rawRecipes], [userRecipes]);
+
   const monthly = useMemo(
     () =>
-      buildMonthlyPlan(rawRecipes, {
+      buildMonthlyPlan(pool, {
         requireTags: require,
         householdSize: household,
         netCarbTargetPerDay: target,
       }),
-    [require, household, target]
+    [pool, require, household, target]
   );
 
   // Pantry staples shared across the whole month (buy once); union of both weeks.
