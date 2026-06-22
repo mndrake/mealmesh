@@ -74,7 +74,13 @@ export function MonthlyPlanView() {
             {c}
           </button>
         ))}
-        <span className="muted" style={{ marginLeft: 8, fontSize: "0.8rem" }}>People</span>
+        <span
+          className="muted"
+          style={{ marginLeft: 8, fontSize: "0.8rem" }}
+          title="Recorded on the plan; quantities currently reflect each recipe's yield (per-person scaling is coming)"
+        >
+          People
+        </span>
         <input
           type="number"
           min={1}

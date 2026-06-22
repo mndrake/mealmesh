@@ -5,6 +5,7 @@ import { renderToString } from "react-dom/server";
 import App from "../App";
 import { BrowseView } from "../components/BrowseView";
 import { PlannerView } from "../components/PlannerView";
+import { MonthlyPlanView } from "../components/MonthlyPlanView";
 import { ShoppingView } from "../components/ShoppingView";
 import { HistoryView } from "../components/HistoryView";
 
@@ -29,5 +30,14 @@ describe("render smoke", () => {
 
   it("renders the (empty) history view", () => {
     expect(renderToString(<HistoryView />)).toContain("No cooking history yet");
+  });
+
+  it("renders the monthly plan with both rotation weeks and a prep blueprint", () => {
+    const html = renderToString(<MonthlyPlanView />);
+    expect(html).toContain("Monthly plan");
+    expect(html).toContain("Weeks 1 &amp; 3");
+    expect(html).toContain("Weeks 2 &amp; 4");
+    expect(html).toContain("Weekend prep");
+    expect(html).toContain("ingredients to buy this week");
   });
 });
