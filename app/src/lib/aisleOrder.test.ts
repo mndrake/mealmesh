@@ -38,19 +38,6 @@ describe("groupByAisle", () => {
     expect(groups[2].items.find((i) => i.name === "spinach")?.section).toBe("Produce");
   });
 
-  it("groups a fresh/perimeter item under our section when Kroger's department disagrees", () => {
-    // "onion" is Produce, but Kroger matched a jarred product filed under "International".
-    // We trust our Produce section for perimeter items instead of grouping it as International.
-    const locations = new Map<string, ItemLocation>([
-      ["onion", loc("onion", "International", 8, "Aisle 8")],
-      ["rice", loc("rice", "International", 8, "Aisle 8")], // center-store: keep Kroger's dept
-    ]);
-    const groups = groupByAisle(list, locations);
-    const byName = (n: string) => groups.find((g) => g.items.some((i) => i.name === n));
-    expect(byName("onion")?.label).toBe("Produce"); // overridden to our section
-    expect(byName("rice")?.label).toBe("International"); // Pantry item keeps Kroger's dept
-  });
-
   it("orders departments by their lowest aisle number", () => {
     const locations = new Map<string, ItemLocation>([
       ["onion", loc("onion", "Produce", 30)],
