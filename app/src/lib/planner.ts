@@ -130,6 +130,11 @@ export interface PlanOptions {
   /** Restrict Mon–Fri lunches to office-friendly, no-cook recipes (easy to pack for
    *  work). Default true (matches planner.py). */
   officeWeekdayLunch?: boolean;
+  /** Recipe ids to avoid when a pool still has alternatives — used to build a second
+   *  rotation week that differs from the first. Never empties a required pool: if
+   *  avoiding would leave nothing, the exclusion is skipped for that pool. Empty/unset
+   *  by default, so the default plan is unaffected. */
+  excludeIds?: Set<string>;
 }
 
 /** Build a 7-day plan from the recipe pool. Mirrors planner.build_plan. */
@@ -156,18 +161,30 @@ export function buildPlan(recipes: Recipe[], opts: PlanOptions = {}): Plan {
   const lun = pool.filter((r) => r.category === "lunch");
   const din = pool.filter((r) => r.category === "dinner");
 
-  const bfWeekday = easyWeekdayBreakfast
-    ? bf.filter((r) => r.prep_style === "no_cook" || r.prep_style === "make_ahead")
-    : bf;
+  // Prefer to avoid excludeIds, but never empty a pool we must fill from.
+  const avoid = opts.excludeIds;
+  const drop = (arr: Recipe[]): Recipe[] => {
+    if (!avoid?.size) return arr; // identity when unset → default plan unchanged
+    const f = arr.filter((r) => !avoid.has(r.id));
+    return f.length ? f : arr;
+  };
+
+  const bfWeekday = drop(
+    easyWeekdayBreakfast
+      ? bf.filter((r) => r.prep_style === "no_cook" || r.prep_style === "make_ahead")
+      : bf
+  );
   const bfWeekendCook = bf.filter((r) => r.prep_style === "cook");
-  const bfWeekend = bfWeekendCook.length ? bfWeekendCook : bf;
-  const lunOffice = officeWeekdayLunch
-    ? lun.filter((r) => r.office_friendly && r.prep_style === "no_cook")
-    : lun;
+  const bfWeekend = drop(bfWeekendCook.length ? bfWeekendCook : bf);
+  const lunOffice = drop(
+    officeWeekdayLunch
+      ? lun.filter((r) => r.office_friendly && r.prep_style === "no_cook")
+      : lun
+  );
   const batchDin = din.filter((r) => r.batch);
 
   // dinners: schedule batch dinners early (Tue/Fri) so leftovers feed weekend lunches
-  const otherDin = din.filter((r) => !r.batch);
+  const otherDin = drop(din.filter((r) => !r.batch));
   const dinnerSeq = pick(otherDin, 7);
   const placedBatch: [number, Recipe][] = [];
   [1, 4].forEach((slot, k) => {

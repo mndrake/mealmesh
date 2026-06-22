@@ -90,6 +90,62 @@ export function exportPlanMarkdown(plan: Plan) {
   download("mealmesh-plan.md", L.join("\n"), "text/markdown");
 }
 
+/** The full rotating month as one printable document: each rotation week's prep
+ *  blueprint, daily menu with net carbs, and replenish list, plus a shared
+ *  buy-once pantry list. The monthly equivalent of the Gemini sample's document. */
+export function exportMonthlyMarkdown(monthly: import("./monthly").MonthlyPlan) {
+  const byId = allRecipesById();
+  const today = new Date().toISOString().slice(0, 10);
+  const L: string[] = [];
+  L.push("# MealMesh monthly plan", "");
+  L.push(
+    `_Generated ${today} · ${monthly.householdSize} people · target ≤ ${monthly.netCarbTargetPerDay}g net carbs/day · rotating two-week template_`,
+    ""
+  );
+
+  const pantry = new Set<string>();
+
+  for (const w of monthly.weeks) {
+    const meals = cookedMeals(w.plan, byId);
+    const ease = planEase(meals);
+    const prep = prepPlan(w.plan, byId);
+    const list = buildList(meals);
+    for (const s of list.staples) pantry.add(s);
+
+    L.push(`## ${w.label} (${ease.paletteSize} ingredients to buy)`, "");
+    if (prep.prepAhead.length) {
+      L.push("**Weekend prep — make once, eat all week**", "");
+      for (const p of prep.prepAhead) {
+        L.push(`- ${p.title} — covers ${p.days} ${p.slots.join(" & ")} ${p.days === 1 ? "day" : "days"}`);
+      }
+      if (prep.fresh.length) L.push("", `_Fresh on the day: ${prep.fresh.map((f) => f.title).join(", ")}_`);
+      L.push("");
+    }
+    for (const d of w.plan) {
+      const net = dayTotals(d, byId).netCarbs;
+      const flag = net > monthly.netCarbTargetPerDay ? " ⚠ over target" : "";
+      L.push(`### ${d.day} — ~${net}g net carbs${flag}`);
+      L.push(`- Breakfast: ${mealLabel(d.breakfast)}`);
+      L.push(`- Lunch: ${mealLabel(d.lunch)}`);
+      L.push(`- Dinner: ${mealLabel(d.dinner)}`, "");
+    }
+    L.push(`**${w.label} replenish list**`, "");
+    for (const { section, items } of list.sections) {
+      L.push(`_${section}_`);
+      for (const [name, qty] of items) L.push(`- [ ] ${name} — ${qty}`);
+      L.push("");
+    }
+  }
+
+  if (pantry.size) {
+    L.push("## Monthly pantry (buy once)", "");
+    for (const s of [...pantry].sort()) L.push(`- [ ] ${s}`);
+    L.push("");
+  }
+
+  download("mealmesh-monthly-plan.md", L.join("\n"), "text/markdown");
+}
+
 export function exportShoppingText(
   list: ShoppingList,
   cost?: { subtotalOf?: Map<string, number | null>; total?: number }
