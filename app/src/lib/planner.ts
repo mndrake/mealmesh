@@ -188,6 +188,12 @@ export function buildPlan(recipes: Recipe[], opts: PlanOptions = {}): Plan {
   const bfWdSeq = pick(bfWeekday, 5, bfPalette);
   const bfWeSeq = pick(bfWeekend, 2, bfPalette);
 
+  // Ease mode mirrors the sustainable-menu pattern: batch-cook ONE make-ahead
+  // breakfast and ONE packable lunch on the weekend and eat them Mon–Fri (cooked
+  // once on Monday, leftovers Tue–Fri). One thing to make, five days of grab-and-go.
+  const oneWeekdayBf = minimizeIngredients ? pickSequenceEasy(bfWeekday, 1, bfPalette)[0] : undefined;
+  const oneWeekdayLun = minimizeIngredients ? pickSequenceEasy(lunOffice, 1, dinPalette)[0] : undefined;
+
   const plan: Plan = [];
   DAYS.forEach((day, di) => {
     const meal = (id: string, leftover: boolean): MealRef => ({ id, leftover });
@@ -199,8 +205,14 @@ export function buildPlan(recipes: Recipe[], opts: PlanOptions = {}): Plan {
       snack: SNACKS[di % SNACKS.length],
     };
     if (WEEKDAY.has(day)) {
-      d.breakfast = meal(bfWdSeq[di].id, false);
-      d.lunch = meal(lunSeq[di].id, false);
+      // di 0..4 = Mon..Fri. In ease mode the single batch-cooked breakfast/lunch is
+      // "cooked" Monday (di===0) and a leftover the rest of the week.
+      d.breakfast = oneWeekdayBf
+        ? meal(oneWeekdayBf.id, di > 0)
+        : meal(bfWdSeq[di].id, false);
+      d.lunch = oneWeekdayLun
+        ? meal(oneWeekdayLun.id, di > 0)
+        : meal(lunSeq[di].id, false);
     } else {
       const we = di - 5;
       d.breakfast = meal(bfWeSeq[we].id, false);

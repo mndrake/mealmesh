@@ -77,4 +77,19 @@ describe("minimizeIngredients planner mode", () => {
       expect(d.dinner).not.toBeNull();
     }
   });
+
+  it("batch-cooks one weekday breakfast and one weekday lunch (cooked Mon, leftover Tue–Fri)", () => {
+    const plan = buildPlan(rawRecipes, { minimizeIngredients: true });
+    const ref = (x: unknown) => x as { id: string; leftover: boolean };
+    const bfIds = [0, 1, 2, 3, 4].map((di) => ref(plan[di].breakfast).id);
+    const lunIds = [0, 1, 2, 3, 4].map((di) => ref(plan[di].lunch).id);
+    // same recipe all five weekdays
+    expect(new Set(bfIds).size).toBe(1);
+    expect(new Set(lunIds).size).toBe(1);
+    // cooked once on Monday, leftovers the rest of the week
+    expect(ref(plan[0].breakfast).leftover).toBe(false);
+    expect(ref(plan[4].breakfast).leftover).toBe(true);
+    expect(ref(plan[0].lunch).leftover).toBe(false);
+    expect(ref(plan[4].lunch).leftover).toBe(true);
+  });
 });
