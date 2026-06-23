@@ -1632,3 +1632,28 @@ a {
 .coach-task-when { display: inline-block; font-size: 0.78rem; color: var(--muted); margin-right: 8px; }
 .coach-task-text { font-weight: 500; }
 .coach-task-wait { margin: 6px 0 0 26px; font-size: 0.85rem; color: var(--accent-ink); }
+
+/* --- Coach Ask panel (panic button) --- */
+.coach-ask-panel { max-width: 460px; text-align: left; }
+.coach-ask-suggestions { margin: 12px 0; }
+.coach-ask-suggestions .chip { cursor: pointer; border: 1px solid var(--border); }
+.coach-ask-suggestions .chip:hover { border-color: var(--accent); }
+.coach-ask-input {
+  width: 100%;
+  resize: vertical;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font: inherit;
+  margin-bottom: 8px;
+  box-sizing: border-box;
+}
+.coach-answer {
+  margin-top: 14px;
+  padding: 14px;
+  background: var(--surface-2);
+  border-radius: var(--radius);
+}
+.coach-answer.is-doneness { background: var(--accent-soft); border: 1px solid var(--accent); }
+.coach-answer p { margin: 0 0 8px; }
+.coach-ask-disclaimer { font-size: 0.75rem; margin: 8px 0 0; }

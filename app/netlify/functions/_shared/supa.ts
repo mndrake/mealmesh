@@ -242,7 +242,8 @@ export async function uploadRecipeImage(
  *  (Supabase-backed) so it holds across stateless function invocations. Tolerates the
  *  table not existing yet (migration 0011 not applied) by degrading open — the endpoint
  *  is still auth-gated. Returns the decision; on block, `retryAfterSec` is the wait. */
-export async function checkImportRateLimit(
+async function checkRateLimit(
+  table: string,
   householdId: string,
   limit: number,
   windowMs: number
@@ -252,7 +253,7 @@ export async function checkImportRateLimit(
   const cutoff = new Date(now - windowMs).toISOString();
 
   const { data, error } = await db
-    .from("recipe_import_log")
+    .from(table)
     .select("created_at")
     .eq("household_id", householdId)
     .gte("created_at", cutoff);
@@ -263,7 +264,18 @@ export async function checkImportRateLimit(
   if (!decision.allowed) return decision;
 
   // Record this attempt, then opportunistically prune aged-out rows (best-effort).
-  await db.from("recipe_import_log").insert({ household_id: householdId });
-  void db.from("recipe_import_log").delete().eq("household_id", householdId).lt("created_at", cutoff);
+  await db.from(table).insert({ household_id: householdId });
+  void db.from(table).delete().eq("household_id", householdId).lt("created_at", cutoff);
   return decision;
+}
+
+export function checkImportRateLimit(householdId: string, limit: number, windowMs: number) {
+  return checkRateLimit("recipe_import_log", householdId, limit, windowMs);
+}
+
+/** Coach assistant ("panic button") quota — its own table/budget so frequent in-the-moment
+ *  cooking questions don't exhaust the recipe import/generate budget. Degrades open if the
+ *  table (migration 0016) isn't applied yet. */
+export function checkCoachRateLimit(householdId: string, limit: number, windowMs: number) {
+  return checkRateLimit("coach_ask_log", householdId, limit, windowMs);
 }

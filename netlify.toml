@@ -76,6 +76,10 @@
   from = "/api/recipes/generate"
   to = "/.netlify/functions/recipe-generate"
   status = 200
+[[redirects]]
+  from = "/api/coach/ask"
+  to = "/.netlify/functions/coach-ask"
+  status = 200
 
 # SPA fallback so client-side routing / deep links resolve to index.html.
 [[redirects]]

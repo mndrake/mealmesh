@@ -1,24 +1,24 @@
 import { useEffect, useState } from "react";
 import type { Recipe } from "../../lib/types";
-import type { CookStep } from "../../lib/coach/types";
 import { getDonenessRule, getRecipeSteps, getTechnique } from "../../lib/coach/content";
 import { Timer } from "./Timer";
+import { CoachAskPanel } from "./CoachAskPanel";
 
 interface Props {
   recipe: Recipe;
   onClose: () => void;
   /** Called when the user answers the end-of-recipe "did you finish?" prompt (PRD R6). */
   onFinish?: (finished: boolean) => void;
-  /** Panic-button handler (wired in M2). When absent, the Ask affordance is hidden. */
-  onAsk?: (step: CookStep) => void;
 }
 
-/** Full-screen, one-step-at-a-time guided cooking (PRD §7.1, R1–R6). Static — no AI here. */
-export function CookMode({ recipe, onClose, onFinish, onAsk }: Props) {
+/** Full-screen, one-step-at-a-time guided cooking (PRD §7.1, R1–R6) with the step-aware Ask
+ *  panel (R5). */
+export function CookMode({ recipe, onClose, onFinish }: Props) {
   const steps = getRecipeSteps(recipe.id)?.steps ?? [];
   const [i, setI] = useState(0);
   const [showFinish, setShowFinish] = useState(false);
   const [showTechnique, setShowTechnique] = useState(false);
+  const [asking, setAsking] = useState(false);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -156,11 +156,9 @@ export function CookMode({ recipe, onClose, onFinish, onAsk }: Props) {
         <button className="btn ghost" onClick={() => goto(i - 1)} disabled={i === 0}>
           ← Back
         </button>
-        {onAsk && (
-          <button className="btn secondary coach-ask" onClick={() => onAsk(step)}>
-            🆘 Ask
-          </button>
-        )}
+        <button className="btn secondary coach-ask" onClick={() => setAsking(true)}>
+          🆘 Ask
+        </button>
         <span className="spacer" />
         {!last ? (
           <button className="btn" onClick={() => goto(i + 1)}>
@@ -172,6 +170,10 @@ export function CookMode({ recipe, onClose, onFinish, onAsk }: Props) {
           </button>
         )}
       </div>
+
+      {asking && (
+        <CoachAskPanel recipeId={recipe.id} step={step} onClose={() => setAsking(false)} />
+      )}
 
       {showFinish && (
         <div className="overlay" onClick={() => setShowFinish(false)}>
