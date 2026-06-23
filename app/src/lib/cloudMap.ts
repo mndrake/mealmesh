@@ -51,6 +51,7 @@ export interface CookLogRow {
   make_again: boolean | null;
   notes: string | null;
   plan_id: string | null;
+  source?: string | null;
   created_at?: string;
 }
 
@@ -147,6 +148,7 @@ export function cookEventFromRow(r: CookLogRow): CookEvent {
     makeAgain: r.make_again ?? null,
     notes: r.notes ?? null,
     planId: r.plan_id ?? null,
+    source: (r.source as CookEvent["source"]) ?? null,
   };
 }
 
@@ -216,6 +218,7 @@ export function cookEventToRow(e: CookEvent, householdId: string, userId?: strin
     make_again: e.makeAgain,
     notes: e.notes,
     plan_id: e.planId,
+    source: e.source ?? null,
   };
 }
 

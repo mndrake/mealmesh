@@ -116,6 +116,10 @@ export interface ItemLocation {
   fetchedAt: number; // ms epoch the location was last fetched (0 = unknown)
 }
 
+/** Where a cook event originated. 'cook_mode' = finished a guided Coach session (the North
+ *  Star, PRD R6); null/undefined = manual "mark as made" or legacy rows. */
+export type CookSource = "cook_mode";
+
 /** One "I made this" event with optional quick feedback. Mirrors a cook_log row. */
 export interface CookEvent {
   id: string;
@@ -125,4 +129,5 @@ export interface CookEvent {
   makeAgain: boolean | null; // thumbs up/down
   notes: string | null;
   planId: string | null;
+  source?: CookSource | null;
 }

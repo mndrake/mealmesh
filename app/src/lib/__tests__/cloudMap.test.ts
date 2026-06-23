@@ -59,10 +59,10 @@ describe("cloudMap", () => {
       cooked_by: "u", rating: 4, make_again: true, notes: "tasty", plan_id: "p1",
     };
     expect(cookEventFromRow(row)).toEqual({
-      id: "c1", recipeId: "r", cookedOn: "2026-06-02", rating: 4, makeAgain: true, notes: "tasty", planId: "p1",
+      id: "c1", recipeId: "r", cookedOn: "2026-06-02", rating: 4, makeAgain: true, notes: "tasty", planId: "p1", source: null,
     });
     expect(cookEventToRow({ id: "c1", recipeId: "r", cookedOn: "2026-06-02", rating: 4, makeAgain: true, notes: "tasty", planId: "p1" }, "h", "u"))
-      .toEqual({ id: "c1", household_id: "h", recipe_id: "r", cooked_on: "2026-06-02", cooked_by: "u", rating: 4, make_again: true, notes: "tasty", plan_id: "p1" });
+      .toEqual({ id: "c1", household_id: "h", recipe_id: "r", cooked_on: "2026-06-02", cooked_by: "u", rating: 4, make_again: true, notes: "tasty", plan_id: "p1", source: null });
   });
 
   it("maps an item_location row to ItemLocation and back (fetched_at round-trips)", () => {
@@ -89,7 +89,7 @@ describe("cloudMap", () => {
     expect(state.savedPlans).toHaveLength(1);
     expect(state.favorites).toEqual(["x"]);
     expect(state.checked).toEqual(["Produce:onion"]);
-    expect(state.cookLog).toEqual([{ id: "c1", recipeId: "r", cookedOn: "2026-06-02", rating: null, makeAgain: null, notes: null, planId: "p1" }]);
+    expect(state.cookLog).toEqual([{ id: "c1", recipeId: "r", cookedOn: "2026-06-02", rating: null, makeAgain: null, notes: null, planId: "p1", source: null }]);
     expect(state.itemLocations).toEqual([{ name: "onion", aisle: "Aisle 35", aisleNumber: 35, bay: null, shelf: null, side: null, department: "Produce", price: null, product: null, fetchedAt: Date.parse("2026-06-21T00:00:00.000Z") }]);
     // user recipe: id comes from the row, not the embedded data
     expect(state.userRecipes).toEqual([{ id: "u-1", title: "Imported", servings: 2 }]);
