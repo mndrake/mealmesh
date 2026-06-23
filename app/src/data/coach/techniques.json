@@ -1,0 +1,91 @@
+{
+  "_comment": "Technique walkthroughs. content_status='authored' = reviewed, safe to present as guidance; 'placeholder' = scaffold that still needs real authoring (and is labeled as such in the UI). Technique cues are NOT food-safety verdicts — doneness lives in doneness.json.",
+  "techniques": [
+    {
+      "id": "marinate",
+      "name": "Marinate",
+      "definition": "Soak food in a seasoned liquid so flavor (and sometimes acid/salt) penetrates the surface before cooking.",
+      "content_status": "authored",
+      "stages": [
+        {
+          "look": "Food fully coated and submerged in the marinade.",
+          "sound": "—",
+          "smell": "Aromatics (garlic, herbs, citrus) come forward.",
+          "action_cue": "Cover and refrigerate for the time the recipe gives. Don't marinate at room temperature."
+        },
+        {
+          "look": "Surface looks slightly cured/glossy; acid may lighten the color of the meat.",
+          "sound": "—",
+          "smell": "Marinade smells fragrant, not sour-off.",
+          "action_cue": "Shake or wipe off excess before cooking so it sears instead of steaming. Reserve marinade only if you'll cook it."
+        }
+      ]
+    },
+    {
+      "id": "brown_meat",
+      "name": "Brown the meat",
+      "definition": "Cook the surface of meat in hot fat until it develops a deep brown crust (the Maillard reaction). This is for flavor — it does NOT mean the meat is cooked through.",
+      "content_status": "authored",
+      "stages": [
+        {
+          "look": "Oil shimmers and the surface is dry; the pan is hot.",
+          "sound": "A loud, immediate sizzle when the meat hits the pan.",
+          "smell": "Neutral hot-oil smell.",
+          "action_cue": "Add meat in a single layer with space between pieces; don't crowd the pan or it steams."
+        },
+        {
+          "look": "Edges turn from pink/grey to brown; a crust forms underneath.",
+          "sound": "Steady, active sizzle.",
+          "smell": "Nutty, savory, toasty.",
+          "action_cue": "Leave it undisturbed until it releases easily, then turn. Brown in batches if needed."
+        },
+        {
+          "look": "All sides are deep golden-brown.",
+          "sound": "Sizzle continues.",
+          "smell": "Rich and roasted.",
+          "action_cue": "Browning is a flavor step, not a doneness step — set pieces aside and finish cooking per the recipe, then check doneness."
+        }
+      ]
+    },
+    {
+      "id": "thicken_sauce",
+      "name": "Thicken a sauce",
+      "definition": "Use a starch slurry (flour or cornstarch mixed with cold liquid) to turn a thin sauce glossy and coating.",
+      "content_status": "authored",
+      "stages": [
+        {
+          "look": "Starch fully dissolved in cold liquid — no lumps — before it goes in.",
+          "sound": "—",
+          "smell": "—",
+          "action_cue": "Always mix the starch into COLD liquid first; adding dry starch to hot liquid makes lumps."
+        },
+        {
+          "look": "Sauce dulls from watery to slightly cloudy, then turns glossy.",
+          "sound": "Gentle bubbling.",
+          "smell": "Raw-flour smell cooks off.",
+          "action_cue": "Stir constantly and let it reach a simmer for a minute or two — starch only thickens once it's heated through."
+        },
+        {
+          "look": "Sauce coats the back of a spoon; a finger swiped through leaves a clear line.",
+          "sound": "Slow bubbles.",
+          "smell": "Clean, cooked.",
+          "action_cue": "Stop here. Over-boiling cornstarch can thin it back out."
+        }
+      ]
+    },
+    {
+      "id": "simmer",
+      "name": "Simmer",
+      "definition": "Cook in liquid just below a boil — small bubbles, gentle movement — to cook through gently without toughening.",
+      "content_status": "placeholder",
+      "stages": [
+        {
+          "look": "Small bubbles rise occasionally; the surface barely moves (not a rolling boil).",
+          "sound": "Quiet, intermittent bubbling.",
+          "smell": "—",
+          "action_cue": "Adjust heat to keep it at a bare simmer; cover or uncover per the recipe. (Needs photo-style cue authoring.)"
+        }
+      ]
+    }
+  ]
+}
