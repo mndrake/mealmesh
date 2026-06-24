@@ -114,7 +114,12 @@ const OVERRIDES: Record<string, ItemOverride> = {
   "goat cheese": { section: "Dairy & Eggs" },
   "goats cheese": { section: "Dairy & Eggs" },
   "minced apple": { section: "Produce" },
-  "minced garlic": { section: "Produce" },
+  // Fresh-garlic forms all collapse onto the dominant "garlic" shopping line so a plan
+  // doesn't carry separate "garlic clove" / "garlic cloves" / "minced garlic" entries.
+  "garlic clove": { section: "Produce", buyItem: "garlic" },
+  "garlic cloves": { section: "Produce", buyItem: "garlic" },
+  "minced garlic": { section: "Produce", buyItem: "garlic" },
+  "crushed garlic": { section: "Produce", buyItem: "garlic" },
   "minced shallot": { section: "Produce", buyItem: "shallots" },
   "minced fresh parsley": { section: "Produce", buyItem: "fresh parsley" },
 

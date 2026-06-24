@@ -5,6 +5,28 @@ import { rawRecipes, recipes, recipesById } from "../recipes";
 import { buildPlan, cookedMeals } from "../planner";
 import { buildList, SECTION_ORDER } from "../shopping";
 import { normalizeForShopping } from "../normalize";
+import type { Recipe } from "../types";
+
+function mkRecipe(id: string, item: string, qty: number): Recipe {
+  return {
+    id,
+    title: id,
+    category: "dinner",
+    cuisine: null,
+    servings: 2,
+    prep_style: "cook",
+    tags: [],
+    nutrition_per_serving: { kcal: 0, carb_g: 0, fiber_g: 0, protein_g: 0, fat_g: 0 },
+    nutrition_estimated: false,
+    imageUrl: null,
+    method: "",
+    notes: "",
+    method_is_link_only: false,
+    ingredients: [
+      { qty, unit: "clove", item, section: "Produce", perishable: true, staple: false },
+    ],
+  };
+}
 
 describe("normalize integration (real data)", () => {
   it("no recipe ingredient is named bare 'starch' after display normalization", () => {
@@ -40,6 +62,20 @@ describe("normalize integration (real data)", () => {
       expect(names.has("chopped red bell pepper") && names.has("red bell pepper")).toBe(false);
       expect(names.has("shredded carrots") && names.has("carrots")).toBe(false);
     }
+  });
+
+  it("merges garlic clove / cloves / minced garlic onto a single 'garlic' line", () => {
+    const recipes = [
+      mkRecipe("a", "garlic clove", 1),
+      mkRecipe("b", "garlic cloves", 3),
+      mkRecipe("c", "minced garlic", 2),
+      mkRecipe("d", "garlic", 1),
+    ];
+    const list = buildList(normalizeForShopping(recipes));
+    const garlicNames = list.sections
+      .flatMap((s) => s.items.map(([n]) => n))
+      .filter((n) => /garlic/.test(n));
+    expect(garlicNames).toEqual(["garlic"]); // one line, not four
   });
 
   it("app plan equals the plan built from raw recipes (planner unaffected by renames)", () => {
