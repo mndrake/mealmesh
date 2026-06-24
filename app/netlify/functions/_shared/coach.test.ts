@@ -98,6 +98,19 @@ describe("buildGrounding — safety", () => {
     expect(g.deterministicAnswer).toMatch(/done/i);
   });
 
+  it("does not fabricate a verdict from free text when the step has no curated food", () => {
+    const noFoodStep = STEPS.find((s) => !s.doneness_food)!; // e.g. s1
+    const g = buildGrounding({
+      recipeId: "brown-stew-chicken",
+      stepId: noFoodStep.id,
+      question: "is the beef done?",
+    });
+    expect(g.intent).toBe("doneness");
+    expect(g.verdict?.found).toBe(false); // no guessing "beef" → whole-cut rule
+    expect(g.deterministicAnswer).toMatch(/thermometer/i);
+    expect(g.citation).toBeNull();
+  });
+
   it("grounds technique questions against the step's technique", () => {
     const g = buildGrounding({
       recipeId: "brown-stew-chicken",

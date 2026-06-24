@@ -61,8 +61,13 @@ describe("cloudMap", () => {
     expect(cookEventFromRow(row)).toEqual({
       id: "c1", recipeId: "r", cookedOn: "2026-06-02", rating: 4, makeAgain: true, notes: "tasty", planId: "p1", source: null,
     });
+    // A sourceless (manual) event must NOT emit a `source` key, so the existing flow's insert
+    // payload is unchanged and works even before migration 0017 adds the column.
     expect(cookEventToRow({ id: "c1", recipeId: "r", cookedOn: "2026-06-02", rating: 4, makeAgain: true, notes: "tasty", planId: "p1" }, "h", "u"))
-      .toEqual({ id: "c1", household_id: "h", recipe_id: "r", cooked_on: "2026-06-02", cooked_by: "u", rating: 4, make_again: true, notes: "tasty", plan_id: "p1", source: null });
+      .toEqual({ id: "c1", household_id: "h", recipe_id: "r", cooked_on: "2026-06-02", cooked_by: "u", rating: 4, make_again: true, notes: "tasty", plan_id: "p1" });
+    // A cook-mode event carries source.
+    expect(cookEventToRow({ id: "c2", recipeId: "r", cookedOn: "2026-06-02", rating: null, makeAgain: null, notes: null, planId: null, source: "cook_mode" }, "h", "u"))
+      .toMatchObject({ source: "cook_mode" });
   });
 
   it("maps an item_location row to ItemLocation and back (fetched_at round-trips)", () => {

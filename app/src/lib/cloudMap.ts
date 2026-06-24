@@ -218,7 +218,11 @@ export function cookEventToRow(e: CookEvent, householdId: string, userId?: strin
     make_again: e.makeAgain,
     notes: e.notes,
     plan_id: e.planId,
-    source: e.source ?? null,
+    // Only include `source` when set. The manual mark-as-made flow (not behind the Coach
+    // flag) then sends an identical payload to before, so it keeps working even if migration
+    // 0017 (the source column) hasn't been applied yet. Cook-mode events set it, and those
+    // only occur when the flag is on — by which point 0017 is deployed.
+    ...(e.source ? { source: e.source } : {}),
   };
 }
 

@@ -93,8 +93,13 @@ export function buildGrounding(ctx: CoachContext): Grounding {
   }
 
   if (intent === "doneness") {
-    const food = step?.doneness_food ?? extractFood(ctx.question);
-    const verdict = checkDoneness(food, { measuredTempF: parseTempF(ctx.question) });
+    // Only trust the step's curated food for a safety verdict. We deliberately do NOT guess the
+    // food from free text — "beef" would ambiguously match the whole-cut rule when the user may
+    // mean ground beef. With no curated food, checkDoneness returns its safe thermometer
+    // fallback rather than a possibly-wrong temperature.
+    const verdict = checkDoneness(step?.doneness_food, {
+      measuredTempF: parseTempF(ctx.question),
+    });
     return {
       intent,
       groundingText: verdict.guidance,
@@ -131,11 +136,6 @@ export function buildGrounding(ctx: CoachContext): Grounding {
     citation: null,
     deterministicAnswer: null,
   };
-}
-
-// Best-effort food extraction from the question when the step has no doneness_food.
-function extractFood(question: string): string {
-  return question;
 }
 
 function findTechniqueByName(question: string): Technique | null {
