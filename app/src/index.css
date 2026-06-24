@@ -1686,3 +1686,19 @@ a {
   font-size: 0.78rem;
 }
 .coach-meal-go { flex: 0 0 auto; color: var(--accent); font-size: 0.85rem; font-weight: 600; }
+
+/* --- Coach meal-row thumbnail --- */
+.coach-meal-thumb {
+  flex: 0 0 auto;
+  width: 56px;
+  height: 42px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--surface-2);
+}
+.coach-meal-thumb-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}

@@ -9,7 +9,7 @@ import {
   getMenu,
   listMenus,
 } from "../../lib/coach/content";
-import { menuToPlan } from "../../lib/coach/planBridge";
+import { coachImageUrl, menuToPlan } from "../../lib/coach/planBridge";
 import type { BatchBlueprint, CoachRecipe, WeeklyMenu } from "../../lib/coach/types";
 import { CookMode } from "./CookMode";
 import { SundayOrchestrator } from "./SundayOrchestrator";
@@ -101,8 +101,14 @@ function RecipeRow({
   onCook: (id: string) => void;
 }) {
   if (!recipe) return null;
+  const img = coachImageUrl(recipe.id);
   return (
     <button className="coach-meal" onClick={() => onCook(recipe.id)}>
+      {img ? (
+        <img className="coach-meal-thumb" src={img} alt="" loading="lazy" />
+      ) : (
+        <span className="coach-meal-thumb coach-meal-thumb-empty">🍽️</span>
+      )}
       <span className="coach-meal-when">{label}</span>
       <span className="coach-meal-title">{recipe.title}</span>
       <span className="coach-meal-carbs">{recipe.net_carbs_g}g net</span>

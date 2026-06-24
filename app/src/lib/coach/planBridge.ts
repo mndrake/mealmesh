@@ -6,12 +6,15 @@ import type { Ingredient, Nutrition, Plan, PlanDay, Recipe } from "../types";
 import type { CoachRecipe, MealSlot, WeeklyMenu } from "./types";
 import menuRecipeData from "../../data/coach/menu-recipes.json";
 import menuIngredientsData from "../../data/coach/menu-ingredients.json";
+import imageSourcesData from "../../data/coach/image-sources.json";
 
 const COACH_RECIPES = menuRecipeData.recipes as CoachRecipe[];
 const EXTRA = menuIngredientsData as unknown as Record<
   string,
   { nutrition: Nutrition; ingredients: Ingredient[] }
 >;
+interface ImgSrc { title: string; artist: string; license: string; licenseUrl: string; source: string }
+const IMAGES = (imageSourcesData as { images?: Record<string, ImgSrc> }).images ?? {};
 
 const SLOT_TO_CATEGORY: Record<MealSlot, Recipe["category"]> = {
   breakfast: "breakfast",
@@ -24,6 +27,7 @@ const SLOT_TO_CATEGORY: Record<MealSlot, Recipe["category"]> = {
  *  carbs, so they are intentionally not invented (nutrition_estimated = true). */
 export function coachRecipeToRecipe(cr: CoachRecipe): Recipe {
   const extra = EXTRA[cr.id];
+  const img = IMAGES[cr.id];
   const method = cr.steps.map((s, i) => `${i + 1}. ${s.text}`).join("\n");
   return {
     id: cr.id,
@@ -40,8 +44,21 @@ export function coachRecipeToRecipe(cr: CoachRecipe): Recipe {
     method,
     notes: cr.note ?? "",
     method_is_link_only: false,
-    imageUrl: null,
+    imageUrl: img ? `/coach-images/${cr.id}.jpg` : null,
+    image_source: img
+      ? {
+          file: img.title.replace(/^File:/, ""),
+          page: img.source,
+          repository: "Wikimedia Commons",
+          note: `${img.artist} · ${img.license}`,
+        }
+      : undefined,
   };
+}
+
+/** Bundled photo path for a coach recipe, or null if none was sourced. */
+export function coachImageUrl(id: string): string | null {
+  return IMAGES[id] ? `/coach-images/${id}.jpg` : null;
 }
 
 export function coachRecipesAsRecipes(): Recipe[] {
