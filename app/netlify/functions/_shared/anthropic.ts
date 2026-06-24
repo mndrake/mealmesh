@@ -142,6 +142,31 @@ export async function generateRecipesWithClaude(
   return out.recipes;
 }
 
+const CoachAnswerSchema = z.object({ answer: z.string() });
+
+/** Phrase a coach answer in one short call (PRD §7.3, ADR 0002). The grounding passed in the
+ *  user prompt is authoritative — the system prompt forbids contradicting it. Haiku + low
+ *  effort + small budget keeps it well within Netlify's ~10s timeout. Throws if unconfigured;
+ *  the handler falls back to the deterministic grounding text. */
+export async function phraseCoachAnswer(
+  env: Env,
+  system: string,
+  user: string
+): Promise<string> {
+  if (!env.ANTHROPIC_API_KEY) throw new Error("ai_unconfigured");
+  const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+  const res = await client.messages.parse({
+    model: "claude-haiku-4-5",
+    max_tokens: 600,
+    output_config: { format: zodOutputFormat(CoachAnswerSchema), effort: "low" },
+    system,
+    messages: [{ role: "user", content: user }],
+  });
+  const out = res.parsed_output;
+  if (!out?.answer) throw new Error("ai_parse_failed");
+  return out.answer;
+}
+
 const ImageSchema = z.object({ image_url: z.string().nullable() });
 
 /** Find a representative, openly-licensed photo for a dish via web search. Best-effort —

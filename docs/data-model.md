@@ -141,6 +141,19 @@ Enable Realtime on `plans`, `favorites`, and `shopping_checkoffs` so a change on
 propagates to other logged-in devices. `cook_log` does not need Realtime (history is queried
 on demand). RLS also governs which Realtime change events a client may receive.
 
+## Coach Mode (v2) tables
+Coach Mode (roadmap M7, behind `VITE_COACH_MODE`) adds:
+- **`cook_log.source`** (migration 0017) — nullable text tagging where a cook event came from
+  (`'cook_mode'` = finished a guided session, the North Star; null = manual/legacy). Additive;
+  the write path only sends the column when set, so the existing flow is unaffected pre-migration.
+- **`coach_ask_log`** (migration 0016) — per-household rate-limit ledger for the assistant
+  "panic button", mirroring `recipe_import_log` but on its own budget. Service-role writes;
+  members read-only via `is_member()`.
+
+The Coach **content** (doneness rules, techniques, recipe steps, blueprints) is NOT in the
+database — it's a bundled, versioned asset under `app/src/data/coach/`, keyed to recipes by id
+so the read-only recipe set is untouched.
+
 ## Migrations
 Manage schema as ordered SQL files under `supabase/migrations/` (created in M1) using the
 Supabase CLI (`supabase db push` / `supabase migration new`). Seed one `households` row and

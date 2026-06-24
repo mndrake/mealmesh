@@ -51,6 +51,7 @@ export interface CookLogRow {
   make_again: boolean | null;
   notes: string | null;
   plan_id: string | null;
+  source?: string | null;
   created_at?: string;
 }
 
@@ -147,6 +148,7 @@ export function cookEventFromRow(r: CookLogRow): CookEvent {
     makeAgain: r.make_again ?? null,
     notes: r.notes ?? null,
     planId: r.plan_id ?? null,
+    source: (r.source as CookEvent["source"]) ?? null,
   };
 }
 
@@ -216,6 +218,11 @@ export function cookEventToRow(e: CookEvent, householdId: string, userId?: strin
     make_again: e.makeAgain,
     notes: e.notes,
     plan_id: e.planId,
+    // Only include `source` when set. The manual mark-as-made flow (not behind the Coach
+    // flag) then sends an identical payload to before, so it keeps working even if migration
+    // 0017 (the source column) hasn't been applied yet. Cook-mode events set it, and those
+    // only occur when the flag is on — by which point 0017 is deployed.
+    ...(e.source ? { source: e.source } : {}),
   };
 }
 

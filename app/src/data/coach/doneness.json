@@ -1,0 +1,100 @@
+{
+  "_comment": "Doneness rules. Temperatures are USDA safe MINIMUM internal temperatures, sourced and cited per rule. Do NOT edit a pull_temp_f without updating its source. Never let these be model-generated (see ADR 0002, PRD §10).",
+  "rules": [
+    {
+      "food": "chicken",
+      "label": "Chicken (any cut)",
+      "aliases": ["chicken", "chicken breast", "chicken thigh", "chicken pieces", "poultry", "turkey", "duck"],
+      "pull_temp_f": 165,
+      "rest_minutes": 0,
+      "visual_cue": "Juices run clear; meat is opaque white to the bone with no pink near the joint.",
+      "no_thermometer_cue": "Cut into the thickest part: the flesh should be white/opaque all the way through with clear (not pink or red) juices. If in doubt, cook longer — undercooked chicken is unsafe.",
+      "safety_note": "Poultry must reach 165°F throughout. There is no safe rare for chicken. When the rule and what you see disagree, the rule wins — keep cooking.",
+      "source": {
+        "name": "USDA FSIS — Safe Minimum Internal Temperature Chart",
+        "url": "https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/food-safety-basics/safe-temperature-chart"
+      }
+    },
+    {
+      "food": "ground_meat",
+      "label": "Ground beef, pork, lamb",
+      "aliases": ["ground beef", "ground pork", "ground lamb", "ground meat", "mince", "burger", "meatballs", "meatloaf"],
+      "pull_temp_f": 160,
+      "rest_minutes": 0,
+      "visual_cue": "No pink remains and juices run clear.",
+      "no_thermometer_cue": "Break a piece open at the center — color should be uniform brown/gray with no pink. Color alone is unreliable; a thermometer is strongly preferred for ground meat.",
+      "safety_note": "Ground meats need 160°F because grinding spreads surface bacteria throughout.",
+      "source": {
+        "name": "FoodSafety.gov — Safe Minimum Internal Temperatures",
+        "url": "https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures"
+      }
+    },
+    {
+      "food": "beef_whole",
+      "label": "Beef, pork, lamb, veal (steaks, chops, roasts)",
+      "aliases": ["steak", "beef", "pork chop", "pork", "lamb chop", "roast", "veal"],
+      "pull_temp_f": 145,
+      "rest_minutes": 3,
+      "visual_cue": "Firm with a little give; interior reaches the target before resting.",
+      "no_thermometer_cue": "Whole cuts are hard to judge safely by eye — use a thermometer. Rest 3 minutes after pulling so the temperature evens out.",
+      "safety_note": "145°F THEN a 3-minute rest is the safe minimum for whole cuts. Higher temps give more well-done results.",
+      "source": {
+        "name": "USDA FSIS — Safe Minimum Internal Temperature Chart",
+        "url": "https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/food-safety-basics/safe-temperature-chart"
+      }
+    },
+    {
+      "food": "fish",
+      "label": "Fish (finfish)",
+      "aliases": ["fish", "salmon", "cod", "tilapia", "tuna", "trout", "fillet"],
+      "pull_temp_f": 145,
+      "rest_minutes": 0,
+      "visual_cue": "Flesh is opaque and flakes/separates easily with a fork.",
+      "no_thermometer_cue": "Press gently and twist a fork in the thickest part — done fish turns opaque and flakes apart cleanly instead of looking translucent and resisting.",
+      "source": {
+        "name": "FoodSafety.gov — Safe Minimum Internal Temperatures",
+        "url": "https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures"
+      }
+    },
+    {
+      "food": "shrimp",
+      "label": "Shrimp, lobster, crab, scallops",
+      "aliases": ["shrimp", "prawn", "lobster", "crab", "scallop", "shellfish"],
+      "pull_temp_f": null,
+      "rest_minutes": 0,
+      "visual_cue": "Flesh is pearly/white and opaque; shrimp curl into a loose C (a tight O means overcooked).",
+      "no_thermometer_cue": "The official test is visual, not a temperature: cook until the flesh is pearly and opaque. Shrimp go from grey/translucent to pink-and-white and curl into a loose C.",
+      "safety_note": "FoodSafety.gov specifies a visual test for shellfish rather than a single internal temperature.",
+      "source": {
+        "name": "FoodSafety.gov — Safe Minimum Internal Temperatures",
+        "url": "https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures"
+      }
+    },
+    {
+      "food": "eggs",
+      "label": "Eggs & egg dishes",
+      "aliases": ["egg", "eggs", "egg bites", "frittata", "quiche", "omelette"],
+      "pull_temp_f": 160,
+      "rest_minutes": 0,
+      "visual_cue": "Whites and yolk are firm (or the dish is set in the center, not runny).",
+      "no_thermometer_cue": "Cook eggs until both white and yolk are firm; cook egg dishes (frittata, egg bites) until the center is set and a knife comes out clean.",
+      "source": {
+        "name": "FoodSafety.gov — Safe Minimum Internal Temperatures",
+        "url": "https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures"
+      }
+    },
+    {
+      "food": "leftovers",
+      "label": "Leftovers & casseroles",
+      "aliases": ["leftovers", "casserole", "reheat", "reheated"],
+      "pull_temp_f": 165,
+      "rest_minutes": 0,
+      "visual_cue": "Steaming hot all the way through.",
+      "no_thermometer_cue": "Reheat until steaming hot throughout, stirring so there are no cold spots.",
+      "source": {
+        "name": "FoodSafety.gov — Safe Minimum Internal Temperatures",
+        "url": "https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures"
+      }
+    }
+  ]
+}

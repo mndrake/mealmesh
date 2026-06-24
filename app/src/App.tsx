@@ -11,10 +11,12 @@ import { HistoryView } from "./components/HistoryView";
 import { AddToPlanModal } from "./components/AddToPlanModal";
 import { HelpModal } from "./components/HelpModal";
 import { CloudStatus } from "./components/CloudStatus";
+import { CoachView } from "./components/coach/CoachView";
+import { coachEnabled } from "./lib/coach/flag";
 import { exportAllState } from "./lib/exporter";
 import { useAuth } from "./lib/auth";
 
-type Tab = "browse" | "plan" | "monthly" | "shopping" | "history";
+type Tab = "browse" | "plan" | "monthly" | "shopping" | "history" | "coach";
 type Slot = "breakfast" | "lunch" | "dinner" | "snack";
 
 export default function App() {
@@ -35,6 +37,7 @@ export default function App() {
   const recipes = useAllRecipes();
   const recipesById = useAllRecipesById();
   const { email, signOut } = useAuth();
+  const showCoach = coachEnabled();
 
   // Clean the ?kroger= param from the URL (and surface a connect error). No setState here.
   useEffect(() => {
@@ -97,6 +100,11 @@ export default function App() {
               History
               {cookedCount > 0 && <span className="badge">{cookedCount}</span>}
             </button>
+            {showCoach && (
+              <button className={tab === "coach" ? "active" : ""} onClick={() => setTab("coach")}>
+                Coach 🍳
+              </button>
+            )}
           </nav>
           <div className="spacer" />
           <div className="row" style={{ gap: 6 }}>
@@ -149,6 +157,7 @@ export default function App() {
         {tab === "monthly" && <MonthlyPlanView />}
         {tab === "shopping" && <ShoppingView openSend={krogerConnected} />}
         {tab === "history" && <HistoryView />}
+        {tab === "coach" && showCoach && <CoachView />}
       </main>
 
       {addTarget && (

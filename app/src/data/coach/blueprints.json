@@ -1,0 +1,46 @@
+{
+  "_comment": "Sunday Batch Orchestrator blueprints (PRD R7–R9): parallel-track timelines across stations. Seed = one short demo blueprint so M1 has data to render; real multi-recipe blueprints are authored content (out of build-loop scope).",
+  "blueprints": [
+    {
+      "id": "demo-stew-night",
+      "title": "Brown Stew Chicken — guided run",
+      "total_minutes": 45,
+      "recipe_ids": ["brown-stew-chicken"],
+      "tasks": [
+        {
+          "id": "t1",
+          "station": "prep",
+          "text": "Lime & marinate the chicken; chop tomato, onion, garlic, pepper, carrots.",
+          "start_minute": 0,
+          "duration_minutes": 10,
+          "recipe_id": "brown-stew-chicken"
+        },
+        {
+          "id": "t2",
+          "station": "stove",
+          "text": "Heat oil and brown the chicken in batches.",
+          "start_minute": 10,
+          "duration_minutes": 8,
+          "recipe_id": "brown-stew-chicken",
+          "while_waiting": "While each batch browns, mix the cornstarch into the coconut milk."
+        },
+        {
+          "id": "t3",
+          "station": "stove",
+          "text": "Return chicken, add marinade + carrots, cook 10 min.",
+          "start_minute": 18,
+          "duration_minutes": 10,
+          "recipe_id": "brown-stew-chicken"
+        },
+        {
+          "id": "t4",
+          "station": "stove",
+          "text": "Stir in the coconut-milk slurry; simmer until glossy and chicken reads 165°F.",
+          "start_minute": 28,
+          "duration_minutes": 20,
+          "recipe_id": "brown-stew-chicken"
+        }
+      ]
+    }
+  ]
+}

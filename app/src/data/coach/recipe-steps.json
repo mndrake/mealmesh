@@ -1,0 +1,56 @@
+{
+  "_comment": "Cook Mode step overlays, keyed by recipe id. Recipes themselves stay read-only (src/data/recipes.json); these add the discrete-step / doneness / technique structure Coach Mode needs. Seed slice = one recipe authored end-to-end (PRD §13-M0).",
+  "recipes": [
+    {
+      "recipe_id": "brown-stew-chicken",
+      "steps": [
+        {
+          "id": "s1",
+          "text": "Squeeze lime over the chicken and rub it in well, then drain off the excess juice.",
+          "station": "prep"
+        },
+        {
+          "id": "s2",
+          "text": "Combine the tomato, onion, garlic, pepper, thyme, allspice and soy sauce in a large bowl with the chicken. Cover and marinate in the fridge at least one hour.",
+          "technique_id": "marinate",
+          "timer_seconds": 3600,
+          "station": "prep",
+          "sensory_cue": "Chicken fully coated and submerged; refrigerated, not left on the counter.",
+          "cue_status": "authored"
+        },
+        {
+          "id": "s3",
+          "text": "Heat the oil in a Dutch pot or large saucepan over high heat. Shake the seasonings off each piece of chicken as you lift it from the marinade — reserve the marinade for the sauce.",
+          "technique_id": "brown_meat",
+          "station": "stove",
+          "sensory_cue": "Oil shimmers and a drop of water sizzles instantly.",
+          "cue_status": "authored"
+        },
+        {
+          "id": "s4",
+          "text": "Lightly brown the chicken a few pieces at a time in the hot oil, then set browned pieces aside on a plate.",
+          "technique_id": "brown_meat",
+          "station": "stove",
+          "sensory_cue": "Each side is deep golden-brown and releases easily from the pan. This is for flavor — the chicken is NOT done yet.",
+          "cue_status": "authored"
+        },
+        {
+          "id": "s5",
+          "text": "Drain off excess oil and return all the chicken to the pan. Pour the reserved marinade over it, add the carrots, and cook over medium heat for 10 minutes, stirring.",
+          "timer_seconds": 600,
+          "station": "stove"
+        },
+        {
+          "id": "s6",
+          "text": "Mix the cornstarch into the coconut milk until smooth, stir it into the stew, then turn the heat to low and cook another 20 minutes until the sauce coats a spoon and the chicken is cooked through.",
+          "technique_id": "thicken_sauce",
+          "doneness_food": "chicken",
+          "timer_seconds": 1200,
+          "station": "stove",
+          "sensory_cue": "Sauce is glossy and coats the back of a spoon; chicken is white throughout with clear juices.",
+          "cue_status": "authored"
+        }
+      ]
+    }
+  ]
+}

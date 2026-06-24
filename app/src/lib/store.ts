@@ -390,7 +390,7 @@ export const actions = {
   },
 
   /** Record an "I made this" event (optimistic; newest-first). Returns the new id. */
-  markCooked(entry: { recipeId: string; cookedOn: string; rating?: number | null; makeAgain?: boolean | null; notes?: string | null }) {
+  markCooked(entry: { recipeId: string; cookedOn: string; rating?: number | null; makeAgain?: boolean | null; notes?: string | null; source?: CookEvent["source"] }) {
     const event: CookEvent = {
       id: crypto.randomUUID(),
       recipeId: entry.recipeId,
@@ -399,6 +399,7 @@ export const actions = {
       makeAgain: entry.makeAgain ?? null,
       notes: entry.notes?.trim() ? entry.notes.trim() : null,
       planId: cloud?.activePlanId ?? null,
+      source: entry.source ?? null,
     };
     set({ cookLog: [event, ...state.cookLog] });
     push((c) => insertCookEvent(c.client, event, c.householdId, c.userId));
