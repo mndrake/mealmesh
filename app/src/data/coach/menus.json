@@ -1,0 +1,39 @@
+{
+  "_comment": "Selectable weekly rotations (PRD §6 MVP: Month 1, two menus). Slots reference coach recipe ids in menu-recipes.json; prep_blueprint_id references blueprints.json.",
+  "menus": [
+    {
+      "id": "month1-a",
+      "month": 1,
+      "label": "Menu A · Weeks 1 & 3",
+      "theme": "Classics",
+      "note": "The most forgiving rotation — a great place to start.",
+      "breakfast_id": "m1a-bfast-egg-bites",
+      "lunch_id": "m1a-lunch-cobb-jar",
+      "dinners": [
+        { "day": "Mon", "recipe_id": "m1a-mon-sheetpan-chicken-broccoli" },
+        { "day": "Tue", "recipe_id": "m1a-tue-beef-pepper-stirfry" },
+        { "day": "Wed", "recipe_id": "m1a-wed-shrimp-scampi-zoodles" },
+        { "day": "Thu", "recipe_id": "m1a-thu-pork-chops-cauli-mash" },
+        { "day": "Fri", "recipe_id": "m1a-fri-burger-bowls" }
+      ],
+      "prep_blueprint_id": "month1-a-prep"
+    },
+    {
+      "id": "month1-b",
+      "month": 1,
+      "label": "Menu B · Weeks 2 & 4",
+      "theme": "Classics",
+      "note": "Alternates with Menu A so the month doesn't repeat.",
+      "breakfast_id": "m1b-bfast-chia-pudding",
+      "lunch_id": "m1b-lunch-shrimp-avocado-box",
+      "dinners": [
+        { "day": "Mon", "recipe_id": "m1b-mon-chicken-fajita-bowls" },
+        { "day": "Tue", "recipe_id": "m1b-tue-meatballs-marinara-zoodles" },
+        { "day": "Wed", "recipe_id": "m1b-wed-garlic-butter-shrimp-green-beans" },
+        { "day": "Thu", "recipe_id": "m1b-thu-steak-roasted-asparagus" },
+        { "day": "Fri", "recipe_id": "m1b-fri-sausage-cabbage-skillet" }
+      ],
+      "prep_blueprint_id": "month1-b-prep"
+    }
+  ]
+}

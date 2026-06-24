@@ -1,89 +1,81 @@
 import { useState } from "react";
-import type { Recipe } from "../../lib/types";
-import { useAllRecipesById } from "../../lib/allRecipes";
 import { actions, useStore } from "../../lib/store";
 import { todayIso } from "../../lib/history";
 import { cookModeCompletionCount } from "../../lib/coach/metrics";
-import { listBlueprints, getRecipeSteps } from "../../lib/coach/content";
-import recipeStepData from "../../data/coach/recipe-steps.json";
+import {
+  coachRecipeTitle,
+  getBlueprint,
+  getCoachRecipe,
+  getMenu,
+  listMenus,
+} from "../../lib/coach/content";
+import type { BatchBlueprint, CoachRecipe, WeeklyMenu } from "../../lib/coach/types";
 import { CookMode } from "./CookMode";
 import { SundayOrchestrator } from "./SundayOrchestrator";
-import type { BatchBlueprint } from "../../lib/coach/types";
 
-/** The Coach Mode home (behind VITE_COACH_MODE). Lists recipes that have guided steps and the
- *  Sunday batch blueprints, and launches Cook Mode / the Orchestrator. */
+/** The Coach Mode home (behind VITE_COACH_MODE). Pick a weekly menu → cook each meal with the
+ *  step-aware coach, or run the Sunday batch prep. The Month-1 rotation is the selectable
+ *  target (PRD §6). */
 export function CoachView() {
-  const byId = useAllRecipesById();
   const completed = useStore((s) => cookModeCompletionCount(s.cookLog));
-  const [cooking, setCooking] = useState<Recipe | null>(null);
+  const [menuId, setMenuId] = useState<string | null>(null);
+  const [cooking, setCooking] = useState<{ id: string; title: string } | null>(null);
   const [orchestrating, setOrchestrating] = useState<BatchBlueprint | null>(null);
 
-  const recipeIds = (recipeStepData.recipes as { recipe_id: string }[]).map((r) => r.recipe_id);
-  const guided = recipeIds.map((id) => byId.get(id)).filter((r): r is Recipe => Boolean(r));
-  const blueprints = listBlueprints();
+  const menus = listMenus();
+  const menu = menuId ? getMenu(menuId) : null;
+
+  const cook = (id: string) => setCooking({ id, title: coachRecipeTitle(id) });
 
   return (
     <div className="container">
       <div className="coach-intro">
         <h2>🍳 Cook with Coach</h2>
         <p className="muted">
-          Step-by-step guidance with doneness temps, technique help, and timers. Doneness
-          temperatures are USDA safe-minimum values, cited on each step.{" "}
-          <strong>Beta</strong> — guided content currently covers {guided.length} recipe
-          {guided.length === 1 ? "" : "s"}.
+          Step-by-step guidance with USDA-cited doneness temps, technique help, and timers.{" "}
+          <strong>Beta.</strong>
           {completed > 0 && (
             <> You've finished {completed} guided cook{completed === 1 ? "" : "s"}. 🎉</>
           )}
         </p>
       </div>
 
-      {blueprints.length > 0 && (
+      {!menu ? (
         <section className="coach-section">
-          <h3>Sunday Batch Orchestrator</h3>
+          <h3>Choose a week</h3>
           <div className="coach-grid">
-            {blueprints.map((bp) => (
-              <button key={bp.id} className="coach-launch" onClick={() => setOrchestrating(bp)}>
-                <strong>{bp.title}</strong>
+            {menus.map((m) => (
+              <button key={m.id} className="coach-launch" onClick={() => setMenuId(m.id)}>
+                <strong>Month {m.month} · {m.label}</strong>
                 <span className="muted">
-                  ~{bp.total_minutes} min · {bp.tasks.length} steps
+                  {m.theme} · breakfast, lunch + {m.dinners.length} dinners
                 </span>
               </button>
             ))}
           </div>
         </section>
+      ) : (
+        <MenuDetail
+          menu={menu}
+          onBack={() => setMenuId(null)}
+          onCook={cook}
+          onPrep={() => {
+            const bp = menu.prep_blueprint_id ? getBlueprint(menu.prep_blueprint_id) : null;
+            if (bp) setOrchestrating(bp);
+          }}
+        />
       )}
-
-      <section className="coach-section">
-        <h3>Guided recipes</h3>
-        {guided.length === 0 ? (
-          <p className="muted">No guided recipes available.</p>
-        ) : (
-          <div className="coach-grid">
-            {guided.map((r) => (
-              <button key={r.id} className="coach-launch" onClick={() => setCooking(r)}>
-                <strong>{r.title}</strong>
-                <span className="muted">
-                  {getRecipeSteps(r.id)?.steps.length ?? 0} steps · {r.category}
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
-      </section>
 
       {cooking && (
         <CookMode
-          recipe={cooking}
+          recipeId={cooking.id}
+          title={cooking.title}
           onClose={() => setCooking(null)}
           onFinish={(finished) => {
-            // A finished guided cook is recorded in the existing cook_log, tagged source
-            // 'cook_mode' so it feeds the North Star completion metric (PRD §5, R6).
+            // Finishing a guided cook records to the existing cook_log, tagged 'cook_mode' for
+            // the North Star completion metric (PRD §5, R6).
             if (finished)
-              actions.markCooked({
-                recipeId: cooking.id,
-                cookedOn: todayIso(),
-                source: "cook_mode",
-              });
+              actions.markCooked({ recipeId: cooking.id, cookedOn: todayIso(), source: "cook_mode" });
           }}
         />
       )}
@@ -91,5 +83,71 @@ export function CoachView() {
         <SundayOrchestrator blueprint={orchestrating} onClose={() => setOrchestrating(null)} />
       )}
     </div>
+  );
+}
+
+function RecipeRow({
+  label,
+  recipe,
+  onCook,
+}: {
+  label: string;
+  recipe: CoachRecipe | null;
+  onCook: (id: string) => void;
+}) {
+  if (!recipe) return null;
+  return (
+    <button className="coach-meal" onClick={() => onCook(recipe.id)}>
+      <span className="coach-meal-when">{label}</span>
+      <span className="coach-meal-title">{recipe.title}</span>
+      <span className="coach-meal-carbs">{recipe.net_carbs_g}g net</span>
+      <span className="coach-meal-go">Cook →</span>
+    </button>
+  );
+}
+
+/** Exported for the render smoke test (proves the selected-week view renders its recipes). */
+export function MenuDetail({
+  menu,
+  onBack,
+  onCook,
+  onPrep,
+}: {
+  menu: WeeklyMenu;
+  onBack: () => void;
+  onCook: (id: string) => void;
+  onPrep: () => void;
+}) {
+  const breakfast = getCoachRecipe(menu.breakfast_id);
+  const lunch = getCoachRecipe(menu.lunch_id);
+  const hasPrep = Boolean(menu.prep_blueprint_id && getBlueprint(menu.prep_blueprint_id));
+
+  return (
+    <section className="coach-section">
+      <button className="btn ghost small" onClick={onBack}>
+        ← All weeks
+      </button>
+      <h3>Month {menu.month} · {menu.label}</h3>
+      {menu.note && <p className="muted">{menu.note}</p>}
+
+      {hasPrep && (
+        <button className="btn secondary" style={{ marginBottom: 14 }} onClick={onPrep}>
+          📋 Run the Sunday prep plan
+        </button>
+      )}
+
+      <div className="coach-meals">
+        <RecipeRow label="☀️ Breakfast" recipe={breakfast} onCook={onCook} />
+        <RecipeRow label="🥗 Lunch" recipe={lunch} onCook={onCook} />
+        {menu.dinners.map((d) => (
+          <RecipeRow
+            key={d.day}
+            label={`🍽️ ${d.day}`}
+            recipe={getCoachRecipe(d.recipe_id)}
+            onCook={onCook}
+          />
+        ))}
+      </div>
+    </section>
   );
 }

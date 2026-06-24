@@ -3,19 +3,25 @@
 // source of truth for doneness data and ONE checkDoneness implementation (ADR 0002, PRD §10).
 import type {
   BatchBlueprint,
+  CoachRecipe,
   DonenessRule,
   RecipeSteps,
   Technique,
+  WeeklyMenu,
 } from "./types";
 import donenessData from "../../data/coach/doneness.json";
 import techniqueData from "../../data/coach/techniques.json";
 import recipeStepData from "../../data/coach/recipe-steps.json";
 import blueprintData from "../../data/coach/blueprints.json";
+import menuRecipeData from "../../data/coach/menu-recipes.json";
+import menuData from "../../data/coach/menus.json";
 
 const RULES = donenessData.rules as DonenessRule[];
 const TECHNIQUES = techniqueData.techniques as Technique[];
 const RECIPE_STEPS = recipeStepData.recipes as RecipeSteps[];
 const BLUEPRINTS = blueprintData.blueprints as BatchBlueprint[];
+const COACH_RECIPES = menuRecipeData.recipes as CoachRecipe[];
+const MENUS = menuData.menus as WeeklyMenu[];
 
 function norm(s: string): string {
   return s.toLowerCase().trim().replace(/\s+/g, " ");
@@ -23,11 +29,34 @@ function norm(s: string): string {
 
 /** Coach content exists for this recipe (drives whether "Cook with Coach" is offered). */
 export function hasCoachContent(recipeId: string): boolean {
-  return RECIPE_STEPS.some((r) => r.recipe_id === recipeId);
+  return getRecipeSteps(recipeId) !== null;
 }
 
+/** Steps for a recipe, whether it's a bundled-recipe overlay (recipe-steps.json) or a
+ *  self-contained Coach/menu recipe (menu-recipes.json). */
 export function getRecipeSteps(recipeId: string): RecipeSteps | null {
-  return RECIPE_STEPS.find((r) => r.recipe_id === recipeId) ?? null;
+  const overlay = RECIPE_STEPS.find((r) => r.recipe_id === recipeId);
+  if (overlay) return overlay;
+  const coach = COACH_RECIPES.find((r) => r.id === recipeId);
+  return coach ? { recipe_id: coach.id, steps: coach.steps } : null;
+}
+
+/** A self-contained Coach recipe (Month-1 menus), or null for bundled/overlay recipes. */
+export function getCoachRecipe(recipeId: string): CoachRecipe | null {
+  return COACH_RECIPES.find((r) => r.id === recipeId) ?? null;
+}
+
+/** Display title for any cookable id (Coach recipe title; else the id as a fallback). */
+export function coachRecipeTitle(recipeId: string): string {
+  return getCoachRecipe(recipeId)?.title ?? recipeId;
+}
+
+export function listMenus(): WeeklyMenu[] {
+  return MENUS;
+}
+
+export function getMenu(id: string): WeeklyMenu | null {
+  return MENUS.find((m) => m.id === id) ?? null;
 }
 
 export function getTechnique(id: string | undefined): Technique | null {

@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
-import type { Recipe } from "../../lib/types";
 import { getDonenessRule, getRecipeSteps, getTechnique } from "../../lib/coach/content";
 import { Timer } from "./Timer";
 import { CoachAskPanel } from "./CoachAskPanel";
 
 interface Props {
-  recipe: Recipe;
+  recipeId: string;
+  title: string;
   onClose: () => void;
   /** Called when the user answers the end-of-recipe "did you finish?" prompt (PRD R6). */
   onFinish?: (finished: boolean) => void;
 }
 
 /** Full-screen, one-step-at-a-time guided cooking (PRD §7.1, R1–R6) with the step-aware Ask
- *  panel (R5). */
-export function CookMode({ recipe, onClose, onFinish }: Props) {
-  const steps = getRecipeSteps(recipe.id)?.steps ?? [];
+ *  panel (R5). Works for both bundled-recipe overlays and self-contained Coach recipes. */
+export function CookMode({ recipeId, title, onClose, onFinish }: Props) {
+  const steps = getRecipeSteps(recipeId)?.steps ?? [];
   const [i, setI] = useState(0);
   const [showFinish, setShowFinish] = useState(false);
   const [showTechnique, setShowTechnique] = useState(false);
@@ -60,7 +60,7 @@ export function CookMode({ recipe, onClose, onFinish }: Props) {
         <button className="btn ghost small" onClick={onClose} aria-label="Close Cook Mode">
           ✕ Close
         </button>
-        <span className="coach-fs-title">{recipe.title}</span>
+        <span className="coach-fs-title">{title}</span>
         <span className="spacer" />
         <span className="muted">
           Step {i + 1} of {steps.length}
@@ -115,7 +115,7 @@ export function CookMode({ recipe, onClose, onFinish }: Props) {
           <Timer
             seconds={step.timer_seconds}
             label="for this step"
-            persistKey={`${recipe.id}.${step.id}`}
+            persistKey={`${recipeId}.${step.id}`}
           />
         )}
 
@@ -172,7 +172,7 @@ export function CookMode({ recipe, onClose, onFinish }: Props) {
       </div>
 
       {asking && (
-        <CoachAskPanel recipeId={recipe.id} step={step} onClose={() => setAsking(false)} />
+        <CoachAskPanel recipeId={recipeId} step={step} onClose={() => setAsking(false)} />
       )}
 
       {showFinish && (

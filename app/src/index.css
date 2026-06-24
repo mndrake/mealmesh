@@ -1657,3 +1657,32 @@ a {
 .coach-answer.is-doneness { background: var(--accent-soft); border: 1px solid var(--accent); }
 .coach-answer p { margin: 0 0 8px; }
 .coach-ask-disclaimer { font-size: 0.75rem; margin: 8px 0 0; }
+
+/* --- Coach weekly menu detail --- */
+.coach-meals { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.coach-meal {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+.coach-meal:hover { border-color: var(--accent); }
+.coach-meal-when { flex: 0 0 92px; color: var(--muted); font-size: 0.85rem; }
+.coach-meal-title { flex: 1; font-weight: 600; }
+.coach-meal-carbs {
+  flex: 0 0 auto;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.78rem;
+}
+.coach-meal-go { flex: 0 0 auto; color: var(--accent); font-size: 0.85rem; font-weight: 600; }
