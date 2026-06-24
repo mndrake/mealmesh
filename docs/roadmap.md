@@ -169,8 +169,12 @@ live app until enabled. The buildable software slice is in:
 - **Content asset** (`app/src/data/coach/`, `app/src/lib/coach/`): cited USDA doneness rules,
   techniques, per-recipe steps, batch blueprints; pure `checkDoneness` (rule overrides
   observation) shared by SPA + function.
-- **Cook Mode + Orchestrator** (`app/src/components/coach/`): step-at-a-time UI, doneness
-  callout, timers, finish prompt; parallel-track batch timeline.
+- **Month-1 rotation** (`menus.json`, `menu-recipes.json`): the PRD MVP target — two
+  selectable weekly menus (A/B), 14 guided recipes authored from `T2D_Beginner_Edition.md`,
+  each with steps/doneness/timers, plus a Sunday prep blueprint per menu.
+- **Cook Mode + Orchestrator** (`app/src/components/coach/`): pick a week → cook each meal
+  step-at-a-time (doneness callout, timers, finish prompt) or run the parallel-track Sunday
+  prep timeline.
 - **Assistant** (`netlify/functions/coach-ask.ts`): single-round, server-grounded, Haiku
   phrasing, medical deflection, no-AI safety fallback.
 - **Instrumentation**: `cook_log.source = 'cook_mode'` feeds the completion North Star.
@@ -181,9 +185,10 @@ live app until enabled. The buildable software slice is in:
 3. `ANTHROPIC_API_KEY` (already set for M6) powers the assistant; without it the safety-critical
    doneness path still works from the deterministic grounding.
 
-**Not done (out of build-loop scope):** legal/regulatory review of T2D positioning, the full
-labor-intensive content library (only a cited seed recipe is authored), SSE streaming (ADR
-0002 — deferred), and the completion-*rate* denominator (session-start tracking).
+**Not done (out of build-loop scope):** legal/regulatory review of T2D positioning, Months
+2–4 of the content library (Month 1 is fully authored; the doc has 2–4 ready to transcribe the
+same way), SSE streaming (ADR 0002 — deferred), and the completion-*rate* denominator
+(session-start tracking).
 
 ## Dependency order
 `M0 → M1 → M2 → M5 (Kroger, pulled forward) → M3 → M4`. Kroger only needs M1/M2 (auth +
