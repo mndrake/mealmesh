@@ -158,6 +158,33 @@ output) for pages without it. The user reviews/edits the draft before saving.
 JSON-LD import works without it. Import by image / template are deferred (the table + review
 form already support them).
 
+## M7 — Coach Mode (v2) — 🟡 FOUNDATION SHIPPED (flagged off)
+**Goal:** a guided cooking experience (Cook Mode + Sunday Orchestrator + a step-aware AI
+assistant) for novice cooks. Full PRD in [`prd/MealMesh_v2_Coach_PRD.md`](./prd/MealMesh_v2_Coach_PRD.md),
+reuse map in [`prd/coach-reuse-map.md`](./prd/coach-reuse-map.md), assistant architecture in
+[`adr/0002-coach-assistant-single-round.md`](./adr/0002-coach-assistant-single-round.md).
+
+Everything is behind the **`VITE_COACH_MODE`** flag (default off) so it's invisible on the
+live app until enabled. The buildable software slice is in:
+- **Content asset** (`app/src/data/coach/`, `app/src/lib/coach/`): cited USDA doneness rules,
+  techniques, per-recipe steps, batch blueprints; pure `checkDoneness` (rule overrides
+  observation) shared by SPA + function.
+- **Cook Mode + Orchestrator** (`app/src/components/coach/`): step-at-a-time UI, doneness
+  callout, timers, finish prompt; parallel-track batch timeline.
+- **Assistant** (`netlify/functions/coach-ask.ts`): single-round, server-grounded, Haiku
+  phrasing, medical deflection, no-AI safety fallback.
+- **Instrumentation**: `cook_log.source = 'cook_mode'` feeds the completion North Star.
+
+**Deploy prerequisites (do NOT auto-apply on merge):**
+1. Apply migrations **0016** (`coach_ask_log`) and **0017** (`cook_log.source`) to Supabase.
+2. Set **`VITE_COACH_MODE=1`** in the Netlify site env to expose the Coach tab.
+3. `ANTHROPIC_API_KEY` (already set for M6) powers the assistant; without it the safety-critical
+   doneness path still works from the deterministic grounding.
+
+**Not done (out of build-loop scope):** legal/regulatory review of T2D positioning, the full
+labor-intensive content library (only a cited seed recipe is authored), SSE streaming (ADR
+0002 — deferred), and the completion-*rate* denominator (session-start tracking).
+
 ## Dependency order
 `M0 → M1 → M2 → M5 (Kroger, pulled forward) → M3 → M4`. Kroger only needs M1/M2 (auth +
 deployed backend); it's independent of M3. M3 depends on M2. M4 is gated last. M6 (recipe
