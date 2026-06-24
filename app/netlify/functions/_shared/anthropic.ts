@@ -126,13 +126,14 @@ export async function generateRecipesWithClaude(
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
 
   // Kept fast and small so it returns within Netlify's ~10s synchronous function timeout:
-  // a quick model, no extended thinking, low reasoning effort, and a token budget sized to a
-  // handful of short recipes. The client requests recipes in small batches (see the modal),
-  // so a single call never has to produce many at once.
+  // a quick model and a token budget sized to a handful of short recipes. The client requests
+  // recipes in small batches (see the modal), so a single call never produces many at once.
+  // NOTE: `effort` is NOT passed — Haiku 4.5 rejects output_config.effort (it's Opus/Sonnet-4.6
+  // only); including it 400s the request.
   const res = await client.messages.parse({
     model: "claude-haiku-4-5-20251001",
     max_tokens: 4096,
-    output_config: { format: zodOutputFormat(GeneratedBatchSchema), effort: "low" },
+    output_config: { format: zodOutputFormat(GeneratedBatchSchema) },
     system: generationSystemPrompt(),
     messages: [{ role: "user", content: generationUserPrompt(c) }],
   });
@@ -145,9 +146,11 @@ export async function generateRecipesWithClaude(
 const CoachAnswerSchema = z.object({ answer: z.string() });
 
 /** Phrase a coach answer in one short call (PRD §7.3, ADR 0002). The grounding passed in the
- *  user prompt is authoritative — the system prompt forbids contradicting it. Haiku + low
- *  effort + small budget keeps it well within Netlify's ~10s timeout. Throws if unconfigured;
- *  the handler falls back to the deterministic grounding text. */
+ *  user prompt is authoritative — the system prompt forbids contradicting it. A small Haiku
+ *  call keeps it well within Netlify's ~10s timeout. Throws if unconfigured; the handler falls
+ *  back to the deterministic grounding text.
+ *  NOTE: `effort` is NOT passed — Haiku 4.5 rejects output_config.effort (Opus/Sonnet-4.6 only);
+ *  including it 400s the request, which previously made every coach Ask fall back to an error. */
 export async function phraseCoachAnswer(
   env: Env,
   system: string,
@@ -158,7 +161,7 @@ export async function phraseCoachAnswer(
   const res = await client.messages.parse({
     model: "claude-haiku-4-5",
     max_tokens: 600,
-    output_config: { format: zodOutputFormat(CoachAnswerSchema), effort: "low" },
+    output_config: { format: zodOutputFormat(CoachAnswerSchema) },
     system,
     messages: [{ role: "user", content: user }],
   });
