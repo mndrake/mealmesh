@@ -106,7 +106,8 @@ function RecipeRow({
   );
 }
 
-function MenuDetail({
+/** Exported for the render smoke test (proves the selected-week view renders its recipes). */
+export function MenuDetail({
   menu,
   onBack,
   onCook,
