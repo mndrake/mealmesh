@@ -85,3 +85,40 @@ export interface BatchBlueprint {
   recipe_ids: string[];
   tasks: BatchTask[];
 }
+
+// ---- Month-1 weekly rotation (PRD §6 MVP) ----
+// Self-contained guided recipes authored from docs/T2D_Beginner_Edition.md. These are NOT in
+// the bundled read-only recipes.json — they're Coach-owned content with steps inline, so the
+// rotation is selectable and cookable without touching the recipe set.
+
+export type MealSlot = "breakfast" | "lunch" | "dinner";
+
+export interface CoachRecipe {
+  id: string;
+  title: string;
+  slot: MealSlot;
+  net_carbs_g: number;
+  servings: number;
+  equipment?: string[];
+  no_cook?: boolean;
+  note?: string;
+  steps: CookStep[];
+}
+
+export interface MenuDinner {
+  day: string; // Mon..Fri
+  recipe_id: string;
+}
+
+/** One selectable weekly menu (e.g. Month 1 · Menu A). */
+export interface WeeklyMenu {
+  id: string;
+  month: number;
+  label: string;
+  theme?: string;
+  note?: string;
+  breakfast_id: string;
+  lunch_id: string;
+  dinners: MenuDinner[];
+  prep_blueprint_id?: string;
+}

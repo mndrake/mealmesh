@@ -86,6 +86,166 @@
           "action_cue": "Adjust heat to keep it at a bare simmer; cover or uncover per the recipe. (Needs photo-style cue authoring.)"
         }
       ]
+    },
+    {
+      "id": "sear",
+      "name": "Sear (steak, chops, chicken)",
+      "definition": "Hot pan + a little oil; lay the food down and don't move it so a brown crust forms. Browning is flavor — it is not the same as cooked through; always confirm doneness with a thermometer.",
+      "content_status": "authored",
+      "stages": [
+        {
+          "look": "Meat patted bone-dry, surface matte. Empty pan on high ~2 min; a flicked water drop dances and vanishes. Add a thin film of oil — it shimmers and just begins to wisp smoke.",
+          "sound": "Quiet until the food goes in.",
+          "smell": "Hot oil.",
+          "action_cue": "Pat the meat dry and get the pan properly hot before adding oil."
+        },
+        {
+          "look": "Place the meat down away from you.",
+          "sound": "A loud, immediate, steady hiss. Silent = pan too cool; violent spitting = too hot.",
+          "smell": "Searing, savory.",
+          "action_cue": "Lay it down and DON'T touch it."
+        },
+        {
+          "look": "Edge color creeps from pink/red to grey-brown; a deep golden-to-mahogany crust forms.",
+          "sound": "Steady sizzle.",
+          "smell": "Nutty, roasted.",
+          "action_cue": "It releases from the pan on its own when ready (2–3 min) — if it grips, give it 30 sec more, then flip and repeat. Then check doneness."
+        }
+      ]
+    },
+    {
+      "id": "saute",
+      "name": "Sauté",
+      "definition": "Cook in a little oil or butter over medium-high, stirring often, until softened or browned.",
+      "content_status": "authored",
+      "stages": [
+        {
+          "look": "Oil shimmers; vegetables go in and start to sizzle.",
+          "sound": "Active sizzle.",
+          "smell": "Aromatic as they soften.",
+          "action_cue": "Keep them moving so they cook evenly without burning."
+        }
+      ]
+    },
+    {
+      "id": "crisp_tender_veg",
+      "name": "Crisp-tender vegetables",
+      "definition": "Cook broccoli/green beans/peppers until just tender with a faint bite — vivid color, lightly blistered, not floppy.",
+      "content_status": "authored",
+      "stages": [
+        {
+          "look": "Raw: bright, rigid, squeaky.",
+          "sound": "—",
+          "smell": "—",
+          "action_cue": "Start in a hot pan or hot oven."
+        },
+        {
+          "look": "Midway (3–4 min): color deepens to vivid green, brown blistered spots at the edges, pieces bend slightly without flopping.",
+          "sound": "Sizzle.",
+          "smell": "Toasty.",
+          "action_cue": "Toss and keep going until a fork slides in with light resistance — tender outside, faint bite in the center. Drab and floppy = gone too far."
+        }
+      ]
+    },
+    {
+      "id": "cauliflower_mash",
+      "name": "Cauliflower mash (not watery)",
+      "definition": "Boil or steam florets until fork-tender, then DRAIN and press out the water before blending — the drain is what makes it thick instead of soupy.",
+      "content_status": "authored",
+      "stages": [
+        {
+          "look": "After boiling: florets are pale and fall apart when pressed.",
+          "sound": "—",
+          "smell": "—",
+          "action_cue": "Tip into a colander."
+        },
+        {
+          "look": "Press with a spoon — cloudy water streams out. Keep pressing until it stops and the surface looks dry and crumbly, not glossy.",
+          "sound": "—",
+          "smell": "—",
+          "action_cue": "Only now blend with butter, cream, and salt. Blended right: smooth and thick enough to hold a soft peak. If it slumps, it needed more draining."
+        }
+      ]
+    },
+    {
+      "id": "wilt_spinach",
+      "name": "Wilt spinach",
+      "definition": "Cook leafy greens 1–2 min just until they collapse and shrink.",
+      "content_status": "authored",
+      "stages": [
+        {
+          "look": "Raw: a huge mounded pile that looks like far too much.",
+          "sound": "—",
+          "smell": "—",
+          "action_cue": "Add to the hot pan and toss."
+        },
+        {
+          "look": "60–90 sec, tossing: it collapses to a fraction of the size, glossy and dark green, soft and silky.",
+          "sound": "—",
+          "smell": "Grassy, fresh.",
+          "action_cue": "Pull it the instant it's all dark — past that it weeps water and turns mushy."
+        }
+      ]
+    },
+    {
+      "id": "render_sausage",
+      "name": "Render sausage / chorizo",
+      "definition": "Cook fatty sausage so the fat melts out and it browns into crumbles.",
+      "content_status": "authored",
+      "stages": [
+        {
+          "look": "Start: clumped, raw, pale or red.",
+          "sound": "Building sizzle.",
+          "smell": "Spiced.",
+          "action_cue": "Break it up as it cooks."
+        },
+        {
+          "look": "Midway: fat pools and sizzles, edges brown and break into crumbles.",
+          "sound": "Active sizzle.",
+          "smell": "Savory, rendered fat.",
+          "action_cue": "Done when there are deep-browned bits, glistening fat, and zero raw red remaining."
+        }
+      ]
+    },
+    {
+      "id": "dredge_chicken",
+      "name": "Dredge (egg → almond flour)",
+      "definition": "Coat chicken in egg, then almond flour, before frying so it crisps into a golden crust.",
+      "content_status": "authored",
+      "stages": [
+        {
+          "look": "After the egg dip: the cutlet is fully wet, glossy, dripping a little.",
+          "sound": "—",
+          "smell": "—",
+          "action_cue": "Let excess egg drip off, then press into the almond flour."
+        },
+        {
+          "look": "After the almond flour: the surface is matte, sandy, and pale, with no wet patches peeking through.",
+          "sound": "—",
+          "smell": "—",
+          "action_cue": "Fry in hot oil until the coating sets into a golden, craggy crust."
+        }
+      ]
+    },
+    {
+      "id": "egg_bites",
+      "name": "Egg bites — the jiggle test",
+      "definition": "Bake an egg mixture in a greased muffin tin until set. Done by the jiggle test, not the clock.",
+      "content_status": "authored",
+      "stages": [
+        {
+          "look": "Not ready: the center looks wet and shiny and ripples like liquid when you nudge the pan.",
+          "sound": "—",
+          "smell": "—",
+          "action_cue": "Keep baking."
+        },
+        {
+          "look": "Done: tops puffed and matte, spring back to a light touch, center has at most a faint wobble (firm jello, not liquid).",
+          "sound": "—",
+          "smell": "Set egg.",
+          "action_cue": "Pull them. They deflate slightly as they cool — that's normal."
+        }
+      ]
     }
   ]
 }

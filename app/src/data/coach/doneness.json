@@ -18,7 +18,7 @@
     {
       "food": "ground_meat",
       "label": "Ground beef, pork, lamb",
-      "aliases": ["ground beef", "ground pork", "ground lamb", "ground meat", "mince", "burger", "meatballs", "meatloaf"],
+      "aliases": ["ground beef", "ground pork", "ground lamb", "ground meat", "mince", "burger", "patty", "patties", "meatballs", "kofta", "meatloaf", "sausage", "chorizo"],
       "pull_temp_f": 160,
       "rest_minutes": 0,
       "visual_cue": "No pink remains and juices run clear.",

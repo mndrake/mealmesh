@@ -41,6 +41,34 @@
           "recipe_id": "brown-stew-chicken"
         }
       ]
+    },
+    {
+      "id": "month1-a-prep",
+      "title": "Month 1 · Menu A — Sunday prep",
+      "total_minutes": 90,
+      "recipe_ids": ["m1a-bfast-egg-bites", "m1a-lunch-cobb-jar"],
+      "tasks": [
+        { "id": "t1", "station": "prep", "text": "Preheat the oven to 400°F and grease the muffin tin.", "start_minute": 0, "duration_minutes": 5 },
+        { "id": "t2", "station": "stove", "text": "Brown 8 oz sausage for the egg bites (~6 min); drain and cool.", "start_minute": 5, "duration_minutes": 6, "recipe_id": "m1a-bfast-egg-bites", "while_waiting": "While the sausage browns, whisk the eggs + cream for the bites." },
+        { "id": "t3", "station": "oven", "text": "Roast the Cobb chicken breast 22–25 min until 165°F; rest and slice.", "start_minute": 5, "duration_minutes": 25, "recipe_id": "m1a-lunch-cobb-jar", "while_waiting": "While the chicken roasts, fill the muffin cups with the egg mixture." },
+        { "id": "t4", "station": "prep", "text": "Stir sausage, spinach, and cheddar into the eggs; fill the muffin cups ¾ full.", "start_minute": 11, "duration_minutes": 9, "recipe_id": "m1a-bfast-egg-bites" },
+        { "id": "t5", "station": "oven", "text": "Bake the egg bites 18–20 min until set; cool and lift out.", "start_minute": 30, "duration_minutes": 20, "recipe_id": "m1a-bfast-egg-bites", "while_waiting": "While they bake, hard-boil eggs and crisp the bacon for the Cobb jars." },
+        { "id": "t6", "station": "stove", "text": "Hard-boil eggs: boil, turn off heat, cover 12 min, then ice-bath and peel.", "start_minute": 30, "duration_minutes": 15 },
+        { "id": "t7", "station": "prep", "text": "Assemble the Cobb jars: dressing, chicken, egg, bacon, blue cheese, tomatoes, romaine on top.", "start_minute": 55, "duration_minutes": 15, "recipe_id": "m1a-lunch-cobb-jar" }
+      ]
+    },
+    {
+      "id": "month1-b-prep",
+      "title": "Month 1 · Menu B — Sunday prep",
+      "total_minutes": 35,
+      "recipe_ids": ["m1b-bfast-chia-pudding", "m1b-lunch-shrimp-avocado-box"],
+      "tasks": [
+        { "id": "t1", "station": "prep", "text": "Whisk the chia pudding (chia + almond milk + vanilla + sweetener).", "start_minute": 0, "duration_minutes": 8, "recipe_id": "m1b-bfast-chia-pudding", "while_waiting": "While the chia sets, start thawing the shrimp in cold water." },
+        { "id": "t2", "station": "prep", "text": "Thaw and dry 1 lb shrimp (cold-water soak 15 min, then pat very dry).", "start_minute": 0, "duration_minutes": 15, "recipe_id": "m1b-lunch-shrimp-avocado-box" },
+        { "id": "t3", "station": "prep", "text": "Whisk the chia again to break up clumps; divide into 5 jars and chill overnight.", "start_minute": 8, "duration_minutes": 4, "recipe_id": "m1b-bfast-chia-pudding" },
+        { "id": "t4", "station": "stove", "text": "Sauté the lunch shrimp ~2 min/side until pink and curled into a C; chill.", "start_minute": 15, "duration_minutes": 7, "recipe_id": "m1b-lunch-shrimp-avocado-box" },
+        { "id": "t5", "station": "prep", "text": "Pack the shrimp & avocado boxes (shrimp, romaine, tomatoes, dressing on the side, lime).", "start_minute": 22, "duration_minutes": 10, "recipe_id": "m1b-lunch-shrimp-avocado-box" }
+      ]
     }
   ]
 }

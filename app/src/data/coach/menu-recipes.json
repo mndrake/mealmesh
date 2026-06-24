@@ -1,0 +1,206 @@
+{
+  "_comment": "Month 1 guided recipes (Menu A + B), authored verbatim from docs/T2D_Beginner_Edition.md. Self-contained Coach content with steps inline — NOT in the read-only recipes.json. Doneness verdicts use the cited USDA rules in doneness.json (e.g. whole cuts stay 145°F even where the plan suggests med-rare).",
+  "recipes": [
+    {
+      "id": "m1a-bfast-egg-bites",
+      "title": "Sausage & Spinach Egg Bites",
+      "slot": "breakfast",
+      "net_carbs_g": 2,
+      "servings": 4,
+      "equipment": ["12-cup muffin tin (greased)", "skillet", "bowl", "whisk"],
+      "note": "Makes 12. Fridge 4 days; freeze the rest. Reheat 30–45 sec. Eat 3 per person.",
+      "steps": [
+        { "id": "s1", "text": "Preheat the oven to 400°F. Grease all 12 muffin cups well, or use silicone liners — egg bites cement themselves to bare metal.", "station": "prep" },
+        { "id": "s2", "text": "In a skillet over medium-high, cook 8 oz sausage, breaking it up, until no pink remains (~6 min). Drain and let cool a few minutes.", "technique_id": "render_sausage", "doneness_food": "ground_meat", "timer_seconds": 360, "station": "stove", "sensory_cue": "Deep-browned crumbles, glistening rendered fat, no raw red.", "cue_status": "authored" },
+        { "id": "s3", "text": "Whisk 10 eggs with ¼ cup cream and a pinch of salt and pepper.", "station": "prep" },
+        { "id": "s4", "text": "Stir in the cooked sausage, 5 oz chopped spinach, and 1 cup shredded cheddar. Pour evenly into the cups, about ¾ full.", "station": "prep" },
+        { "id": "s5", "text": "Bake 18–20 min until the centers are set with no liquid jiggle. Cool 5 min, then lift out.", "technique_id": "egg_bites", "doneness_food": "eggs", "timer_seconds": 1080, "station": "oven", "sensory_cue": "Tops puffed and matte and springy; the center has at most a faint wobble (firm jello, not liquid).", "cue_status": "authored" }
+      ]
+    },
+    {
+      "id": "m1a-lunch-cobb-jar",
+      "title": "Chicken Cobb Jar",
+      "slot": "lunch",
+      "net_carbs_g": 7,
+      "servings": 2,
+      "equipment": ["mason jars", "sheet pan"],
+      "steps": [
+        { "id": "s1", "text": "Cook the chicken first (great for Sunday): preheat the oven to 400°F. Rub a chicken breast with oil, salt, and pepper. Roast on a sheet pan 22–25 min until 165°F, then rest 5 min and slice.", "doneness_food": "chicken", "timer_seconds": 1320, "station": "oven", "sensory_cue": "White all the way through with clear juices.", "cue_status": "authored" },
+        { "id": "s2", "text": "Pour 2 tbsp dressing into the bottom of each jar.", "station": "prep" },
+        { "id": "s3", "text": "Add 4 oz sliced chicken, 1 chopped hard-boiled egg, 1 crumbled bacon strip, 2 tbsp blue cheese, and ¼ cup halved tomatoes.", "station": "prep" },
+        { "id": "s4", "text": "Pack romaine on top to keep everything dry. Seal and refrigerate up to 4 days.", "station": "prep" },
+        { "id": "s5", "text": "Morning-of: add ½ diced avocado. At lunch, shake to coat.", "station": "prep" }
+      ]
+    },
+    {
+      "id": "m1a-mon-sheetpan-chicken-broccoli",
+      "title": "Sheet-Pan Chicken & Broccoli",
+      "slot": "dinner",
+      "net_carbs_g": 7,
+      "servings": 2,
+      "equipment": ["sheet pan"],
+      "steps": [
+        { "id": "s1", "text": "Preheat the oven to 425°F.", "station": "prep" },
+        { "id": "s2", "text": "Cut 1.5 lb broccoli into florets. Toss with 2 tbsp olive oil, ½ tsp garlic powder, and salt. Spread on a sheet pan in one layer.", "technique_id": "crisp_tender_veg", "station": "prep" },
+        { "id": "s3", "text": "Rub chicken thighs with oil and salt and nestle them among the broccoli.", "station": "prep" },
+        { "id": "s4", "text": "Roast 20–25 min until the broccoli edges brown and the chicken reads 165°F.", "doneness_food": "chicken", "timer_seconds": 1200, "station": "oven", "sensory_cue": "Broccoli edges blistered; chicken white throughout with clear juices.", "cue_status": "authored" }
+      ]
+    },
+    {
+      "id": "m1a-tue-beef-pepper-stirfry",
+      "title": "Beef & Pepper Stir-Fry",
+      "slot": "dinner",
+      "net_carbs_g": 10,
+      "servings": 2,
+      "equipment": ["skillet"],
+      "note": "Thin stir-fry strips cook too fast to thermometer reliably — go by browning. If you check the pan beef, 145°F is the safe whole-cut minimum.",
+      "steps": [
+        { "id": "s1", "text": "Slice 1 lb steak thinly against the grain and pat dry. Slice 2 bell peppers and ½ onion.", "station": "prep", "sensory_cue": "Cut across the meat's fibers, not along them — that's what makes a slice tender instead of chewy.", "cue_status": "authored" },
+        { "id": "s2", "text": "Heat 1 tbsp oil in a skillet over high until it shimmers.", "technique_id": "sear", "station": "stove" },
+        { "id": "s3", "text": "Add the beef in one layer; don't stir for 1 min, then sear 2–3 min until browned. Remove.", "technique_id": "sear", "station": "stove", "sensory_cue": "Edges turn from red to deep brown; it releases from the pan when it's ready.", "cue_status": "authored" },
+        { "id": "s4", "text": "Add the peppers and onion; stir-fry 4–5 min until crisp-tender.", "technique_id": "crisp_tender_veg", "timer_seconds": 270, "station": "stove" },
+        { "id": "s5", "text": "Return the beef; add 2 tbsp soy sauce and 1 minced garlic clove; toss 1 min.", "station": "stove" }
+      ]
+    },
+    {
+      "id": "m1a-wed-shrimp-scampi-zoodles",
+      "title": "Shrimp Scampi over Zoodles",
+      "slot": "dinner",
+      "net_carbs_g": 8,
+      "servings": 2,
+      "equipment": ["skillet", "spiralizer or peeler"],
+      "steps": [
+        { "id": "s1", "text": "Thaw and dry 1 lb shrimp: soak frozen shrimp in cold water 15 min, then drain and pat very dry. Make zoodles from 3 zucchini with a spiralizer or peeler ribbons.", "station": "prep", "sensory_cue": "Dry shrimp sears; wet shrimp steams and turns rubbery — pat them really dry.", "cue_status": "authored" },
+        { "id": "s2", "text": "Melt 3 tbsp butter in a skillet over medium. Add 3 minced garlic cloves and cook 30 sec — don't let them brown.", "station": "stove" },
+        { "id": "s3", "text": "Add the shrimp in one layer; cook about 2 min per side until pink and curled into a loose C. Remove.", "doneness_food": "shrimp", "station": "stove", "sensory_cue": "Pink/coral and opaque, curled into a loose C. A tight O means overcooked — the window is about 30 seconds, so hover.", "cue_status": "authored" },
+        { "id": "s4", "text": "Add the zoodles; toss 2 min just to warm — any longer makes them watery.", "timer_seconds": 120, "station": "stove" },
+        { "id": "s5", "text": "Return the shrimp; finish with a squeeze of lemon and parsley.", "station": "stove" }
+      ]
+    },
+    {
+      "id": "m1a-thu-pork-chops-cauli-mash",
+      "title": "Pork Chops & Cauliflower Mash",
+      "slot": "dinner",
+      "net_carbs_g": 9,
+      "servings": 2,
+      "equipment": ["pot", "blender or masher", "skillet"],
+      "steps": [
+        { "id": "s1", "text": "Make cauliflower mash from 1 head: boil florets ~10 min until fork-tender, drain, and press out the water before blending with butter, cream, and salt.", "technique_id": "cauliflower_mash", "timer_seconds": 600, "station": "stove", "sensory_cue": "Press in the colander until cloudy water stops streaming and the surface looks dry — skipping the drain makes soup.", "cue_status": "authored" },
+        { "id": "s2", "text": "Pat 2 pork chops dry and season both sides.", "station": "prep" },
+        { "id": "s3", "text": "Heat 1 tbsp oil over medium-high. Sear the chops about 4–5 min per side until 145°F.", "technique_id": "sear", "doneness_food": "beef_whole", "station": "stove", "sensory_cue": "Deep golden crust; the center reaches 145°F.", "cue_status": "authored" },
+        { "id": "s4", "text": "Rest 3 min, then serve over the mash.", "station": "rest" }
+      ]
+    },
+    {
+      "id": "m1a-fri-burger-bowls",
+      "title": "Burger Bowls",
+      "slot": "dinner",
+      "net_carbs_g": 6,
+      "servings": 2,
+      "equipment": ["skillet"],
+      "steps": [
+        { "id": "s1", "text": "Form 1 lb ground beef into 2 patties and season.", "station": "prep" },
+        { "id": "s2", "text": "Heat a skillet over medium-high. Sear the patties 3–4 min per side until 160°F.", "technique_id": "sear", "doneness_food": "ground_meat", "station": "stove", "sensory_cue": "No pink in the center; juices run clear.", "cue_status": "authored" },
+        { "id": "s3", "text": "Make a bed of chopped romaine in 2 bowls.", "station": "prep" },
+        { "id": "s4", "text": "Top each with a patty, ¼ cup cheddar (it melts on the hot patty), tomatoes, and sugar-free ketchup/mustard.", "station": "prep" }
+      ]
+    },
+    {
+      "id": "m1b-bfast-chia-pudding",
+      "title": "Vanilla Chia Pudding + Berries",
+      "slot": "breakfast",
+      "net_carbs_g": 8,
+      "servings": 5,
+      "no_cook": true,
+      "note": "No cooking. Savory swap: ham & cheese egg muffins using the egg-bite method.",
+      "steps": [
+        { "id": "s1", "text": "In a bowl, whisk 6 tbsp chia seeds, 1.5 cups almond milk, ½ tsp vanilla, and sweetener to taste.", "station": "prep" },
+        { "id": "s2", "text": "Wait 5 min, then whisk again to break up any clumps.", "timer_seconds": 300, "station": "prep" },
+        { "id": "s3", "text": "Divide into 5 jars and chill overnight — it sets to a pudding.", "station": "prep" },
+        { "id": "s4", "text": "Each morning, top one jar with ¼ cup berries.", "station": "prep" }
+      ]
+    },
+    {
+      "id": "m1b-lunch-shrimp-avocado-box",
+      "title": "Shrimp & Avocado Box",
+      "slot": "lunch",
+      "net_carbs_g": 7,
+      "servings": 2,
+      "equipment": ["skillet", "meal-prep boxes"],
+      "steps": [
+        { "id": "s1", "text": "Sunday: thaw and dry 1 lb shrimp, then sauté in 1 tbsp oil over medium-high about 2 min per side until pink and curled. Chill.", "doneness_food": "shrimp", "station": "stove", "sensory_cue": "Pink, opaque, curled into a loose C.", "cue_status": "authored" },
+        { "id": "s2", "text": "Build each box: 5 oz shrimp, romaine, ¼ cup tomatoes, 2 tbsp dressing on the side, and a lime wedge.", "station": "prep" },
+        { "id": "s3", "text": "Add ½ avocado morning-of.", "station": "prep" }
+      ]
+    },
+    {
+      "id": "m1b-mon-chicken-fajita-bowls",
+      "title": "Chicken Fajita Bowls",
+      "slot": "dinner",
+      "net_carbs_g": 12,
+      "servings": 2,
+      "equipment": ["2 skillets"],
+      "steps": [
+        { "id": "s1", "text": "Season 1 lb chicken with fajita seasoning; sear over medium-high 5–6 min per side until 165°F, then slice. (Skip if your chicken is pre-cooked.)", "technique_id": "sear", "doneness_food": "chicken", "station": "stove", "sensory_cue": "White throughout with clear juices.", "cue_status": "authored" },
+        { "id": "s2", "text": "Slice 2 peppers and ½ onion; sauté in 1 tbsp oil over medium-high 6 min until soft and charred at the edges.", "technique_id": "saute", "timer_seconds": 360, "station": "stove" },
+        { "id": "s3", "text": "In another pan, sauté 2 bags cauliflower rice in 1 tbsp oil 5 min.", "technique_id": "saute", "timer_seconds": 300, "station": "stove" },
+        { "id": "s4", "text": "Build bowls: cauliflower rice, chicken, peppers and onion, topped with cheese.", "station": "prep" }
+      ]
+    },
+    {
+      "id": "m1b-tue-meatballs-marinara-zoodles",
+      "title": "Meatballs & Marinara over Zoodles",
+      "slot": "dinner",
+      "net_carbs_g": 11,
+      "servings": 2,
+      "equipment": ["sheet pan", "pot", "skillet"],
+      "steps": [
+        { "id": "s1", "text": "Preheat the oven to 400°F.", "station": "prep" },
+        { "id": "s2", "text": "Mix 1.25 lb ground meat with 1 egg, ¼ cup mozzarella, and salt/pepper. Roll about 16 balls.", "station": "prep", "sensory_cue": "The mix should be tacky and hold together when pinched — too wet? add a spoon of almond flour or parmesan.", "cue_status": "authored" },
+        { "id": "s3", "text": "Bake on a sheet pan 18 min until 160°F.", "doneness_food": "ground_meat", "timer_seconds": 1080, "station": "oven", "sensory_cue": "No pink at the center of a split meatball.", "cue_status": "authored" },
+        { "id": "s4", "text": "Warm marinara in a pot; add the meatballs and simmer 5 min.", "technique_id": "simmer", "timer_seconds": 300, "station": "stove" },
+        { "id": "s5", "text": "Make zoodles from 3 zucchini; toss in a hot dry pan 2 min. Serve the sauce and meatballs over the zoodles.", "station": "stove" }
+      ]
+    },
+    {
+      "id": "m1b-wed-garlic-butter-shrimp-green-beans",
+      "title": "Garlic Butter Shrimp & Green Beans",
+      "slot": "dinner",
+      "net_carbs_g": 7,
+      "servings": 2,
+      "equipment": ["skillet"],
+      "steps": [
+        { "id": "s1", "text": "Thaw and dry 1 lb shrimp. Trim 1.5 lb green beans.", "station": "prep" },
+        { "id": "s2", "text": "Sauté the green beans in 3 tbsp butter over medium-high 6 min until crisp-tender.", "technique_id": "crisp_tender_veg", "timer_seconds": 360, "station": "stove" },
+        { "id": "s3", "text": "Push the beans aside; add the shrimp and 3 minced garlic cloves; cook about 2 min per side until pink and curled.", "doneness_food": "shrimp", "station": "stove", "sensory_cue": "Loose C, pink and opaque throughout.", "cue_status": "authored" }
+      ]
+    },
+    {
+      "id": "m1b-thu-steak-roasted-asparagus",
+      "title": "Steak & Roasted Asparagus",
+      "slot": "dinner",
+      "net_carbs_g": 5,
+      "servings": 2,
+      "equipment": ["sheet pan", "skillet"],
+      "note": "The plan suggests medium-rare (130–135°F); 145°F is the USDA safe minimum the coach checks against.",
+      "steps": [
+        { "id": "s1", "text": "Preheat the oven to 425°F. Toss 1.5 lb asparagus with oil and salt; roast 12 min.", "timer_seconds": 720, "station": "oven" },
+        { "id": "s2", "text": "Pat 1 lb steak dry and season. Heat a skillet over high; sear 3–4 min per side.", "technique_id": "sear", "doneness_food": "beef_whole", "station": "stove", "sensory_cue": "Deep mahogany crust. For safety, cook to 145°F; a 3-minute rest follows.", "cue_status": "authored" },
+        { "id": "s3", "text": "Rest 5 min, then slice against the grain.", "station": "rest", "sensory_cue": "Slice perpendicular to the visible fibers so each piece is tender, not stringy.", "cue_status": "authored" }
+      ]
+    },
+    {
+      "id": "m1b-fri-sausage-cabbage-skillet",
+      "title": "Sausage & Cabbage Skillet",
+      "slot": "dinner",
+      "net_carbs_g": 9,
+      "servings": 2,
+      "equipment": ["skillet"],
+      "steps": [
+        { "id": "s1", "text": "Slice 14 oz smoked sausage into coins. Brown in a skillet over medium-high 5 min (it's already cooked — you're just browning).", "technique_id": "render_sausage", "timer_seconds": 300, "station": "stove" },
+        { "id": "s2", "text": "Add ½ shredded cabbage, ½ sliced onion, and 2 tbsp butter.", "station": "stove" },
+        { "id": "s3", "text": "Sauté 10 min until the cabbage is tender.", "technique_id": "saute", "timer_seconds": 600, "station": "stove" }
+      ]
+    }
+  ]
+}
