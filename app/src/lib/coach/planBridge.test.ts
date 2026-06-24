@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { coachRecipeToRecipe, coachRecipesById, menuToPlan } from "./planBridge";
+import { coachImageUrl, coachRecipeToRecipe, coachRecipesById, menuToPlan } from "./planBridge";
+import imageSourcesData from "../../data/coach/image-sources.json";
 import { getMenu, listMenus } from "./content";
 import { mergeRecipesById } from "../allRecipes";
 import { cookedMeals } from "../planner";
@@ -95,6 +96,28 @@ describe("shopping list from a Coach week", () => {
     // each distinct recipe appears once even though breakfast/lunch span 5 days
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids).toContain("m1a-bfast-egg-bites");
+  });
+});
+
+// ---- Every menu recipe has a sourced, attributed photo ----
+describe("coach recipe images", () => {
+  const IMAGES = (imageSourcesData as { images: Record<string, { license: string }> }).images;
+  it("every menu recipe has an attributed image + the adapter wires imageUrl/attribution", () => {
+    for (const cr of COACH_RECIPES) {
+      // attribution present (the fetch script only records an entry on a successful download)
+      expect(IMAGES[cr.id]?.license, cr.id).toBeTruthy();
+      const url = coachImageUrl(cr.id);
+      expect(url, cr.id).toBe(`/coach-images/${cr.id}.jpg`);
+      const r = coachRecipeToRecipe(cr);
+      expect(r.imageUrl).toBe(url);
+      expect(r.image_source?.repository).toBe("Wikimedia Commons");
+      expect(r.image_source?.note, cr.id).toBeTruthy(); // artist · license
+    }
+  });
+  it("only uses freely-licensed images (CC0 / CC BY / CC BY-SA / Public domain)", () => {
+    for (const [id, m] of Object.entries(IMAGES)) {
+      expect(m.license, id).toMatch(/cc0|cc by|public domain|^pd/i);
+    }
   });
 });
 
