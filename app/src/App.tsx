@@ -157,7 +157,7 @@ export default function App() {
         {tab === "monthly" && <MonthlyPlanView />}
         {tab === "shopping" && <ShoppingView openSend={krogerConnected} />}
         {tab === "history" && <HistoryView />}
-        {tab === "coach" && showCoach && <CoachView />}
+        {tab === "coach" && showCoach && <CoachView onOpenPlan={() => setTab("plan")} />}
       </main>
 
       {addTarget && (
