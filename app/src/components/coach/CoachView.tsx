@@ -9,6 +9,7 @@ import {
   getMenu,
   listMenus,
 } from "../../lib/coach/content";
+import { menuToPlan } from "../../lib/coach/planBridge";
 import type { BatchBlueprint, CoachRecipe, WeeklyMenu } from "../../lib/coach/types";
 import { CookMode } from "./CookMode";
 import { SundayOrchestrator } from "./SundayOrchestrator";
@@ -16,7 +17,7 @@ import { SundayOrchestrator } from "./SundayOrchestrator";
 /** The Coach Mode home (behind VITE_COACH_MODE). Pick a weekly menu → cook each meal with the
  *  step-aware coach, or run the Sunday batch prep. The Month-1 rotation is the selectable
  *  target (PRD §6). */
-export function CoachView() {
+export function CoachView({ onOpenPlan }: { onOpenPlan?: () => void } = {}) {
   const completed = useStore((s) => cookModeCompletionCount(s.cookLog));
   const [menuId, setMenuId] = useState<string | null>(null);
   const [cooking, setCooking] = useState<{ id: string; title: string } | null>(null);
@@ -62,6 +63,10 @@ export function CoachView() {
           onPrep={() => {
             const bp = menu.prep_blueprint_id ? getBlueprint(menu.prep_blueprint_id) : null;
             if (bp) setOrchestrating(bp);
+          }}
+          onAddToPlan={() => {
+            actions.setActivePlan(menuToPlan(menu));
+            onOpenPlan?.();
           }}
         />
       )}
@@ -112,11 +117,13 @@ export function MenuDetail({
   onBack,
   onCook,
   onPrep,
+  onAddToPlan,
 }: {
   menu: WeeklyMenu;
   onBack: () => void;
   onCook: (id: string) => void;
   onPrep: () => void;
+  onAddToPlan?: () => void;
 }) {
   const breakfast = getCoachRecipe(menu.breakfast_id);
   const lunch = getCoachRecipe(menu.lunch_id);
@@ -130,11 +137,18 @@ export function MenuDetail({
       <h3>Month {menu.month} · {menu.label}</h3>
       {menu.note && <p className="muted">{menu.note}</p>}
 
-      {hasPrep && (
-        <button className="btn secondary" style={{ marginBottom: 14 }} onClick={onPrep}>
-          📋 Run the Sunday prep plan
-        </button>
-      )}
+      <div className="row" style={{ gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
+        {onAddToPlan && (
+          <button className="btn" onClick={onAddToPlan}>
+            ➕ Add this week to my Plan
+          </button>
+        )}
+        {hasPrep && (
+          <button className="btn secondary" onClick={onPrep}>
+            📋 Run the Sunday prep plan
+          </button>
+        )}
+      </div>
 
       <div className="coach-meals">
         <RecipeRow label="☀️ Breakfast" recipe={breakfast} onCook={onCook} />

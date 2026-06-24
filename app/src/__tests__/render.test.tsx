@@ -13,6 +13,8 @@ import { CoachView, MenuDetail } from "../components/coach/CoachView";
 import { CookMode } from "../components/coach/CookMode";
 import { SundayOrchestrator } from "../components/coach/SundayOrchestrator";
 import { getBlueprint, getMenu } from "../lib/coach/content";
+import { menuToPlan } from "../lib/coach/planBridge";
+import { actions } from "../lib/store";
 
 describe("render smoke", () => {
   it("renders the app shell", () => {
@@ -62,13 +64,28 @@ describe("render smoke", () => {
     expect(html).toContain("Menu B");
   });
 
-  it("renders a selected week with its recipes and the prep-plan button", () => {
+  it("renders a selected week with its recipes, prep-plan, and add-to-plan buttons", () => {
     const html = renderToString(
-      <MenuDetail menu={getMenu("month1-a")!} onBack={() => {}} onCook={() => {}} onPrep={() => {}} />
+      <MenuDetail
+        menu={getMenu("month1-a")!}
+        onBack={() => {}}
+        onCook={() => {}}
+        onPrep={() => {}}
+        onAddToPlan={() => {}}
+      />
     );
     expect(html).toContain("Sheet-Pan Chicken &amp; Broccoli");
     expect(html).toContain("Run the Sunday prep plan");
+    expect(html).toContain("Add this week to my Plan");
     expect(html).toContain("net"); // per-recipe net-carb chips
+  });
+
+  it("populates the Plan board with a Coach week (recipes resolve, no '(unknown)')", () => {
+    actions.setActivePlan(menuToPlan(getMenu("month1-a")!));
+    const html = renderToString(<PlannerView />);
+    expect(html).toContain("Sheet-Pan Chicken &amp; Broccoli");
+    expect(html).toContain("Burger Bowls");
+    expect(html).not.toContain("(unknown)");
   });
 
   it("renders Cook Mode for a selected menu recipe (first step shows)", () => {

@@ -5,6 +5,9 @@ import { useStore, actions } from "../lib/store";
 import { useAllRecipesById } from "../lib/allRecipes";
 import { cookedMeals } from "../lib/planner";
 import { formatCookedOn, todayIso } from "../lib/history";
+import { coachEnabled } from "../lib/coach/flag";
+import { listMenus } from "../lib/coach/content";
+import { menuToPlan } from "../lib/coach/planBridge";
 
 const fmtDate = (ms: number) => (ms ? formatCookedOn(todayIso(new Date(ms))) : "");
 
@@ -110,6 +113,36 @@ export function SavedMenusModal({ onClose }: { onClose: () => void }) {
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {coachEnabled() && (
+            <div style={{ marginTop: 18 }}>
+              <h3 style={{ margin: "0 0 8px" }}>🍳 Coach weekly menus</h3>
+              <div className="menu-list">
+                {listMenus().map((m) => {
+                  const meals = cookedMeals(menuToPlan(m), recipesById).length;
+                  return (
+                    <div className="menu-row" key={m.id}>
+                      <div className="menu-main">
+                        <span className="menu-name">Month {m.month} · {m.label}</span>
+                        <span className="muted" style={{ fontSize: "0.76rem" }}>
+                          {m.theme} · {meals} meals
+                        </span>
+                      </div>
+                      <button
+                        className="btn small"
+                        onClick={() => {
+                          actions.setActivePlan(menuToPlan(m));
+                          onClose();
+                        }}
+                      >
+                        Load to plan
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
 
