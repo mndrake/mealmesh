@@ -22,6 +22,17 @@ const SLOT_TO_CATEGORY: Record<MealSlot, Recipe["category"]> = {
   dinner: "dinner",
 };
 
+/** Attribution repository derived from the source URL — "Wikimedia Commons" for the
+ *  auto-fetched set, else the source host (e.g. a user-specified blog image). */
+function imageRepository(source: string): string {
+  try {
+    const host = new URL(source).hostname.replace(/^www\./, "");
+    return host.includes("commons.wikimedia.org") ? "Wikimedia Commons" : host;
+  } catch {
+    return "Wikimedia Commons";
+  }
+}
+
 /** Adapt a self-contained Coach recipe to a full Recipe so it renders + shops like any other.
  *  Net carbs are exact (carb_g); kcal/protein/fat are 0 — the source plan only specifies net
  *  carbs, so they are intentionally not invented (nutrition_estimated = true). */
@@ -49,7 +60,7 @@ export function coachRecipeToRecipe(cr: CoachRecipe): Recipe {
       ? {
           file: img.title.replace(/^File:/, ""),
           page: img.source,
-          repository: "Wikimedia Commons",
+          repository: imageRepository(img.source),
           note: `${img.artist} · ${img.license}`,
         }
       : undefined,

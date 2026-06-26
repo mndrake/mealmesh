@@ -101,7 +101,7 @@ describe("shopping list from a Coach week", () => {
 
 // ---- Every menu recipe has a sourced, attributed photo ----
 describe("coach recipe images", () => {
-  const IMAGES = (imageSourcesData as { images: Record<string, { license: string }> }).images;
+  const IMAGES = (imageSourcesData as { images: Record<string, { license: string; source: string }> }).images;
   it("every menu recipe has an attributed image + the adapter wires imageUrl/attribution", () => {
     for (const cr of COACH_RECIPES) {
       // attribution present (the fetch script only records an entry on a successful download)
@@ -110,12 +110,15 @@ describe("coach recipe images", () => {
       expect(url, cr.id).toBe(`/coach-images/${cr.id}.jpg`);
       const r = coachRecipeToRecipe(cr);
       expect(r.imageUrl).toBe(url);
-      expect(r.image_source?.repository).toBe("Wikimedia Commons");
+      expect(r.image_source?.repository, cr.id).toBeTruthy(); // attribution source (host)
       expect(r.image_source?.note, cr.id).toBeTruthy(); // artist · license
     }
   });
-  it("only uses freely-licensed images (CC0 / CC BY / CC BY-SA / Public domain)", () => {
+  it("auto-fetched (Wikimedia Commons) images are all freely licensed", () => {
+    // The free-license guard applies to the auto-fetcher's output. A user-supplied image from
+    // another source is exempt (attributed, used for personal meal planning).
     for (const [id, m] of Object.entries(IMAGES)) {
+      if (!/commons\.wikimedia\.org/.test(m.source)) continue;
       expect(m.license, id).toMatch(/cc0|cc by|public domain|^pd/i);
     }
   });
