@@ -10,11 +10,26 @@
       "breakfast_id": "m1a-bfast-egg-bites",
       "lunch_id": "m1a-lunch-cobb-jar",
       "dinners": [
-        { "day": "Mon", "recipe_id": "m1a-mon-sheetpan-chicken-broccoli" },
-        { "day": "Tue", "recipe_id": "m1a-tue-beef-pepper-stirfry" },
-        { "day": "Wed", "recipe_id": "m1a-wed-shrimp-scampi-zoodles" },
-        { "day": "Thu", "recipe_id": "m1a-thu-pork-chops-cauli-mash" },
-        { "day": "Fri", "recipe_id": "m1a-fri-burger-bowls" }
+        {
+          "day": "Mon",
+          "recipe_id": "m1a-mon-sheetpan-chicken-broccoli"
+        },
+        {
+          "day": "Tue",
+          "recipe_id": "m1a-tue-beef-pepper-stirfry"
+        },
+        {
+          "day": "Wed",
+          "recipe_id": "m1a-wed-shrimp-scampi-zoodles"
+        },
+        {
+          "day": "Thu",
+          "recipe_id": "m1a-thu-pork-chops-cauli-mash"
+        },
+        {
+          "day": "Fri",
+          "recipe_id": "m1a-fri-burger-bowls"
+        }
       ],
       "prep_blueprint_id": "month1-a-prep"
     },
@@ -27,13 +42,220 @@
       "breakfast_id": "m1b-bfast-chia-pudding",
       "lunch_id": "m1b-lunch-shrimp-avocado-box",
       "dinners": [
-        { "day": "Mon", "recipe_id": "m1b-mon-chicken-fajita-bowls" },
-        { "day": "Tue", "recipe_id": "m1b-tue-meatballs-marinara-zoodles" },
-        { "day": "Wed", "recipe_id": "m1b-wed-garlic-butter-shrimp-green-beans" },
-        { "day": "Thu", "recipe_id": "m1b-thu-steak-roasted-asparagus" },
-        { "day": "Fri", "recipe_id": "m1b-fri-sausage-cabbage-skillet" }
+        {
+          "day": "Mon",
+          "recipe_id": "m1b-mon-chicken-fajita-bowls"
+        },
+        {
+          "day": "Tue",
+          "recipe_id": "m1b-tue-meatballs-marinara-zoodles"
+        },
+        {
+          "day": "Wed",
+          "recipe_id": "m1b-wed-garlic-butter-shrimp-green-beans"
+        },
+        {
+          "day": "Thu",
+          "recipe_id": "m1b-thu-steak-roasted-asparagus"
+        },
+        {
+          "day": "Fri",
+          "recipe_id": "m1b-fri-sausage-cabbage-skillet"
+        }
       ],
       "prep_blueprint_id": "month1-b-prep"
+    },
+    {
+      "id": "month2-a",
+      "month": 2,
+      "label": "Menu A · Weeks 1 & 3",
+      "theme": "Comfort & Skillet",
+      "note": "Cozy skillet classics — Salisbury steak, Tuscan chicken, and Philly bowls.",
+      "breakfast_id": "m2a-bfast-western-egg-muffins",
+      "lunch_id": "m2a-lunch-chef-salad-jar",
+      "dinners": [
+        {
+          "day": "Mon",
+          "recipe_id": "m2a-mon-salisbury-steak"
+        },
+        {
+          "day": "Tue",
+          "recipe_id": "m2a-tue-tuscan-chicken-cauli-mash"
+        },
+        {
+          "day": "Wed",
+          "recipe_id": "m2a-wed-cajun-shrimp-sausage"
+        },
+        {
+          "day": "Thu",
+          "recipe_id": "m2a-thu-smothered-pork-chops"
+        },
+        {
+          "day": "Fri",
+          "recipe_id": "m2a-fri-philly-cheesesteak-bowls"
+        }
+      ],
+      "prep_blueprint_id": "month2-a-prep"
+    },
+    {
+      "id": "month2-b",
+      "month": 2,
+      "label": "Menu B · Weeks 2 & 4",
+      "theme": "Comfort & Skillet",
+      "note": "Alternates with Menu A — chicken parm, taco skillet, and egg roll in a bowl.",
+      "breakfast_id": "m2b-bfast-broccoli-cheddar-quiches",
+      "lunch_id": "m2b-lunch-turkey-antipasto-box",
+      "dinners": [
+        {
+          "day": "Mon",
+          "recipe_id": "m2b-mon-chicken-parmesan"
+        },
+        {
+          "day": "Tue",
+          "recipe_id": "m2b-tue-beef-taco-skillet"
+        },
+        {
+          "day": "Wed",
+          "recipe_id": "m2b-wed-blackened-shrimp-zucchini"
+        },
+        {
+          "day": "Thu",
+          "recipe_id": "m2b-thu-egg-roll-in-a-bowl"
+        },
+        {
+          "day": "Fri",
+          "recipe_id": "m2b-fri-italian-sausage-peppers"
+        }
+      ],
+      "prep_blueprint_id": "month2-b-prep"
+    },
+    {
+      "id": "month3-a",
+      "month": 3,
+      "label": "Menu A · Weeks 1 & 3",
+      "theme": "Mediterranean & Fresh",
+      "note": "Bright Greek flavors built around skewers, kofta, and feta.",
+      "breakfast_id": "m3a-bfast-egg-bites",
+      "lunch_id": "m3a-lunch-greek-chicken-salad-box",
+      "dinners": [
+        {
+          "day": "Mon",
+          "recipe_id": "m3a-mon-greek-chicken-skewers"
+        },
+        {
+          "day": "Tue",
+          "recipe_id": "m3a-tue-beef-kofta-tzatziki"
+        },
+        {
+          "day": "Wed",
+          "recipe_id": "m3a-wed-shrimp-saganaki"
+        },
+        {
+          "day": "Thu",
+          "recipe_id": "m3a-thu-pork-souvlaki-bowl"
+        },
+        {
+          "day": "Fri",
+          "recipe_id": "m3a-fri-sausage-peppers-sheet-pan"
+        }
+      ],
+      "prep_blueprint_id": "month3-a-prep"
+    },
+    {
+      "id": "month3-b",
+      "month": 3,
+      "label": "Menu B · Weeks 2 & 4",
+      "theme": "Mediterranean & Fresh",
+      "note": "Fresh herbs and lemon — pesto chicken, caprese, and lemon-garlic shrimp.",
+      "breakfast_id": "m3b-bfast-yogurt-walnut-parfait",
+      "lunch_id": "m3b-lunch-caprese-chicken-box",
+      "dinners": [
+        {
+          "day": "Mon",
+          "recipe_id": "m3b-mon-pesto-chicken-zucchini"
+        },
+        {
+          "day": "Tue",
+          "recipe_id": "m3b-tue-beef-zucchini-bake"
+        },
+        {
+          "day": "Wed",
+          "recipe_id": "m3b-wed-lemon-garlic-shrimp-cauli-rice"
+        },
+        {
+          "day": "Thu",
+          "recipe_id": "m3b-thu-pork-tenderloin-green-beans"
+        },
+        {
+          "day": "Fri",
+          "recipe_id": "m3b-fri-turkey-meatballs-spinach"
+        }
+      ],
+      "prep_blueprint_id": "month3-b-prep"
+    },
+    {
+      "id": "month4-a",
+      "month": 4,
+      "label": "Menu A · Weeks 1 & 3",
+      "theme": "Global & Bold",
+      "note": "Big global flavors — chorizo, tikka, Korean beef, and curry shrimp.",
+      "breakfast_id": "m4a-bfast-chorizo-egg-bowls",
+      "lunch_id": "m4a-lunch-beef-taco-salad-jar",
+      "dinners": [
+        {
+          "day": "Mon",
+          "recipe_id": "m4a-mon-chicken-tikka-cauli-rice"
+        },
+        {
+          "day": "Tue",
+          "recipe_id": "m4a-tue-korean-beef-bowls"
+        },
+        {
+          "day": "Wed",
+          "recipe_id": "m4a-wed-coconut-curry-shrimp"
+        },
+        {
+          "day": "Thu",
+          "recipe_id": "m4a-thu-carnitas-lettuce-tacos"
+        },
+        {
+          "day": "Fri",
+          "recipe_id": "m4a-fri-turkey-larb-wraps"
+        }
+      ],
+      "prep_blueprint_id": "month4-a-prep"
+    },
+    {
+      "id": "month4-b",
+      "month": 4,
+      "label": "Menu B · Weeks 2 & 4",
+      "theme": "Global & Bold",
+      "note": "Stir-fries and lettuce cups that alternate with Menu A so the month doesn't repeat.",
+      "breakfast_id": "m4b-bfast-choc-pb-chia-cups",
+      "lunch_id": "m4b-lunch-buffalo-chicken-box",
+      "dinners": [
+        {
+          "day": "Mon",
+          "recipe_id": "m4b-mon-cashew-chicken-stirfry"
+        },
+        {
+          "day": "Tue",
+          "recipe_id": "m4b-tue-mongolian-beef-broccoli"
+        },
+        {
+          "day": "Wed",
+          "recipe_id": "m4b-wed-shrimp-fajita-bowls"
+        },
+        {
+          "day": "Thu",
+          "recipe_id": "m4b-thu-thai-pork-lettuce-cups"
+        },
+        {
+          "day": "Fri",
+          "recipe_id": "m4b-fri-italian-sausage-stuffed-peppers"
+        }
+      ],
+      "prep_blueprint_id": "month4-b-prep"
     }
   ]
 }
