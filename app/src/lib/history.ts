@@ -72,3 +72,8 @@ export function todayIso(now: Date = new Date()): string {
   const d = String(now.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
 }
+
+/** Today's index into a Mon..Sun plan (Mon = 0 … Sun = 6). */
+export function todayWeekdayIndex(now: Date = new Date()): number {
+  return (now.getDay() + 6) % 7;
+}

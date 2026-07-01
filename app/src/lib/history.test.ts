@@ -6,8 +6,18 @@ import {
   formatCookedOn,
   historyLabel,
   todayIso,
+  todayWeekdayIndex,
 } from "./history";
 import type { CookEvent } from "./types";
+
+describe("todayWeekdayIndex (Mon=0 … Sun=6)", () => {
+  it("maps each weekday to its Mon-based plan index", () => {
+    expect(todayWeekdayIndex(new Date("2026-06-29T12:00:00"))).toBe(0); // Monday
+    expect(todayWeekdayIndex(new Date("2026-07-01T12:00:00"))).toBe(2); // Wednesday
+    expect(todayWeekdayIndex(new Date("2026-07-03T12:00:00"))).toBe(4); // Friday
+    expect(todayWeekdayIndex(new Date("2026-07-05T12:00:00"))).toBe(6); // Sunday
+  });
+});
 
 const ev = (id: string, recipeId: string, cookedOn: string, extra: Partial<CookEvent> = {}): CookEvent => ({
   id,

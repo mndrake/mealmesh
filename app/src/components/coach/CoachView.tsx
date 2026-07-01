@@ -1,18 +1,23 @@
 import { useState } from "react";
 import { actions, useStore } from "../../lib/store";
-import { todayIso } from "../../lib/history";
+import { todayIso, todayWeekdayIndex } from "../../lib/history";
+import { useAllRecipesById } from "../../lib/allRecipes";
+import type { MealRef } from "../../lib/types";
 import { cookModeCompletionCount } from "../../lib/coach/metrics";
 import {
   coachRecipeTitle,
   getBlueprint,
   getCoachRecipe,
   getMenu,
+  hasCoachContent,
   listMenus,
 } from "../../lib/coach/content";
 import { coachImageUrl, menuToPlan } from "../../lib/coach/planBridge";
 import type { BatchBlueprint, CoachRecipe, WeeklyMenu } from "../../lib/coach/types";
 import { CookMode } from "./CookMode";
 import { SundayOrchestrator } from "./SundayOrchestrator";
+
+const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 /** The Coach Mode home (behind VITE_COACH_MODE). Pick a weekly menu → cook each meal with the
  *  step-aware coach, or run the Sunday batch prep. The Month-1 rotation is the selectable
@@ -21,6 +26,9 @@ export function CoachView(
   { onOpenPlan, onOpenShopping }: { onOpenPlan?: () => void; onOpenShopping?: () => void } = {}
 ) {
   const completed = useStore((s) => cookModeCompletionCount(s.cookLog));
+  const plan = useStore((s) => s.activePlan);
+  const byId = useAllRecipesById();
+  const [todayIdx] = useState(() => todayWeekdayIndex());
   const [menuId, setMenuId] = useState<string | null>(null);
   const [cooking, setCooking] = useState<{ id: string; title: string } | null>(null);
   const [orchestrating, setOrchestrating] = useState<BatchBlueprint | null>(null);
@@ -29,6 +37,15 @@ export function CoachView(
   const menu = menuId ? getMenu(menuId) : null;
 
   const cook = (id: string) => setCooking({ id, title: coachRecipeTitle(id) });
+
+  // Today's dinner (and tomorrow's) from the active plan, for the "Tonight" quick action.
+  const dinnerFor = (i: number) => {
+    const ref = plan[i]?.dinner;
+    if (!ref || typeof ref === "string") return null;
+    return byId.get((ref as MealRef).id) ?? null;
+  };
+  const tonight = dinnerFor(todayIdx);
+  const tomorrow = dinnerFor((todayIdx + 1) % 7);
 
   return (
     <div className="container">
@@ -42,6 +59,26 @@ export function CoachView(
           )}
         </p>
       </div>
+
+      {!menu && tonight && (
+        <section className="coach-tonight">
+          <div className="coach-tonight-main">
+            <span className="coach-tonight-label">🍽️ Tonight · {DAY_LABELS[todayIdx]}</span>
+            <span className="coach-tonight-title">{tonight.title}</span>
+            {tomorrow && (
+              <span className="muted coach-tonight-next">Tomorrow: {tomorrow.title}</span>
+            )}
+          </div>
+          {hasCoachContent(tonight.id) && (
+            <button
+              className="btn"
+              onClick={() => setCooking({ id: tonight.id, title: tonight.title })}
+            >
+              🍳 Cook it
+            </button>
+          )}
+        </section>
+      )}
 
       {!menu ? (
         <section className="coach-section">
