@@ -1605,7 +1605,9 @@ a {
 .coach-timer.done .coach-timer-time { color: var(--warn); }
 
 .coach-ask { background: var(--warn-soft); border-color: var(--warn); color: var(--warn); }
-.coach-finish { max-width: 420px; text-align: left; }
+/* These coach modals put content straight in .modal (no padded .content wrapper),
+   so they need their own inner padding or the text touches the border. */
+.coach-finish { max-width: 420px; text-align: left; padding: 20px 22px 24px; }
 
 /* --- Sunday Orchestrator --- */
 .coach-orch {
@@ -1634,7 +1636,7 @@ a {
 .coach-task-wait { margin: 6px 0 0 26px; font-size: 0.85rem; color: var(--accent-ink); }
 
 /* --- Coach Ask panel (panic button) --- */
-.coach-ask-panel { max-width: 460px; text-align: left; }
+.coach-ask-panel { max-width: 460px; text-align: left; padding: 20px 22px 24px; }
 .coach-ask-suggestions { margin: 12px 0; }
 .coach-ask-suggestions .chip { cursor: pointer; border: 1px solid var(--border); }
 .coach-ask-suggestions .chip:hover { border-color: var(--accent); }
