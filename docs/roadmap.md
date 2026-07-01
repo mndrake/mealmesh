@@ -185,10 +185,14 @@ live app until enabled. The buildable software slice is in:
 3. `ANTHROPIC_API_KEY` (already set for M6) powers the assistant; without it the safety-critical
    doneness path still works from the deterministic grounding.
 
-**Not done (out of build-loop scope):** legal/regulatory review of T2D positioning, Months
-2–4 of the content library (Month 1 is fully authored; the doc has 2–4 ready to transcribe the
-same way), SSE streaming (ADR 0002 — deferred), and the completion-*rate* denominator
-(session-start tracking).
+**Content:** all of **Months 1–4** are now authored (8 weekly menus / 56 guided recipes,
+transcribed from `T2D_Beginner_Edition.md` with steps, structured ingredients, net carbs, and
+a Sunday prep blueprint each). Month 1 has photos; Months 2–4 currently show a placeholder
+until images are sourced.
+
+**Not done (out of build-loop scope):** legal/regulatory review of T2D positioning, photos for
+the Months 2–4 recipes, SSE streaming (ADR 0002 — deferred), and the completion-*rate*
+denominator (session-start tracking).
 
 ## Dependency order
 `M0 → M1 → M2 → M5 (Kroger, pulled forward) → M3 → M4`. Kroger only needs M1/M2 (auth +

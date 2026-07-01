@@ -101,21 +101,34 @@ describe("shopping list from a Coach week", () => {
 
 // ---- Every menu recipe has a sourced, attributed photo ----
 describe("coach recipe images", () => {
-  const IMAGES = (imageSourcesData as { images: Record<string, { license: string }> }).images;
-  it("every menu recipe has an attributed image + the adapter wires imageUrl/attribution", () => {
+  const IMAGES = (imageSourcesData as { images: Record<string, { license: string; source: string }> }).images;
+  it("recipes WITH an image are correctly wired + attributed (images are optional)", () => {
+    // Not every recipe has a photo yet (Months 2–4 ship without images, showing a placeholder).
+    // Where an attribution entry exists, the adapter must wire imageUrl + attribution correctly.
     for (const cr of COACH_RECIPES) {
-      // attribution present (the fetch script only records an entry on a successful download)
-      expect(IMAGES[cr.id]?.license, cr.id).toBeTruthy();
-      const url = coachImageUrl(cr.id);
-      expect(url, cr.id).toBe(`/coach-images/${cr.id}.jpg`);
       const r = coachRecipeToRecipe(cr);
-      expect(r.imageUrl).toBe(url);
-      expect(r.image_source?.repository).toBe("Wikimedia Commons");
-      expect(r.image_source?.note, cr.id).toBeTruthy(); // artist · license
+      if (IMAGES[cr.id]) {
+        expect(coachImageUrl(cr.id), cr.id).toBe(`/coach-images/${cr.id}.jpg`);
+        expect(r.imageUrl, cr.id).toBe(`/coach-images/${cr.id}.jpg`);
+        expect(r.image_source?.repository, cr.id).toBeTruthy(); // attribution source (host)
+        expect(r.image_source?.note, cr.id).toBeTruthy(); // artist · license
+      } else {
+        expect(coachImageUrl(cr.id), cr.id).toBeNull();
+        expect(r.imageUrl, cr.id).toBeNull();
+      }
     }
   });
-  it("only uses freely-licensed images (CC0 / CC BY / CC BY-SA / Public domain)", () => {
+
+  it("the Month-1 recipes all have photos", () => {
+    for (const cr of COACH_RECIPES.filter((c) => c.id.startsWith("m1"))) {
+      expect(IMAGES[cr.id]?.license, cr.id).toBeTruthy();
+    }
+  });
+  it("auto-fetched (Wikimedia Commons) images are all freely licensed", () => {
+    // The free-license guard applies to the auto-fetcher's output. A user-supplied image from
+    // another source is exempt (attributed, used for personal meal planning).
     for (const [id, m] of Object.entries(IMAGES)) {
+      if (!/commons\.wikimedia\.org/.test(m.source)) continue;
       expect(m.license, id).toMatch(/cc0|cc by|public domain|^pd/i);
     }
   });

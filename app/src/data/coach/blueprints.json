@@ -5,7 +5,9 @@
       "id": "demo-stew-night",
       "title": "Brown Stew Chicken — guided run",
       "total_minutes": 45,
-      "recipe_ids": ["brown-stew-chicken"],
+      "recipe_ids": [
+        "brown-stew-chicken"
+      ],
       "tasks": [
         {
           "id": "t1",
@@ -46,28 +48,435 @@
       "id": "month1-a-prep",
       "title": "Month 1 · Menu A — Sunday prep",
       "total_minutes": 90,
-      "recipe_ids": ["m1a-bfast-egg-bites", "m1a-lunch-cobb-jar"],
+      "recipe_ids": [
+        "m1a-bfast-egg-bites",
+        "m1a-lunch-cobb-jar"
+      ],
       "tasks": [
-        { "id": "t1", "station": "prep", "text": "Preheat the oven to 400°F and grease the muffin tin.", "start_minute": 0, "duration_minutes": 5 },
-        { "id": "t2", "station": "stove", "text": "Brown 8 oz sausage for the egg bites (~6 min); drain and cool.", "start_minute": 5, "duration_minutes": 6, "recipe_id": "m1a-bfast-egg-bites", "while_waiting": "While the sausage browns, whisk the eggs + cream for the bites." },
-        { "id": "t3", "station": "oven", "text": "Roast the Cobb chicken breast 22–25 min until 165°F; rest and slice.", "start_minute": 5, "duration_minutes": 25, "recipe_id": "m1a-lunch-cobb-jar", "while_waiting": "While the chicken roasts, fill the muffin cups with the egg mixture." },
-        { "id": "t4", "station": "prep", "text": "Stir sausage, spinach, and cheddar into the eggs; fill the muffin cups ¾ full.", "start_minute": 11, "duration_minutes": 9, "recipe_id": "m1a-bfast-egg-bites" },
-        { "id": "t5", "station": "oven", "text": "Bake the egg bites 18–20 min until set; cool and lift out.", "start_minute": 30, "duration_minutes": 20, "recipe_id": "m1a-bfast-egg-bites", "while_waiting": "While they bake, hard-boil eggs and crisp the bacon for the Cobb jars." },
-        { "id": "t6", "station": "stove", "text": "Hard-boil eggs: boil, turn off heat, cover 12 min, then ice-bath and peel.", "start_minute": 30, "duration_minutes": 15 },
-        { "id": "t7", "station": "prep", "text": "Assemble the Cobb jars: dressing, chicken, egg, bacon, blue cheese, tomatoes, romaine on top.", "start_minute": 55, "duration_minutes": 15, "recipe_id": "m1a-lunch-cobb-jar" }
+        {
+          "id": "t1",
+          "station": "prep",
+          "text": "Preheat the oven to 400°F and grease the muffin tin.",
+          "start_minute": 0,
+          "duration_minutes": 5
+        },
+        {
+          "id": "t2",
+          "station": "stove",
+          "text": "Brown 8 oz sausage for the egg bites (~6 min); drain and cool.",
+          "start_minute": 5,
+          "duration_minutes": 6,
+          "recipe_id": "m1a-bfast-egg-bites",
+          "while_waiting": "While the sausage browns, whisk the eggs + cream for the bites."
+        },
+        {
+          "id": "t3",
+          "station": "oven",
+          "text": "Roast the Cobb chicken breast 22–25 min until 165°F; rest and slice.",
+          "start_minute": 5,
+          "duration_minutes": 25,
+          "recipe_id": "m1a-lunch-cobb-jar",
+          "while_waiting": "While the chicken roasts, fill the muffin cups with the egg mixture."
+        },
+        {
+          "id": "t4",
+          "station": "prep",
+          "text": "Stir sausage, spinach, and cheddar into the eggs; fill the muffin cups ¾ full.",
+          "start_minute": 11,
+          "duration_minutes": 9,
+          "recipe_id": "m1a-bfast-egg-bites"
+        },
+        {
+          "id": "t5",
+          "station": "oven",
+          "text": "Bake the egg bites 18–20 min until set; cool and lift out.",
+          "start_minute": 30,
+          "duration_minutes": 20,
+          "recipe_id": "m1a-bfast-egg-bites",
+          "while_waiting": "While they bake, hard-boil eggs and crisp the bacon for the Cobb jars."
+        },
+        {
+          "id": "t6",
+          "station": "stove",
+          "text": "Hard-boil eggs: boil, turn off heat, cover 12 min, then ice-bath and peel.",
+          "start_minute": 30,
+          "duration_minutes": 15
+        },
+        {
+          "id": "t7",
+          "station": "prep",
+          "text": "Assemble the Cobb jars: dressing, chicken, egg, bacon, blue cheese, tomatoes, romaine on top.",
+          "start_minute": 55,
+          "duration_minutes": 15,
+          "recipe_id": "m1a-lunch-cobb-jar"
+        }
       ]
     },
     {
       "id": "month1-b-prep",
       "title": "Month 1 · Menu B — Sunday prep",
       "total_minutes": 35,
-      "recipe_ids": ["m1b-bfast-chia-pudding", "m1b-lunch-shrimp-avocado-box"],
+      "recipe_ids": [
+        "m1b-bfast-chia-pudding",
+        "m1b-lunch-shrimp-avocado-box"
+      ],
       "tasks": [
-        { "id": "t1", "station": "prep", "text": "Whisk the chia pudding (chia + almond milk + vanilla + sweetener).", "start_minute": 0, "duration_minutes": 8, "recipe_id": "m1b-bfast-chia-pudding", "while_waiting": "While the chia sets, start thawing the shrimp in cold water." },
-        { "id": "t2", "station": "prep", "text": "Thaw and dry 1 lb shrimp (cold-water soak 15 min, then pat very dry).", "start_minute": 0, "duration_minutes": 15, "recipe_id": "m1b-lunch-shrimp-avocado-box" },
-        { "id": "t3", "station": "prep", "text": "Whisk the chia again to break up clumps; divide into 5 jars and chill overnight.", "start_minute": 8, "duration_minutes": 4, "recipe_id": "m1b-bfast-chia-pudding" },
-        { "id": "t4", "station": "stove", "text": "Sauté the lunch shrimp ~2 min/side until pink and curled into a C; chill.", "start_minute": 15, "duration_minutes": 7, "recipe_id": "m1b-lunch-shrimp-avocado-box" },
-        { "id": "t5", "station": "prep", "text": "Pack the shrimp & avocado boxes (shrimp, romaine, tomatoes, dressing on the side, lime).", "start_minute": 22, "duration_minutes": 10, "recipe_id": "m1b-lunch-shrimp-avocado-box" }
+        {
+          "id": "t1",
+          "station": "prep",
+          "text": "Whisk the chia pudding (chia + almond milk + vanilla + sweetener).",
+          "start_minute": 0,
+          "duration_minutes": 8,
+          "recipe_id": "m1b-bfast-chia-pudding",
+          "while_waiting": "While the chia sets, start thawing the shrimp in cold water."
+        },
+        {
+          "id": "t2",
+          "station": "prep",
+          "text": "Thaw and dry 1 lb shrimp (cold-water soak 15 min, then pat very dry).",
+          "start_minute": 0,
+          "duration_minutes": 15,
+          "recipe_id": "m1b-lunch-shrimp-avocado-box"
+        },
+        {
+          "id": "t3",
+          "station": "prep",
+          "text": "Whisk the chia again to break up clumps; divide into 5 jars and chill overnight.",
+          "start_minute": 8,
+          "duration_minutes": 4,
+          "recipe_id": "m1b-bfast-chia-pudding"
+        },
+        {
+          "id": "t4",
+          "station": "stove",
+          "text": "Sauté the lunch shrimp ~2 min/side until pink and curled into a C; chill.",
+          "start_minute": 15,
+          "duration_minutes": 7,
+          "recipe_id": "m1b-lunch-shrimp-avocado-box"
+        },
+        {
+          "id": "t5",
+          "station": "prep",
+          "text": "Pack the shrimp & avocado boxes (shrimp, romaine, tomatoes, dressing on the side, lime).",
+          "start_minute": 22,
+          "duration_minutes": 10,
+          "recipe_id": "m1b-lunch-shrimp-avocado-box"
+        }
+      ]
+    },
+    {
+      "id": "month2-a-prep",
+      "title": "Month 2 · Menu A — Sunday prep",
+      "total_minutes": 70,
+      "recipe_ids": [
+        "m2a-bfast-western-egg-muffins",
+        "m2a-lunch-chef-salad-jar"
+      ],
+      "tasks": [
+        {
+          "id": "t1",
+          "station": "prep",
+          "text": "Preheat the oven to 400°F and grease the muffin tin.",
+          "start_minute": 0,
+          "duration_minutes": 5,
+          "recipe_id": "m2a-bfast-western-egg-muffins"
+        },
+        {
+          "id": "t2",
+          "station": "stove",
+          "text": "Sauté ½ diced onion and 1 diced pepper for the egg muffins 4 min until soft; cool.",
+          "start_minute": 5,
+          "duration_minutes": 5,
+          "recipe_id": "m2a-bfast-western-egg-muffins",
+          "while_waiting": "While the veg cools, whisk the eggs + cream and dice the ham."
+        },
+        {
+          "id": "t3",
+          "station": "stove",
+          "text": "Hard-boil eggs for the chef salad jars: boil, turn off heat, cover 12 min, then ice-bath and peel.",
+          "start_minute": 5,
+          "duration_minutes": 15,
+          "recipe_id": "m2a-lunch-chef-salad-jar"
+        },
+        {
+          "id": "t4",
+          "station": "prep",
+          "text": "Stir the veg, ham, and cheddar into the eggs; fill the muffin cups ¾ full.",
+          "start_minute": 10,
+          "duration_minutes": 8,
+          "recipe_id": "m2a-bfast-western-egg-muffins"
+        },
+        {
+          "id": "t5",
+          "station": "oven",
+          "text": "Bake the egg muffins 18–20 min until set (~160°F); cool 5 min and lift out.",
+          "start_minute": 18,
+          "duration_minutes": 22,
+          "recipe_id": "m2a-bfast-western-egg-muffins",
+          "while_waiting": "While they bake, chop the tomatoes and portion the deli ham and turkey."
+        },
+        {
+          "id": "t6",
+          "station": "prep",
+          "text": "Assemble the chef salad jars: ranch on the bottom, then ham, turkey, egg, cheddar, tomatoes, romaine on top.",
+          "start_minute": 40,
+          "duration_minutes": 15,
+          "recipe_id": "m2a-lunch-chef-salad-jar"
+        }
+      ]
+    },
+    {
+      "id": "month2-b-prep",
+      "title": "Month 2 · Menu B — Sunday prep",
+      "total_minutes": 55,
+      "recipe_ids": [
+        "m2b-bfast-broccoli-cheddar-quiches",
+        "m2b-lunch-turkey-antipasto-box"
+      ],
+      "tasks": [
+        {
+          "id": "t1",
+          "station": "prep",
+          "text": "Preheat the oven to 375°F and grease the muffin tin.",
+          "start_minute": 0,
+          "duration_minutes": 5,
+          "recipe_id": "m2b-bfast-broccoli-cheddar-quiches"
+        },
+        {
+          "id": "t2",
+          "station": "prep",
+          "text": "Whisk 10 eggs + ¼ cup cream + salt; fold in the finely chopped broccoli and cheddar.",
+          "start_minute": 5,
+          "duration_minutes": 8,
+          "recipe_id": "m2b-bfast-broccoli-cheddar-quiches",
+          "while_waiting": "While you whisk, finely chop the broccoli."
+        },
+        {
+          "id": "t3",
+          "station": "prep",
+          "text": "Fill the muffin cups ¾ full.",
+          "start_minute": 13,
+          "duration_minutes": 5,
+          "recipe_id": "m2b-bfast-broccoli-cheddar-quiches"
+        },
+        {
+          "id": "t4",
+          "station": "oven",
+          "text": "Bake the mini quiches 20 min until set (~160°F); cool and lift out.",
+          "start_minute": 18,
+          "duration_minutes": 20,
+          "recipe_id": "m2b-bfast-broccoli-cheddar-quiches",
+          "while_waiting": "While they bake, roll the turkey around the cheddar and slice the cucumber for the antipasto boxes."
+        },
+        {
+          "id": "t5",
+          "station": "prep",
+          "text": "Pack the antipasto boxes: turkey-and-cheddar rolls, cucumber, peppers, olives, and ranch on the side.",
+          "start_minute": 38,
+          "duration_minutes": 12,
+          "recipe_id": "m2b-lunch-turkey-antipasto-box"
+        }
+      ]
+    },
+    {
+      "id": "month3-a-prep",
+      "title": "Month 3 · Menu A — Sunday prep",
+      "total_minutes": 75,
+      "recipe_ids": [
+        "m3a-bfast-egg-bites",
+        "m3a-lunch-greek-chicken-salad-box"
+      ],
+      "tasks": [
+        {
+          "id": "t1",
+          "station": "prep",
+          "text": "Preheat the oven to 400°F and grease the muffin tin.",
+          "start_minute": 0,
+          "duration_minutes": 5
+        },
+        {
+          "id": "t2",
+          "station": "prep",
+          "text": "Whisk 10 eggs + ¼ cup cream + salt; fold in 3 oz spinach and ¾ cup feta. Fill the cups ¾ full.",
+          "start_minute": 5,
+          "duration_minutes": 8,
+          "recipe_id": "m3a-bfast-egg-bites"
+        },
+        {
+          "id": "t3",
+          "station": "oven",
+          "text": "Bake the egg bites 18 min until set (~160°F); cool and lift out.",
+          "start_minute": 13,
+          "duration_minutes": 18,
+          "recipe_id": "m3a-bfast-egg-bites",
+          "while_waiting": "While they bake, cook the chicken for the Greek salad boxes."
+        },
+        {
+          "id": "t4",
+          "station": "stove",
+          "text": "Cook 8 oz chicken for the salad boxes; let it cool, then slice.",
+          "start_minute": 13,
+          "duration_minutes": 18,
+          "recipe_id": "m3a-lunch-greek-chicken-salad-box"
+        },
+        {
+          "id": "t5",
+          "station": "prep",
+          "text": "Pack the Greek chicken salad boxes: chicken, romaine, cucumber, tomatoes, feta, olives — oil + vinegar on the side.",
+          "start_minute": 31,
+          "duration_minutes": 12,
+          "recipe_id": "m3a-lunch-greek-chicken-salad-box"
+        },
+        {
+          "id": "t6",
+          "station": "prep",
+          "text": "Soak the wooden skewers for Monday's chicken (30 min in water) so they're ready for the week.",
+          "start_minute": 43,
+          "duration_minutes": 5,
+          "while_waiting": "While the skewers soak, mix tomorrow's tzatziki if you like to get ahead."
+        }
+      ]
+    },
+    {
+      "id": "month3-b-prep",
+      "title": "Month 3 · Menu B — Sunday prep",
+      "total_minutes": 50,
+      "recipe_ids": [
+        "m3b-bfast-yogurt-walnut-parfait",
+        "m3b-lunch-caprese-chicken-box"
+      ],
+      "tasks": [
+        {
+          "id": "t1",
+          "station": "stove",
+          "text": "Cook 8 oz chicken for the caprese boxes; let it cool, then slice.",
+          "start_minute": 0,
+          "duration_minutes": 18,
+          "recipe_id": "m3b-lunch-caprese-chicken-box",
+          "while_waiting": "While the chicken cooks, layer the yogurt parfait jars."
+        },
+        {
+          "id": "t2",
+          "station": "prep",
+          "text": "Layer 5 parfait jars: ¾ cup Greek yogurt + 2 tbsp walnuts + 1 tsp flax each. Chill (add berries morning-of).",
+          "start_minute": 0,
+          "duration_minutes": 12,
+          "recipe_id": "m3b-bfast-yogurt-walnut-parfait"
+        },
+        {
+          "id": "t3",
+          "station": "prep",
+          "text": "Pack the caprese & chicken boxes: chicken, fresh mozzarella, tomatoes, basil — balsamic + oil on the side.",
+          "start_minute": 18,
+          "duration_minutes": 12,
+          "recipe_id": "m3b-lunch-caprese-chicken-box"
+        },
+        {
+          "id": "t4",
+          "station": "prep",
+          "text": "Move a 1 lb bag of frozen shrimp to the fridge to thaw for Wednesday's lemon garlic shrimp.",
+          "start_minute": 30,
+          "duration_minutes": 3,
+          "recipe_id": "m3b-wed-lemon-garlic-shrimp-cauli-rice"
+        }
+      ]
+    },
+    {
+      "id": "month4-a-prep",
+      "title": "Month 4 · Menu A — Sunday prep",
+      "total_minutes": 60,
+      "recipe_ids": [
+        "m4a-bfast-chorizo-egg-bowls",
+        "m4a-lunch-beef-taco-salad-jar"
+      ],
+      "tasks": [
+        {
+          "id": "t1",
+          "station": "prep",
+          "text": "Mix the tikka marinade (yogurt, garam masala, cumin, paprika, garlic, ginger, lemon, salt) and coat 1.5 lb chicken; refrigerate to marinate for Monday.",
+          "start_minute": 0,
+          "duration_minutes": 8,
+          "recipe_id": "m4a-mon-chicken-tikka-cauli-rice",
+          "while_waiting": "While the chicken marinates, dice a bell pepper for the breakfast bowls."
+        },
+        {
+          "id": "t2",
+          "station": "stove",
+          "text": "Render 8 oz chorizo + 1 diced pepper 6 min until 160°F, then scramble in 8 beaten eggs until just set.",
+          "start_minute": 8,
+          "duration_minutes": 12,
+          "recipe_id": "m4a-bfast-chorizo-egg-bowls",
+          "while_waiting": "While the chorizo renders, beat the eggs and shred the cheddar."
+        },
+        {
+          "id": "t3",
+          "station": "prep",
+          "text": "Stir cheddar into the scramble and portion into 5 breakfast containers.",
+          "start_minute": 20,
+          "duration_minutes": 6,
+          "recipe_id": "m4a-bfast-chorizo-egg-bowls"
+        },
+        {
+          "id": "t4",
+          "station": "stove",
+          "text": "Brown 1 lb beef with taco seasoning until 160°F; cool.",
+          "start_minute": 26,
+          "duration_minutes": 12,
+          "recipe_id": "m4a-lunch-beef-taco-salad-jar",
+          "while_waiting": "While the beef cools, layer salsa into the lunch jars."
+        },
+        {
+          "id": "t5",
+          "station": "prep",
+          "text": "Build the taco salad jars: salsa, beef, cheddar, romaine on top (add avocado morning-of).",
+          "start_minute": 38,
+          "duration_minutes": 12,
+          "recipe_id": "m4a-lunch-beef-taco-salad-jar"
+        }
+      ]
+    },
+    {
+      "id": "month4-b-prep",
+      "title": "Month 4 · Menu B — Sunday prep",
+      "total_minutes": 45,
+      "recipe_ids": [
+        "m4b-bfast-choc-pb-chia-cups",
+        "m4b-lunch-buffalo-chicken-box"
+      ],
+      "tasks": [
+        {
+          "id": "t1",
+          "station": "prep",
+          "text": "Whisk each chia cup (chia + almond milk + cocoa + peanut butter + sweetener) and chill 5 jars overnight.",
+          "start_minute": 0,
+          "duration_minutes": 12,
+          "recipe_id": "m4b-bfast-choc-pb-chia-cups",
+          "while_waiting": "While you whisk the cups, set the frozen shrimp in cold water to thaw for the week."
+        },
+        {
+          "id": "t2",
+          "station": "prep",
+          "text": "Thaw and dry 1 lb shrimp for Wednesday's fajita bowls (cold-water soak 15 min, then pat very dry).",
+          "start_minute": 0,
+          "duration_minutes": 15,
+          "recipe_id": "m4b-wed-shrimp-fajita-bowls"
+        },
+        {
+          "id": "t3",
+          "station": "prep",
+          "text": "Toss 4 oz shredded cooked chicken with buffalo sauce.",
+          "start_minute": 15,
+          "duration_minutes": 8,
+          "recipe_id": "m4b-lunch-buffalo-chicken-box"
+        },
+        {
+          "id": "t4",
+          "station": "prep",
+          "text": "Pack the buffalo chicken boxes over romaine + celery with blue cheese; ranch on the side.",
+          "start_minute": 23,
+          "duration_minutes": 12,
+          "recipe_id": "m4b-lunch-buffalo-chicken-box"
+        }
       ]
     }
   ]

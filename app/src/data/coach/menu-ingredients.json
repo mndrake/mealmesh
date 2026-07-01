@@ -1,155 +1,3354 @@
 {
   "_comment": "Structured ingredients + nutrition for the Month-1 Coach recipes, so they work in the Plan board, shopping list (aisle-grouped, scaled), and Kroger send. Quantities transcribed from docs/T2D_Beginner_Edition.md. NUTRITION HONESTY: the source plan specifies only NET CARBS, so carb_g is set to the net-carb value (fiber_g 0) to display net carbs exactly; kcal/protein/fat are 0 (not invented) and nutrition_estimated is true. Keyed by coach recipe id.",
   "m1a-bfast-egg-bites": {
-    "nutrition": { "kcal": 0, "carb_g": 2, "fiber_g": 0, "protein_g": 0, "fat_g": 0 },
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 2,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
     "ingredients": [
-      { "qty": 8, "unit": "oz", "item": "breakfast sausage", "section": "Meat & Poultry", "perishable": true, "staple": false },
-      { "qty": 10, "unit": "each", "item": "eggs", "section": "Dairy & Eggs", "perishable": true, "staple": false },
-      { "qty": 0.25, "unit": "cup", "item": "heavy cream", "section": "Dairy & Eggs", "perishable": true, "staple": false },
-      { "qty": 5, "unit": "oz", "item": "spinach", "section": "Produce", "perishable": true, "staple": false },
-      { "qty": 1, "unit": "cup", "item": "shredded cheddar", "section": "Dairy & Eggs", "perishable": true, "staple": false },
-      { "qty": null, "unit": "to taste", "item": "salt", "section": "Condiments & Spices", "perishable": false, "staple": true },
-      { "qty": null, "unit": "to taste", "item": "black pepper", "section": "Condiments & Spices", "perishable": false, "staple": true }
+      {
+        "qty": 8,
+        "unit": "oz",
+        "item": "breakfast sausage",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 10,
+        "unit": "each",
+        "item": "eggs",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.25,
+        "unit": "cup",
+        "item": "heavy cream",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 5,
+        "unit": "oz",
+        "item": "spinach",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "cup",
+        "item": "shredded cheddar",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "salt",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "black pepper",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
     ]
   },
   "m1a-lunch-cobb-jar": {
-    "nutrition": { "kcal": 0, "carb_g": 7, "fiber_g": 0, "protein_g": 0, "fat_g": 0 },
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 7,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
     "ingredients": [
-      { "qty": 1, "unit": "each", "item": "chicken breast", "section": "Meat & Poultry", "perishable": true, "staple": false },
-      { "qty": 2, "unit": "each", "item": "eggs", "section": "Dairy & Eggs", "perishable": true, "staple": false, "note": "hard-boiled" },
-      { "qty": 2, "unit": "each", "item": "bacon", "section": "Meat & Poultry", "perishable": true, "staple": false, "note": "strips" },
-      { "qty": 0.25, "unit": "cup", "item": "blue cheese", "section": "Dairy & Eggs", "perishable": true, "staple": false },
-      { "qty": 0.5, "unit": "cup", "item": "cherry tomatoes", "section": "Produce", "perishable": true, "staple": false },
-      { "qty": 1, "unit": "each", "item": "romaine heart", "section": "Produce", "perishable": true, "staple": false },
-      { "qty": 1, "unit": "each", "item": "avocado", "section": "Produce", "perishable": true, "staple": false },
-      { "qty": 4, "unit": "tbsp", "item": "salad dressing", "section": "Condiments & Spices", "perishable": false, "staple": false },
-      { "qty": null, "unit": "to taste", "item": "olive oil", "section": "Condiments & Spices", "perishable": false, "staple": true }
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "chicken breast",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 2,
+        "unit": "each",
+        "item": "eggs",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false,
+        "note": "hard-boiled"
+      },
+      {
+        "qty": 2,
+        "unit": "each",
+        "item": "bacon",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false,
+        "note": "strips"
+      },
+      {
+        "qty": 0.25,
+        "unit": "cup",
+        "item": "blue cheese",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "cup",
+        "item": "cherry tomatoes",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "romaine heart",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "avocado",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 4,
+        "unit": "tbsp",
+        "item": "salad dressing",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "olive oil",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
     ]
   },
   "m1a-mon-sheetpan-chicken-broccoli": {
-    "nutrition": { "kcal": 0, "carb_g": 7, "fiber_g": 0, "protein_g": 0, "fat_g": 0 },
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 7,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
     "ingredients": [
-      { "qty": 1.5, "unit": "lb", "item": "broccoli", "section": "Produce", "perishable": true, "staple": false },
-      { "qty": 1, "unit": "lb", "item": "chicken thighs", "section": "Meat & Poultry", "perishable": true, "staple": false },
-      { "qty": 2, "unit": "tbsp", "item": "olive oil", "section": "Condiments & Spices", "perishable": false, "staple": true },
-      { "qty": 0.5, "unit": "tsp", "item": "garlic powder", "section": "Condiments & Spices", "perishable": false, "staple": true },
-      { "qty": null, "unit": "to taste", "item": "salt", "section": "Condiments & Spices", "perishable": false, "staple": true }
+      {
+        "qty": 1.5,
+        "unit": "lb",
+        "item": "broccoli",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "chicken thighs",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 2,
+        "unit": "tbsp",
+        "item": "olive oil",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 0.5,
+        "unit": "tsp",
+        "item": "garlic powder",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "salt",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
     ]
   },
   "m1a-tue-beef-pepper-stirfry": {
-    "nutrition": { "kcal": 0, "carb_g": 10, "fiber_g": 0, "protein_g": 0, "fat_g": 0 },
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 10,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
     "ingredients": [
-      { "qty": 1, "unit": "lb", "item": "steak", "section": "Meat & Poultry", "perishable": true, "staple": false },
-      { "qty": 2, "unit": "each", "item": "bell peppers", "section": "Produce", "perishable": true, "staple": false },
-      { "qty": 0.5, "unit": "each", "item": "onion", "section": "Produce", "perishable": true, "staple": false },
-      { "qty": 1, "unit": "tbsp", "item": "vegetable oil", "section": "Condiments & Spices", "perishable": false, "staple": true },
-      { "qty": 2, "unit": "tbsp", "item": "soy sauce", "section": "Condiments & Spices", "perishable": false, "staple": true },
-      { "qty": 1, "unit": "each", "item": "garlic clove", "section": "Produce", "perishable": true, "staple": false }
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "steak",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 2,
+        "unit": "each",
+        "item": "bell peppers",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "each",
+        "item": "onion",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "tbsp",
+        "item": "vegetable oil",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 2,
+        "unit": "tbsp",
+        "item": "soy sauce",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "garlic clove",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      }
     ]
   },
   "m1a-wed-shrimp-scampi-zoodles": {
-    "nutrition": { "kcal": 0, "carb_g": 8, "fiber_g": 0, "protein_g": 0, "fat_g": 0 },
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 8,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
     "ingredients": [
-      { "qty": 1, "unit": "lb", "item": "shrimp", "section": "Frozen", "perishable": true, "staple": false, "buy_as": "frozen shrimp", "note": "peeled" },
-      { "qty": 3, "unit": "each", "item": "zucchini", "section": "Produce", "perishable": true, "staple": false },
-      { "qty": 3, "unit": "tbsp", "item": "butter", "section": "Dairy & Eggs", "perishable": true, "staple": false },
-      { "qty": 3, "unit": "each", "item": "garlic cloves", "section": "Produce", "perishable": true, "staple": false },
-      { "qty": 1, "unit": "each", "item": "lemon", "section": "Produce", "perishable": true, "staple": false },
-      { "qty": null, "unit": "", "item": "parsley", "section": "Produce", "perishable": true, "staple": false, "optional": true }
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "shrimp",
+        "section": "Frozen",
+        "perishable": true,
+        "staple": false,
+        "buy_as": "frozen shrimp",
+        "note": "peeled"
+      },
+      {
+        "qty": 3,
+        "unit": "each",
+        "item": "zucchini",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 3,
+        "unit": "tbsp",
+        "item": "butter",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 3,
+        "unit": "each",
+        "item": "garlic cloves",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "lemon",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "parsley",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false,
+        "optional": true
+      }
     ]
   },
   "m1a-thu-pork-chops-cauli-mash": {
-    "nutrition": { "kcal": 0, "carb_g": 9, "fiber_g": 0, "protein_g": 0, "fat_g": 0 },
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 9,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
     "ingredients": [
-      { "qty": 1, "unit": "each", "item": "cauliflower", "section": "Produce", "perishable": true, "staple": false, "note": "1 head" },
-      { "qty": 2, "unit": "each", "item": "pork chops", "section": "Meat & Poultry", "perishable": true, "staple": false },
-      { "qty": 2, "unit": "tbsp", "item": "butter", "section": "Dairy & Eggs", "perishable": true, "staple": false },
-      { "qty": 0.25, "unit": "cup", "item": "heavy cream", "section": "Dairy & Eggs", "perishable": true, "staple": false },
-      { "qty": 1, "unit": "tbsp", "item": "olive oil", "section": "Condiments & Spices", "perishable": false, "staple": true },
-      { "qty": null, "unit": "to taste", "item": "salt", "section": "Condiments & Spices", "perishable": false, "staple": true }
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "cauliflower",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false,
+        "note": "1 head"
+      },
+      {
+        "qty": 2,
+        "unit": "each",
+        "item": "pork chops",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 2,
+        "unit": "tbsp",
+        "item": "butter",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.25,
+        "unit": "cup",
+        "item": "heavy cream",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "tbsp",
+        "item": "olive oil",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "salt",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
     ]
   },
   "m1a-fri-burger-bowls": {
-    "nutrition": { "kcal": 0, "carb_g": 6, "fiber_g": 0, "protein_g": 0, "fat_g": 0 },
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 6,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
     "ingredients": [
-      { "qty": 1, "unit": "lb", "item": "ground beef", "section": "Meat & Poultry", "perishable": true, "staple": false },
-      { "qty": 0.5, "unit": "cup", "item": "shredded cheddar", "section": "Dairy & Eggs", "perishable": true, "staple": false },
-      { "qty": 1, "unit": "each", "item": "romaine heart", "section": "Produce", "perishable": true, "staple": false },
-      { "qty": 0.25, "unit": "cup", "item": "cherry tomatoes", "section": "Produce", "perishable": true, "staple": false },
-      { "qty": null, "unit": "", "item": "sugar-free ketchup", "section": "Condiments & Spices", "perishable": false, "staple": false, "optional": true },
-      { "qty": null, "unit": "to taste", "item": "salt", "section": "Condiments & Spices", "perishable": false, "staple": true }
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "ground beef",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "cup",
+        "item": "shredded cheddar",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "romaine heart",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.25,
+        "unit": "cup",
+        "item": "cherry tomatoes",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "sugar-free ketchup",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": false,
+        "optional": true
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "salt",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
     ]
   },
   "m1b-bfast-chia-pudding": {
-    "nutrition": { "kcal": 0, "carb_g": 8, "fiber_g": 0, "protein_g": 0, "fat_g": 0 },
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 8,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
     "ingredients": [
-      { "qty": 6, "unit": "tbsp", "item": "chia seeds", "section": "Pantry & Dry Goods", "perishable": false, "staple": false },
-      { "qty": 1.5, "unit": "cup", "item": "almond milk", "section": "Dairy & Eggs", "perishable": true, "staple": false, "note": "unsweetened" },
-      { "qty": 0.5, "unit": "tsp", "item": "vanilla extract", "section": "Condiments & Spices", "perishable": false, "staple": true },
-      { "qty": null, "unit": "to taste", "item": "sweetener", "section": "Condiments & Spices", "perishable": false, "staple": true },
-      { "qty": 1.25, "unit": "cup", "item": "berries", "section": "Produce", "perishable": true, "staple": false }
+      {
+        "qty": 6,
+        "unit": "tbsp",
+        "item": "chia seeds",
+        "section": "Pantry & Dry Goods",
+        "perishable": false,
+        "staple": false
+      },
+      {
+        "qty": 1.5,
+        "unit": "cup",
+        "item": "almond milk",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false,
+        "note": "unsweetened"
+      },
+      {
+        "qty": 0.5,
+        "unit": "tsp",
+        "item": "vanilla extract",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "sweetener",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 1.25,
+        "unit": "cup",
+        "item": "berries",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      }
     ]
   },
   "m1b-lunch-shrimp-avocado-box": {
-    "nutrition": { "kcal": 0, "carb_g": 7, "fiber_g": 0, "protein_g": 0, "fat_g": 0 },
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 7,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
     "ingredients": [
-      { "qty": 1, "unit": "lb", "item": "shrimp", "section": "Frozen", "perishable": true, "staple": false, "buy_as": "frozen shrimp" },
-      { "qty": 1, "unit": "each", "item": "romaine heart", "section": "Produce", "perishable": true, "staple": false },
-      { "qty": 0.5, "unit": "cup", "item": "cherry tomatoes", "section": "Produce", "perishable": true, "staple": false },
-      { "qty": 4, "unit": "tbsp", "item": "salad dressing", "section": "Condiments & Spices", "perishable": false, "staple": false },
-      { "qty": 1, "unit": "each", "item": "lime", "section": "Produce", "perishable": true, "staple": false },
-      { "qty": 1, "unit": "each", "item": "avocado", "section": "Produce", "perishable": true, "staple": false },
-      { "qty": 1, "unit": "tbsp", "item": "olive oil", "section": "Condiments & Spices", "perishable": false, "staple": true }
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "shrimp",
+        "section": "Frozen",
+        "perishable": true,
+        "staple": false,
+        "buy_as": "frozen shrimp"
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "romaine heart",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "cup",
+        "item": "cherry tomatoes",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 4,
+        "unit": "tbsp",
+        "item": "salad dressing",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "lime",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "avocado",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "tbsp",
+        "item": "olive oil",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
     ]
   },
   "m1b-mon-chicken-fajita-bowls": {
-    "nutrition": { "kcal": 0, "carb_g": 12, "fiber_g": 0, "protein_g": 0, "fat_g": 0 },
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 12,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
     "ingredients": [
-      { "qty": 1, "unit": "lb", "item": "chicken", "section": "Meat & Poultry", "perishable": true, "staple": false },
-      { "qty": null, "unit": "", "item": "fajita seasoning", "section": "Condiments & Spices", "perishable": false, "staple": true },
-      { "qty": 2, "unit": "each", "item": "bell peppers", "section": "Produce", "perishable": true, "staple": false },
-      { "qty": 0.5, "unit": "each", "item": "onion", "section": "Produce", "perishable": true, "staple": false },
-      { "qty": 2, "unit": "each", "item": "cauliflower rice", "section": "Frozen", "perishable": true, "staple": false, "buy_as": "cauliflower rice", "note": "bags" },
-      { "qty": 0.5, "unit": "cup", "item": "shredded cheese", "section": "Dairy & Eggs", "perishable": true, "staple": false },
-      { "qty": 2, "unit": "tbsp", "item": "vegetable oil", "section": "Condiments & Spices", "perishable": false, "staple": true }
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "chicken",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "fajita seasoning",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 2,
+        "unit": "each",
+        "item": "bell peppers",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "each",
+        "item": "onion",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 2,
+        "unit": "each",
+        "item": "cauliflower rice",
+        "section": "Frozen",
+        "perishable": true,
+        "staple": false,
+        "buy_as": "cauliflower rice",
+        "note": "bags"
+      },
+      {
+        "qty": 0.5,
+        "unit": "cup",
+        "item": "shredded cheese",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 2,
+        "unit": "tbsp",
+        "item": "vegetable oil",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
     ]
   },
   "m1b-tue-meatballs-marinara-zoodles": {
-    "nutrition": { "kcal": 0, "carb_g": 11, "fiber_g": 0, "protein_g": 0, "fat_g": 0 },
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 11,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
     "ingredients": [
-      { "qty": 1.25, "unit": "lb", "item": "ground meat", "section": "Meat & Poultry", "perishable": true, "staple": false },
-      { "qty": 1, "unit": "each", "item": "egg", "section": "Dairy & Eggs", "perishable": true, "staple": false },
-      { "qty": 0.25, "unit": "cup", "item": "shredded mozzarella", "section": "Dairy & Eggs", "perishable": true, "staple": false },
-      { "qty": 1, "unit": "cup", "item": "marinara sauce", "section": "Canned Goods (Soups, vegetables, and pasta sauces, etc.)", "perishable": false, "staple": false, "buy_as": "marinara sauce" },
-      { "qty": 3, "unit": "each", "item": "zucchini", "section": "Produce", "perishable": true, "staple": false },
-      { "qty": null, "unit": "to taste", "item": "salt", "section": "Condiments & Spices", "perishable": false, "staple": true }
+      {
+        "qty": 1.25,
+        "unit": "lb",
+        "item": "ground meat",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "egg",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.25,
+        "unit": "cup",
+        "item": "shredded mozzarella",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "cup",
+        "item": "marinara sauce",
+        "section": "Canned Goods (Soups, vegetables, and pasta sauces, etc.)",
+        "perishable": false,
+        "staple": false,
+        "buy_as": "marinara sauce"
+      },
+      {
+        "qty": 3,
+        "unit": "each",
+        "item": "zucchini",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "salt",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
     ]
   },
   "m1b-wed-garlic-butter-shrimp-green-beans": {
-    "nutrition": { "kcal": 0, "carb_g": 7, "fiber_g": 0, "protein_g": 0, "fat_g": 0 },
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 7,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
     "ingredients": [
-      { "qty": 1, "unit": "lb", "item": "shrimp", "section": "Frozen", "perishable": true, "staple": false, "buy_as": "frozen shrimp" },
-      { "qty": 1.5, "unit": "lb", "item": "green beans", "section": "Produce", "perishable": true, "staple": false },
-      { "qty": 3, "unit": "tbsp", "item": "butter", "section": "Dairy & Eggs", "perishable": true, "staple": false },
-      { "qty": 3, "unit": "each", "item": "garlic cloves", "section": "Produce", "perishable": true, "staple": false }
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "shrimp",
+        "section": "Frozen",
+        "perishable": true,
+        "staple": false,
+        "buy_as": "frozen shrimp"
+      },
+      {
+        "qty": 1.5,
+        "unit": "lb",
+        "item": "green beans",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 3,
+        "unit": "tbsp",
+        "item": "butter",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 3,
+        "unit": "each",
+        "item": "garlic cloves",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      }
     ]
   },
   "m1b-thu-steak-roasted-asparagus": {
-    "nutrition": { "kcal": 0, "carb_g": 5, "fiber_g": 0, "protein_g": 0, "fat_g": 0 },
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 5,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
     "ingredients": [
-      { "qty": 1, "unit": "lb", "item": "steak", "section": "Meat & Poultry", "perishable": true, "staple": false },
-      { "qty": 1.5, "unit": "lb", "item": "asparagus", "section": "Produce", "perishable": true, "staple": false },
-      { "qty": 1, "unit": "tbsp", "item": "olive oil", "section": "Condiments & Spices", "perishable": false, "staple": true },
-      { "qty": null, "unit": "to taste", "item": "salt", "section": "Condiments & Spices", "perishable": false, "staple": true }
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "steak",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1.5,
+        "unit": "lb",
+        "item": "asparagus",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "tbsp",
+        "item": "olive oil",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "salt",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
     ]
   },
   "m1b-fri-sausage-cabbage-skillet": {
-    "nutrition": { "kcal": 0, "carb_g": 9, "fiber_g": 0, "protein_g": 0, "fat_g": 0 },
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 9,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
     "ingredients": [
-      { "qty": 14, "unit": "oz", "item": "smoked sausage", "section": "Meat & Poultry", "perishable": true, "staple": false },
-      { "qty": 0.5, "unit": "each", "item": "cabbage", "section": "Produce", "perishable": true, "staple": false, "note": "head" },
-      { "qty": 0.5, "unit": "each", "item": "onion", "section": "Produce", "perishable": true, "staple": false },
-      { "qty": 2, "unit": "tbsp", "item": "butter", "section": "Dairy & Eggs", "perishable": true, "staple": false }
+      {
+        "qty": 14,
+        "unit": "oz",
+        "item": "smoked sausage",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "each",
+        "item": "cabbage",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false,
+        "note": "head"
+      },
+      {
+        "qty": 0.5,
+        "unit": "each",
+        "item": "onion",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 2,
+        "unit": "tbsp",
+        "item": "butter",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      }
+    ]
+  },
+  "m2a-bfast-western-egg-muffins": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 3,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 0.5,
+        "unit": "each",
+        "item": "onion",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "bell pepper",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 10,
+        "unit": "each",
+        "item": "eggs",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.25,
+        "unit": "cup",
+        "item": "heavy cream",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 6,
+        "unit": "oz",
+        "item": "ham",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false,
+        "note": "diced"
+      },
+      {
+        "qty": 1,
+        "unit": "cup",
+        "item": "shredded cheddar",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "vegetable oil",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "salt",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "black pepper",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
+    ]
+  },
+  "m2a-lunch-chef-salad-jar": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 6,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 3,
+        "unit": "oz",
+        "item": "ham",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false,
+        "note": "1.5 oz per jar"
+      },
+      {
+        "qty": 3,
+        "unit": "oz",
+        "item": "turkey",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false,
+        "note": "1.5 oz per jar"
+      },
+      {
+        "qty": 2,
+        "unit": "each",
+        "item": "eggs",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false,
+        "note": "hard-boiled"
+      },
+      {
+        "qty": 2,
+        "unit": "oz",
+        "item": "cheddar",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false,
+        "note": "1 oz per jar"
+      },
+      {
+        "qty": 0.5,
+        "unit": "cup",
+        "item": "cherry tomatoes",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "romaine heart",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 4,
+        "unit": "tbsp",
+        "item": "ranch dressing",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": false
+      }
+    ]
+  },
+  "m2a-mon-salisbury-steak": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 9,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "ground beef",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 8,
+        "unit": "oz",
+        "item": "mushrooms",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false,
+        "note": "sliced"
+      },
+      {
+        "qty": 0.75,
+        "unit": "cup",
+        "item": "beef broth",
+        "section": "Canned Goods (Soups, vegetables, and pasta sauces, etc.)",
+        "perishable": false,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "green beans",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "tbsp",
+        "item": "vegetable oil",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 0.125,
+        "unit": "tsp",
+        "item": "xanthan gum",
+        "section": "Pantry & Dry Goods",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "salt",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
+    ]
+  },
+  "m2a-tue-tuscan-chicken-cauli-mash": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 10,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "cauliflower",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false,
+        "note": "1 head"
+      },
+      {
+        "qty": 1.5,
+        "unit": "lb",
+        "item": "chicken",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "cup",
+        "item": "heavy cream",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.25,
+        "unit": "cup",
+        "item": "sun-dried tomatoes",
+        "section": "Pantry & Dry Goods",
+        "perishable": false,
+        "staple": false,
+        "note": "chopped"
+      },
+      {
+        "qty": 3,
+        "unit": "oz",
+        "item": "spinach",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "butter",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "salt",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
+    ]
+  },
+  "m2a-wed-cajun-shrimp-sausage": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 8,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "shrimp",
+        "section": "Frozen",
+        "perishable": true,
+        "staple": false,
+        "buy_as": "frozen shrimp"
+      },
+      {
+        "qty": 12,
+        "unit": "oz",
+        "item": "smoked sausage",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "bell pepper",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "tbsp",
+        "item": "cajun seasoning",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
+    ]
+  },
+  "m2a-thu-smothered-pork-chops": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 6,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 2,
+        "unit": "each",
+        "item": "pork chops",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 8,
+        "unit": "oz",
+        "item": "mushrooms",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "garlic clove",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.25,
+        "unit": "cup",
+        "item": "heavy cream",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "xanthan gum",
+        "section": "Pantry & Dry Goods",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "salt",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
+    ]
+  },
+  "m2a-fri-philly-cheesesteak-bowls": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 9,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "bell pepper",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "each",
+        "item": "onion",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "shaved steak",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 4,
+        "unit": "oz",
+        "item": "provolone",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "tbsp",
+        "item": "vegetable oil",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
+    ]
+  },
+  "m2b-bfast-broccoli-cheddar-quiches": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 4,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 10,
+        "unit": "each",
+        "item": "eggs",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.25,
+        "unit": "cup",
+        "item": "heavy cream",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1.5,
+        "unit": "cup",
+        "item": "broccoli",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false,
+        "note": "finely chopped"
+      },
+      {
+        "qty": 1,
+        "unit": "cup",
+        "item": "shredded cheddar",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "salt",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
+    ]
+  },
+  "m2b-lunch-turkey-antipasto-box": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 6,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 3,
+        "unit": "oz",
+        "item": "turkey",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "oz",
+        "item": "cheddar",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "each",
+        "item": "cucumber",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.25,
+        "unit": "cup",
+        "item": "peppers",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 5,
+        "unit": "each",
+        "item": "olives",
+        "section": "Canned Goods (Soups, vegetables, and pasta sauces, etc.)",
+        "perishable": false,
+        "staple": false
+      },
+      {
+        "qty": 2,
+        "unit": "tbsp",
+        "item": "ranch dressing",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": false
+      }
+    ]
+  },
+  "m2b-mon-chicken-parmesan": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 11,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1.5,
+        "unit": "lb",
+        "item": "chicken",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "egg",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "cup",
+        "item": "almond flour",
+        "section": "Pantry & Dry Goods",
+        "perishable": false,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "marinara sauce",
+        "section": "Canned Goods (Soups, vegetables, and pasta sauces, etc.)",
+        "perishable": false,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "shredded mozzarella",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 2,
+        "unit": "tbsp",
+        "item": "vegetable oil",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
+    ]
+  },
+  "m2b-tue-beef-taco-skillet": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 8,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "ground beef",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "taco seasoning",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "romaine heart",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "cup",
+        "item": "shredded cheddar",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "cup",
+        "item": "cherry tomatoes",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      }
+    ]
+  },
+  "m2b-wed-blackened-shrimp-zucchini": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 7,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "shrimp",
+        "section": "Frozen",
+        "perishable": true,
+        "staple": false,
+        "buy_as": "frozen shrimp"
+      },
+      {
+        "qty": 2,
+        "unit": "each",
+        "item": "zucchini",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "blackening seasoning",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "butter",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      }
+    ]
+  },
+  "m2b-thu-egg-roll-in-a-bowl": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 9,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "ground pork",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "each",
+        "item": "cabbage",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false,
+        "note": "head, shredded"
+      },
+      {
+        "qty": 2,
+        "unit": "tbsp",
+        "item": "soy sauce",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 1,
+        "unit": "tsp",
+        "item": "sesame oil",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "garlic",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "ginger",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      }
+    ]
+  },
+  "m2b-fri-italian-sausage-peppers": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 10,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "italian sausage links",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 2,
+        "unit": "each",
+        "item": "bell peppers",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "each",
+        "item": "onion",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "garlic",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      }
+    ]
+  },
+  "m3a-bfast-egg-bites": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 3,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 10,
+        "unit": "each",
+        "item": "eggs",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.25,
+        "unit": "cup",
+        "item": "heavy cream",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 3,
+        "unit": "oz",
+        "item": "spinach",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.75,
+        "unit": "cup",
+        "item": "feta",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "salt",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
+    ]
+  },
+  "m3a-lunch-greek-chicken-salad-box": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 8,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 8,
+        "unit": "oz",
+        "item": "cooked chicken",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "romaine heart",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "cucumber",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "cup",
+        "item": "tomatoes",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 4,
+        "unit": "tbsp",
+        "item": "feta",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 10,
+        "unit": "each",
+        "item": "olives",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": false
+      },
+      {
+        "qty": 4,
+        "unit": "tbsp",
+        "item": "olive oil",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "vinegar",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
+    ]
+  },
+  "m3a-mon-greek-chicken-skewers": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 9,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1.5,
+        "unit": "lb",
+        "item": "chicken",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "lemon",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 2,
+        "unit": "each",
+        "item": "cucumbers",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "each",
+        "item": "red onion",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "dill",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "olive oil",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "dried oregano",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "vinegar",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "salt",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
+    ]
+  },
+  "m3a-tue-beef-kofta-tzatziki": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 7,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "ground beef",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "cup",
+        "item": "greek yogurt",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false,
+        "note": "for tzatziki"
+      },
+      {
+        "qty": 1.5,
+        "unit": "each",
+        "item": "cucumber",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false,
+        "note": "½ for tzatziki, rest for salad"
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "garlic clove",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "lemon",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "dill",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "parsley",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "cup",
+        "item": "tomatoes",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false,
+        "note": "for salad"
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "ground cumin",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "ground coriander",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "salt",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
+    ]
+  },
+  "m3a-wed-shrimp-saganaki": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 11,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "shrimp",
+        "section": "Frozen",
+        "perishable": true,
+        "staple": false,
+        "buy_as": "frozen shrimp"
+      },
+      {
+        "qty": 1,
+        "unit": "cup",
+        "item": "crushed tomatoes",
+        "section": "Canned Goods (Soups, vegetables, and pasta sauces, etc.)",
+        "perishable": false,
+        "staple": false,
+        "buy_as": "crushed tomatoes"
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "garlic clove",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "cup",
+        "item": "feta",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      }
+    ]
+  },
+  "m3a-thu-pork-souvlaki-bowl": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 10,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "pork",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "lemon",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "cucumber",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "cup",
+        "item": "tomatoes",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "cup",
+        "item": "feta",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 10,
+        "unit": "each",
+        "item": "olives",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "dried oregano",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "olive oil",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "salt",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
+    ]
+  },
+  "m3a-fri-sausage-peppers-sheet-pan": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 10,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "italian sausage",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 2,
+        "unit": "each",
+        "item": "bell peppers",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "each",
+        "item": "onion",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "olive oil",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
+    ]
+  },
+  "m3b-bfast-yogurt-walnut-parfait": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 9,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 3.75,
+        "unit": "cup",
+        "item": "full-fat greek yogurt",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false,
+        "note": "¾ cup per jar × 5"
+      },
+      {
+        "qty": 10,
+        "unit": "tbsp",
+        "item": "walnuts",
+        "section": "Pantry & Dry Goods",
+        "perishable": false,
+        "staple": false,
+        "note": "2 tbsp per jar × 5"
+      },
+      {
+        "qty": 5,
+        "unit": "tsp",
+        "item": "flax",
+        "section": "Pantry & Dry Goods",
+        "perishable": false,
+        "staple": false,
+        "note": "1 tsp per jar × 5"
+      },
+      {
+        "qty": 1.25,
+        "unit": "cup",
+        "item": "berries",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false,
+        "note": "¼ cup per jar × 5"
+      }
+    ]
+  },
+  "m3b-lunch-caprese-chicken-box": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 6,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 8,
+        "unit": "oz",
+        "item": "cooked chicken",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 4,
+        "unit": "oz",
+        "item": "fresh mozzarella",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "cup",
+        "item": "tomatoes",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "basil",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 2,
+        "unit": "tbsp",
+        "item": "balsamic vinegar",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "olive oil",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
+    ]
+  },
+  "m3b-mon-pesto-chicken-zucchini": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 7,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1.5,
+        "unit": "lb",
+        "item": "chicken",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.25,
+        "unit": "cup",
+        "item": "pesto",
+        "section": "Condiments & Spices",
+        "perishable": true,
+        "staple": false,
+        "buy_as": "pesto"
+      },
+      {
+        "qty": 2,
+        "unit": "each",
+        "item": "zucchini",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "parmesan",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      }
+    ]
+  },
+  "m3b-tue-beef-zucchini-bake": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 11,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "ground beef",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "cup",
+        "item": "marinara sauce",
+        "section": "Canned Goods (Soups, vegetables, and pasta sauces, etc.)",
+        "perishable": false,
+        "staple": false,
+        "buy_as": "marinara sauce"
+      },
+      {
+        "qty": 2,
+        "unit": "each",
+        "item": "zucchini",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "cup",
+        "item": "shredded mozzarella",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "ground cinnamon",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
+    ]
+  },
+  "m3b-wed-lemon-garlic-shrimp-cauli-rice": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 8,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "shrimp",
+        "section": "Frozen",
+        "perishable": true,
+        "staple": false,
+        "buy_as": "frozen shrimp"
+      },
+      {
+        "qty": 2,
+        "unit": "each",
+        "item": "cauliflower rice",
+        "section": "Frozen",
+        "perishable": true,
+        "staple": false,
+        "buy_as": "cauliflower rice",
+        "note": "bags"
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "butter",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "garlic",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "lemon",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "parsley",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "tbsp",
+        "item": "olive oil",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
+    ]
+  },
+  "m3b-thu-pork-tenderloin-green-beans": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 8,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "pork tenderloin",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "green beans",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "cup",
+        "item": "tomatoes",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "olive oil",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "salt",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
+    ]
+  },
+  "m3b-fri-turkey-meatballs-spinach": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 10,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "ground turkey",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "egg",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "parmesan",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "cup",
+        "item": "marinara sauce",
+        "section": "Canned Goods (Soups, vegetables, and pasta sauces, etc.)",
+        "perishable": false,
+        "staple": false,
+        "buy_as": "marinara sauce"
+      },
+      {
+        "qty": 5,
+        "unit": "oz",
+        "item": "spinach",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "salt",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
+    ]
+  },
+  "m4a-bfast-chorizo-egg-bowls": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 4,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 8,
+        "unit": "oz",
+        "item": "chorizo",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "bell pepper",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 8,
+        "unit": "each",
+        "item": "eggs",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.25,
+        "unit": "cup",
+        "item": "shredded cheddar",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      }
+    ]
+  },
+  "m4a-lunch-beef-taco-salad-jar": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 9,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "ground beef",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "taco seasoning",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 4,
+        "unit": "tbsp",
+        "item": "salsa",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": false
+      },
+      {
+        "qty": 2,
+        "unit": "oz",
+        "item": "shredded cheddar",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "romaine heart",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "avocado",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      }
+    ]
+  },
+  "m4a-mon-chicken-tikka-cauli-rice": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 12,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1.5,
+        "unit": "lb",
+        "item": "chicken",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "cup",
+        "item": "greek yogurt",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "tbsp",
+        "item": "garam masala",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 1,
+        "unit": "tsp",
+        "item": "cumin",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 1,
+        "unit": "tsp",
+        "item": "paprika",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 1,
+        "unit": "tbsp",
+        "item": "lemon juice",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 2,
+        "unit": "each",
+        "item": "garlic cloves",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "ginger",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false,
+        "note": "knob, grated"
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "cauliflower rice",
+        "section": "Frozen",
+        "perishable": true,
+        "staple": false,
+        "buy_as": "cauliflower rice",
+        "note": "bag"
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "salt",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
+    ]
+  },
+  "m4a-tue-korean-beef-bowls": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 12,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "steak",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 2,
+        "unit": "tbsp",
+        "item": "soy sauce",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 1,
+        "unit": "tsp",
+        "item": "sesame oil",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 2,
+        "unit": "each",
+        "item": "garlic cloves",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "ginger",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false,
+        "note": "knob, grated"
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "sweetener",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "cauliflower rice",
+        "section": "Frozen",
+        "perishable": true,
+        "staple": false,
+        "buy_as": "cauliflower rice",
+        "note": "bag"
+      }
+    ]
+  },
+  "m4a-wed-coconut-curry-shrimp": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 11,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "shrimp",
+        "section": "Frozen",
+        "perishable": true,
+        "staple": false,
+        "buy_as": "frozen shrimp"
+      },
+      {
+        "qty": 1,
+        "unit": "cup",
+        "item": "coconut milk",
+        "section": "Canned Goods (Soups, vegetables, and pasta sauces, etc.)",
+        "perishable": false,
+        "staple": false,
+        "buy_as": "canned coconut milk"
+      },
+      {
+        "qty": 1,
+        "unit": "tbsp",
+        "item": "curry powder",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "cauliflower rice",
+        "section": "Frozen",
+        "perishable": true,
+        "staple": false,
+        "buy_as": "cauliflower rice",
+        "note": "bag"
+      }
+    ]
+  },
+  "m4a-thu-carnitas-lettuce-tacos": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 6,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1.5,
+        "unit": "lb",
+        "item": "pork shoulder",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "tsp",
+        "item": "cumin",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "lime",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 2,
+        "unit": "each",
+        "item": "garlic cloves",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "butter lettuce",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false,
+        "note": "head"
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "cilantro",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "salt",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
+    ]
+  },
+  "m4a-fri-turkey-larb-wraps": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 7,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "ground turkey",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "lime",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "tbsp",
+        "item": "soy sauce",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "chili flakes",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 0.5,
+        "unit": "each",
+        "item": "onion",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "cilantro",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "butter lettuce",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false,
+        "note": "head"
+      }
+    ]
+  },
+  "m4b-bfast-choc-pb-chia-cups": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 7,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 7.5,
+        "unit": "tbsp",
+        "item": "chia seeds",
+        "section": "Pantry & Dry Goods",
+        "perishable": false,
+        "staple": false,
+        "note": "1.5 tbsp per cup × 5"
+      },
+      {
+        "qty": 1.67,
+        "unit": "cup",
+        "item": "almond milk",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false,
+        "note": "unsweetened; ⅓ cup per cup × 5"
+      },
+      {
+        "qty": 5,
+        "unit": "tsp",
+        "item": "cocoa powder",
+        "section": "Pantry & Dry Goods",
+        "perishable": false,
+        "staple": false,
+        "note": "1 tsp per cup × 5"
+      },
+      {
+        "qty": 5,
+        "unit": "tsp",
+        "item": "peanut butter",
+        "section": "Pantry & Dry Goods",
+        "perishable": false,
+        "staple": false,
+        "note": "1 tsp per cup × 5"
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "sweetener",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
+    ]
+  },
+  "m4b-lunch-buffalo-chicken-box": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 6,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 8,
+        "unit": "oz",
+        "item": "cooked chicken",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false,
+        "note": "shredded"
+      },
+      {
+        "qty": 2,
+        "unit": "tbsp",
+        "item": "buffalo sauce",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "romaine heart",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 2,
+        "unit": "each",
+        "item": "celery stalks",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 2,
+        "unit": "tbsp",
+        "item": "blue cheese",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "ranch dressing",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": false
+      }
+    ]
+  },
+  "m4b-mon-cashew-chicken-stirfry": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 12,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "chicken",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 12,
+        "unit": "oz",
+        "item": "broccoli",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 2,
+        "unit": "tbsp",
+        "item": "soy sauce",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 1,
+        "unit": "tsp",
+        "item": "sesame oil",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 2,
+        "unit": "each",
+        "item": "garlic cloves",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.25,
+        "unit": "cup",
+        "item": "cashews",
+        "section": "Pantry & Dry Goods",
+        "perishable": false,
+        "staple": false
+      }
+    ]
+  },
+  "m4b-tue-mongolian-beef-broccoli": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 12,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "steak",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 12,
+        "unit": "oz",
+        "item": "broccoli",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 2,
+        "unit": "tbsp",
+        "item": "soy sauce",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "ginger",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false,
+        "note": "knob, grated"
+      },
+      {
+        "qty": 2,
+        "unit": "each",
+        "item": "garlic cloves",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "sweetener",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      }
+    ]
+  },
+  "m4b-wed-shrimp-fajita-bowls": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 11,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "shrimp",
+        "section": "Frozen",
+        "perishable": true,
+        "staple": false,
+        "buy_as": "frozen shrimp"
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "fajita seasoning",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 2,
+        "unit": "each",
+        "item": "bell peppers",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "each",
+        "item": "onion",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "salad greens",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false,
+        "optional": true
+      }
+    ]
+  },
+  "m4b-thu-thai-pork-lettuce-cups": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 8,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "ground pork",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "lime",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "tbsp",
+        "item": "soy sauce",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": null,
+        "unit": "to taste",
+        "item": "chili flakes",
+        "section": "Condiments & Spices",
+        "perishable": false,
+        "staple": true
+      },
+      {
+        "qty": 2,
+        "unit": "each",
+        "item": "garlic cloves",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": null,
+        "unit": "",
+        "item": "cilantro",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 1,
+        "unit": "each",
+        "item": "butter lettuce",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false,
+        "note": "head"
+      }
+    ]
+  },
+  "m4b-fri-italian-sausage-stuffed-peppers": {
+    "nutrition": {
+      "kcal": 0,
+      "carb_g": 11,
+      "fiber_g": 0,
+      "protein_g": 0,
+      "fat_g": 0
+    },
+    "ingredients": [
+      {
+        "qty": 1,
+        "unit": "lb",
+        "item": "italian sausage",
+        "section": "Meat & Poultry",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 3,
+        "unit": "each",
+        "item": "bell peppers",
+        "section": "Produce",
+        "perishable": true,
+        "staple": false
+      },
+      {
+        "qty": 0.5,
+        "unit": "cup",
+        "item": "marinara sauce",
+        "section": "Canned Goods (Soups, vegetables, and pasta sauces, etc.)",
+        "perishable": false,
+        "staple": false,
+        "buy_as": "marinara sauce"
+      },
+      {
+        "qty": 0.5,
+        "unit": "cup",
+        "item": "shredded mozzarella",
+        "section": "Dairy & Eggs",
+        "perishable": true,
+        "staple": false
+      }
     ]
   }
 }
