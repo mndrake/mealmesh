@@ -17,7 +17,9 @@ import { SundayOrchestrator } from "./SundayOrchestrator";
 /** The Coach Mode home (behind VITE_COACH_MODE). Pick a weekly menu → cook each meal with the
  *  step-aware coach, or run the Sunday batch prep. The Month-1 rotation is the selectable
  *  target (PRD §6). */
-export function CoachView({ onOpenPlan }: { onOpenPlan?: () => void } = {}) {
+export function CoachView(
+  { onOpenPlan, onOpenShopping }: { onOpenPlan?: () => void; onOpenShopping?: () => void } = {}
+) {
   const completed = useStore((s) => cookModeCompletionCount(s.cookLog));
   const [menuId, setMenuId] = useState<string | null>(null);
   const [cooking, setCooking] = useState<{ id: string; title: string } | null>(null);
@@ -67,6 +69,10 @@ export function CoachView({ onOpenPlan }: { onOpenPlan?: () => void } = {}) {
           onAddToPlan={() => {
             actions.setActivePlan(menuToPlan(menu));
             onOpenPlan?.();
+          }}
+          onBuildShopping={() => {
+            actions.setActivePlan(menuToPlan(menu));
+            onOpenShopping?.();
           }}
         />
       )}
@@ -124,12 +130,14 @@ export function MenuDetail({
   onCook,
   onPrep,
   onAddToPlan,
+  onBuildShopping,
 }: {
   menu: WeeklyMenu;
   onBack: () => void;
   onCook: (id: string) => void;
   onPrep: () => void;
   onAddToPlan?: () => void;
+  onBuildShopping?: () => void;
 }) {
   const breakfast = getCoachRecipe(menu.breakfast_id);
   const lunch = getCoachRecipe(menu.lunch_id);
@@ -143,18 +151,36 @@ export function MenuDetail({
       <h3>Month {menu.month} · {menu.label}</h3>
       {menu.note && <p className="muted">{menu.note}</p>}
 
-      <div className="row" style={{ gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
+      {/* Ordered flow so planning reads front-to-back: plan → shop → prep → cook (below). */}
+      <ol className="coach-flow">
         {onAddToPlan && (
-          <button className="btn" onClick={onAddToPlan}>
-            ➕ Add this week to my Plan
-          </button>
+          <li>
+            <button className="btn" onClick={onAddToPlan}>
+              ➕ Add this week to my Plan
+            </button>
+            <span className="muted">Fills your 7-day board with these meals.</span>
+          </li>
+        )}
+        {onBuildShopping && (
+          <li>
+            <button className="btn secondary" onClick={onBuildShopping}>
+              🛒 Build the shopping list
+            </button>
+            <span className="muted">Aisle-grouped and scaled — then send to Mariano's.</span>
+          </li>
         )}
         {hasPrep && (
-          <button className="btn secondary" onClick={onPrep}>
-            📋 Run the Sunday prep plan
-          </button>
+          <li>
+            <button className="btn secondary" onClick={onPrep}>
+              📋 Run the Sunday prep plan
+            </button>
+            <span className="muted">A timed, parallel batch-cook to get ahead.</span>
+          </li>
         )}
-      </div>
+      </ol>
+      <p className="muted" style={{ margin: "0 0 12px" }}>
+        …then cook each meal below with step-by-step guidance.
+      </p>
 
       <div className="coach-meals">
         <RecipeRow label="☀️ Breakfast" recipe={breakfast} onCook={onCook} />

@@ -28,7 +28,11 @@ export default function App() {
       : new URLSearchParams(window.location.search).get("kroger")
   );
   const krogerConnected = krogerReturn === "connected";
-  const [tab, setTab] = useState<Tab>(krogerConnected ? "shopping" : "browse");
+  // Menu-first front door: when Coach is on, land on "pick a week" rather than Browse, so the
+  // family-planning flow (pick week → shop → prep → cook) starts where you enter.
+  const [tab, setTab] = useState<Tab>(
+    krogerConnected ? "shopping" : coachEnabled() ? "coach" : "browse"
+  );
   const [addTarget, setAddTarget] = useState<Recipe | null>(null);
   const [showHelp, setShowHelp] = useState(false);
   const plan = useStore((s) => s.activePlan);
@@ -75,17 +79,17 @@ export default function App() {
           <div className="brand">
             <span className="logo">◍</span> MealMesh
           </div>
+          {/* Ordered to match the planning flow: pick a week (Coach) → Plan → Shopping → cook
+              (History), with Browse/Monthly as secondary discovery. */}
           <nav className="nav">
-            <button className={tab === "browse" ? "active" : ""} onClick={() => setTab("browse")}>
-              Browse
-              {favoritesCount > 0 && <span className="badge">★{favoritesCount}</span>}
-            </button>
+            {showCoach && (
+              <button className={tab === "coach" ? "active" : ""} onClick={() => setTab("coach")}>
+                Coach 🍳
+              </button>
+            )}
             <button className={tab === "plan" ? "active" : ""} onClick={() => setTab("plan")}>
               Plan
               {plannedCount > 0 && <span className="badge">{plannedCount}</span>}
-            </button>
-            <button className={tab === "monthly" ? "active" : ""} onClick={() => setTab("monthly")}>
-              Monthly
             </button>
             <button
               className={tab === "shopping" ? "active" : ""}
@@ -100,11 +104,13 @@ export default function App() {
               History
               {cookedCount > 0 && <span className="badge">{cookedCount}</span>}
             </button>
-            {showCoach && (
-              <button className={tab === "coach" ? "active" : ""} onClick={() => setTab("coach")}>
-                Coach 🍳
-              </button>
-            )}
+            <button className={tab === "browse" ? "active" : ""} onClick={() => setTab("browse")}>
+              Browse
+              {favoritesCount > 0 && <span className="badge">★{favoritesCount}</span>}
+            </button>
+            <button className={tab === "monthly" ? "active" : ""} onClick={() => setTab("monthly")}>
+              Monthly
+            </button>
           </nav>
           <div className="spacer" />
           <div className="row" style={{ gap: 6 }}>
@@ -157,7 +163,12 @@ export default function App() {
         {tab === "monthly" && <MonthlyPlanView />}
         {tab === "shopping" && <ShoppingView openSend={krogerConnected} />}
         {tab === "history" && <HistoryView />}
-        {tab === "coach" && showCoach && <CoachView onOpenPlan={() => setTab("plan")} />}
+        {tab === "coach" && showCoach && (
+          <CoachView
+            onOpenPlan={() => setTab("plan")}
+            onOpenShopping={() => setTab("shopping")}
+          />
+        )}
       </main>
 
       {addTarget && (
