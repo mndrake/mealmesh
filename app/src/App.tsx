@@ -1,20 +1,23 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import type { Recipe } from "./lib/types";
 import { useAllRecipes, useAllRecipesById } from "./lib/allRecipes";
 import { useStore, actions } from "./lib/store";
 import { cookedMeals } from "./lib/planner";
-import { BrowseView } from "./components/BrowseView";
-import { PlannerView } from "./components/PlannerView";
-import { MonthlyPlanView } from "./components/MonthlyPlanView";
-import { ShoppingView } from "./components/ShoppingView";
-import { HistoryView } from "./components/HistoryView";
 import { AddToPlanModal } from "./components/AddToPlanModal";
 import { HelpModal } from "./components/HelpModal";
 import { CloudStatus } from "./components/CloudStatus";
-import { CoachView } from "./components/coach/CoachView";
 import { coachEnabled } from "./lib/coach/flag";
 import { exportAllState } from "./lib/exporter";
 import { useAuth } from "./lib/auth";
+
+// Tab views are code-split into their own chunks so the initial bundle stays small — the
+// heavy ones (Coach's bundled menu data, the Monthly planner, Shopping) load on first visit.
+const BrowseView = lazy(() => import("./components/BrowseView").then((m) => ({ default: m.BrowseView })));
+const PlannerView = lazy(() => import("./components/PlannerView").then((m) => ({ default: m.PlannerView })));
+const MonthlyPlanView = lazy(() => import("./components/MonthlyPlanView").then((m) => ({ default: m.MonthlyPlanView })));
+const ShoppingView = lazy(() => import("./components/ShoppingView").then((m) => ({ default: m.ShoppingView })));
+const HistoryView = lazy(() => import("./components/HistoryView").then((m) => ({ default: m.HistoryView })));
+const CoachView = lazy(() => import("./components/coach/CoachView").then((m) => ({ default: m.CoachView })));
 
 type Tab = "browse" | "plan" | "monthly" | "shopping" | "history" | "coach";
 type Slot = "breakfast" | "lunch" | "dinner" | "snack";
@@ -28,7 +31,11 @@ export default function App() {
       : new URLSearchParams(window.location.search).get("kroger")
   );
   const krogerConnected = krogerReturn === "connected";
-  const [tab, setTab] = useState<Tab>(krogerConnected ? "shopping" : "browse");
+  // Menu-first front door: when Coach is on, land on "pick a week" rather than Browse, so the
+  // family-planning flow (pick week → shop → prep → cook) starts where you enter.
+  const [tab, setTab] = useState<Tab>(
+    krogerConnected ? "shopping" : coachEnabled() ? "coach" : "browse"
+  );
   const [addTarget, setAddTarget] = useState<Recipe | null>(null);
   const [showHelp, setShowHelp] = useState(false);
   const plan = useStore((s) => s.activePlan);
@@ -75,17 +82,17 @@ export default function App() {
           <div className="brand">
             <span className="logo">◍</span> MealMesh
           </div>
+          {/* Ordered to match the planning flow: pick a week (Coach) → Plan → Shopping → cook
+              (History), with Browse/Monthly as secondary discovery. */}
           <nav className="nav">
-            <button className={tab === "browse" ? "active" : ""} onClick={() => setTab("browse")}>
-              Browse
-              {favoritesCount > 0 && <span className="badge">★{favoritesCount}</span>}
-            </button>
+            {showCoach && (
+              <button className={tab === "coach" ? "active" : ""} onClick={() => setTab("coach")}>
+                Coach 🍳
+              </button>
+            )}
             <button className={tab === "plan" ? "active" : ""} onClick={() => setTab("plan")}>
               Plan
               {plannedCount > 0 && <span className="badge">{plannedCount}</span>}
-            </button>
-            <button className={tab === "monthly" ? "active" : ""} onClick={() => setTab("monthly")}>
-              Monthly
             </button>
             <button
               className={tab === "shopping" ? "active" : ""}
@@ -100,11 +107,13 @@ export default function App() {
               History
               {cookedCount > 0 && <span className="badge">{cookedCount}</span>}
             </button>
-            {showCoach && (
-              <button className={tab === "coach" ? "active" : ""} onClick={() => setTab("coach")}>
-                Coach 🍳
-              </button>
-            )}
+            <button className={tab === "browse" ? "active" : ""} onClick={() => setTab("browse")}>
+              Browse
+              {favoritesCount > 0 && <span className="badge">★{favoritesCount}</span>}
+            </button>
+            <button className={tab === "monthly" ? "active" : ""} onClick={() => setTab("monthly")}>
+              Monthly
+            </button>
           </nav>
           <div className="spacer" />
           <div className="row" style={{ gap: 6 }}>
@@ -152,12 +161,25 @@ export default function App() {
         <div className="container" style={{ paddingBottom: 0 }}>
           <CloudStatus />
         </div>
-        {tab === "browse" && <BrowseView onAddToPlan={setAddTarget} />}
-        {tab === "plan" && <PlannerView />}
-        {tab === "monthly" && <MonthlyPlanView />}
-        {tab === "shopping" && <ShoppingView openSend={krogerConnected} />}
-        {tab === "history" && <HistoryView />}
-        {tab === "coach" && showCoach && <CoachView onOpenPlan={() => setTab("plan")} />}
+        <Suspense
+          fallback={
+            <div className="container">
+              <p className="muted">Loading…</p>
+            </div>
+          }
+        >
+          {tab === "browse" && <BrowseView onAddToPlan={setAddTarget} />}
+          {tab === "plan" && <PlannerView />}
+          {tab === "monthly" && <MonthlyPlanView />}
+          {tab === "shopping" && <ShoppingView openSend={krogerConnected} />}
+          {tab === "history" && <HistoryView />}
+          {tab === "coach" && showCoach && (
+            <CoachView
+              onOpenPlan={() => setTab("plan")}
+              onOpenShopping={() => setTab("shopping")}
+            />
+          )}
+        </Suspense>
       </main>
 
       {addTarget && (

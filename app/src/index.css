@@ -1702,3 +1702,16 @@ a {
   justify-content: center;
   font-size: 1.2rem;
 }
+
+/* --- Coach menu "next step" flow (plan → shop → prep) --- */
+.coach-flow {
+  list-style: decimal;
+  margin: 4px 0 8px;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.coach-flow li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.coach-flow li::marker { color: var(--accent); font-weight: 700; }
+.coach-flow li .muted { font-size: 0.82rem; }

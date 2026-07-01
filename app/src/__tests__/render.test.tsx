@@ -72,11 +72,14 @@ describe("render smoke", () => {
         onCook={() => {}}
         onPrep={() => {}}
         onAddToPlan={() => {}}
+        onBuildShopping={() => {}}
       />
     );
     expect(html).toContain("Sheet-Pan Chicken &amp; Broccoli");
-    expect(html).toContain("Run the Sunday prep plan");
+    // the ordered plan → shop → prep flow
     expect(html).toContain("Add this week to my Plan");
+    expect(html).toContain("Build the shopping list");
+    expect(html).toContain("Run the Sunday prep plan");
     expect(html).toContain("net"); // per-recipe net-carb chips
   });
 
