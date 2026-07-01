@@ -1715,3 +1715,20 @@ a {
 .coach-flow li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .coach-flow li::marker { color: var(--accent); font-weight: 700; }
 .coach-flow li .muted { font-size: 0.82rem; }
+
+/* --- Shopping: "cooking for N" family-size control --- */
+.household-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+.household-control input {
+  width: 46px;
+  padding: 3px 5px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  text-align: center;
+  font: inherit;
+}
