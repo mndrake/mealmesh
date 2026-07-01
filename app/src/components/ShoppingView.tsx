@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import type { Section, ItemLocation, Recipe } from "../lib/types";
 import { useAllRecipesById } from "../lib/allRecipes";
 import { cookedMeals } from "../lib/planner";
+import { scaledShoppingMeals } from "../lib/scaling";
+import { useHouseholdSize, MAX_HOUSEHOLD } from "../lib/household";
 import { buildList, buildSources, SECTION_LABELS } from "../lib/shopping";
 import { applyMerges, mergedFrom } from "../lib/listMerge";
 import { normalizeForShopping } from "../lib/normalize";
@@ -63,13 +65,18 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
   const [refreshing, setRefreshing] = useState(false);
   const [advising, setAdvising] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [household, setHousehold] = useHouseholdSize(); // 0 = "as written" (recipe servings)
   const getQty = (name: string) => locMap.get(name)?.quantity ?? 1;
 
   // Build the list, "promoting" staples the user marked "need to buy" into normal items so
   // they flow into sections/aisle order/cost/cart. allStaplesSet = every staple in the plan
   // (needed or not) so the UI can show the right toggle on each.
   const { list, allStaplesSet, mealCount, sources, mergedFromMap } = useMemo(() => {
-    const base = normalizeForShopping(cookedMeals(plan, recipesById));
+    // "As written" (household 0) keeps the parity-locked list; a set household size scales
+    // every meal to that many servings (batch meals count once — scaledShoppingMeals handles it).
+    const rawMeals =
+      household > 0 ? scaledShoppingMeals(plan, recipesById, household) : cookedMeals(plan, recipesById);
+    const base = normalizeForShopping(rawMeals);
     // Fold combined items together (built-in synonyms + manual merges) before aggregating, so
     // quantities sum under the canonical name. buildList stays untouched (parity-safe).
     const meals = applyMerges(base, merges);
@@ -97,7 +104,7 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
       sources: buildSources(meals),
       mergedFromMap: mergedFrom(base, merges),
     };
-  }, [plan, recipesById, neededSet, merges, amountOverrides]);
+  }, [plan, recipesById, neededSet, merges, amountOverrides, household]);
 
   // Items with their expected aisle, so the matcher can prefer same-section products.
   const matchItems = () =>
@@ -411,6 +418,22 @@ export function ShoppingView({ openSend = false }: { openSend?: boolean }) {
             ~{formatMoney(cost.total)} est.
           </span>
         )}
+        <label
+          className="household-control"
+          title="Scale the whole list to feed this many people. Leave blank to use the recipes' written amounts."
+        >
+          <span aria-hidden>👪</span> Cooking for{" "}
+          <input
+            type="number"
+            min={1}
+            max={MAX_HOUSEHOLD}
+            value={household || ""}
+            placeholder="—"
+            aria-label="Number of people to shop for"
+            onChange={(e) => setHousehold(Number(e.target.value) || 0)}
+          />
+          <span className="muted">{household > 0 ? "people" : "(as written)"}</span>
+        </label>
         <div className="spacer" />
         <div className="seg" role="group" aria-label="View">
           {viewBtn("list", "List", "Grouped by store section")}

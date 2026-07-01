@@ -1715,3 +1715,36 @@ a {
 .coach-flow li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .coach-flow li::marker { color: var(--accent); font-weight: 700; }
 .coach-flow li .muted { font-size: 0.82rem; }
+
+/* --- Shopping: "cooking for N" family-size control --- */
+.household-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+.household-control input {
+  width: 46px;
+  padding: 3px 5px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  text-align: center;
+  font: inherit;
+}
+
+/* --- Coach "Tonight" quick action --- */
+.coach-tonight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.coach-tonight-main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.coach-tonight-label { font-size: 0.78rem; color: var(--accent-ink); font-weight: 600; }
+.coach-tonight-title { font-size: 1.15rem; font-weight: 700; }
+.coach-tonight-next { font-size: 0.8rem; }
